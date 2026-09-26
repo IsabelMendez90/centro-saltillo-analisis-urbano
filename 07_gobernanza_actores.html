@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>07 · Gobernanza · Mapa de actores · Centro de Saltillo</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--navy:#0f3557;--blue:#2f6690;--ink:#17212b;--muted:#5b6b7b;--line:#e1e7ed}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;color:var(--ink);background:#f5f7f9}
+#app{height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 470px;overflow:hidden}
+#mapwrap{position:relative;min-width:0}#map{position:absolute;inset:0;background:#eef1f4}
+#sidebar{height:100vh;overflow-y:auto;background:#fff;border-left:1px solid var(--line);padding:20px 20px 40px}
+.site-home{position:fixed;z-index:1200;top:12px;right:486px;background:var(--navy);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font:800 14px Arial,sans-serif;letter-spacing:.05em;text-transform:uppercase;box-shadow:0 3px 14px #0004}
+.map-tools{position:absolute;z-index:900;top:12px;left:12px;display:flex;gap:6px}
+.map-tools select,.map-tools button{font:600 12px Arial,sans-serif;padding:8px 10px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;cursor:pointer}
+.map-legend{position:absolute;z-index:900;right:12px;bottom:22px;width:240px;background:#fffffff2;border:1px solid #dde3e8;border-radius:10px;box-shadow:0 2px 12px #0002;padding:9px 11px;font-size:11px}
+.lg-title{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--navy);margin:8px 0 4px}.lg-title:first-child{margin-top:0}
+.lg-row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.kicker{font-size:10px;letter-spacing:.12em;color:var(--blue);font-weight:800}
+h1{font-size:22px;margin:4px 0 8px;color:var(--navy)}
+.lead{font-size:12.5px;line-height:1.55;color:#34495e;margin:0 0 10px}
+.warn{font-size:11px;line-height:1.5;background:#fff8ec;border-left:4px solid #c77d1a;border-radius:7px;padding:8px 10px;color:#6b4a12}
+h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy);margin:22px 0 8px}
+.filters{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.filters button{display:flex;align-items:center;gap:6px;font:700 11px Arial,sans-serif;padding:6px 9px;border-radius:999px;border:1px solid #cfd8e0;background:#fff;color:var(--ink);cursor:pointer}
+.filters button.off{opacity:.4}
+.mk{display:inline-flex;align-items:center;justify-content:center;color:#fff;font:800 10px Arial,sans-serif;border:2px solid #fff;box-shadow:0 0 0 1px #0004;flex:0 0 auto}
+.mk.circle{border-radius:50%}.mk.square{border-radius:3px}.mk.diamond{border-radius:3px;transform:rotate(45deg)}.mk.diamond span{transform:rotate(-45deg)}.mk.round{border-radius:7px}
+#matrix{width:100%;height:auto;display:block}
+#matrix .q{font:700 10px Arial,sans-serif;fill:#8795a3}
+#matrix .ax{font:600 10.5px Arial,sans-serif;fill:#5b6b7b}
+#matrix .dot{cursor:pointer}
+#matrix .dot text{font:800 9.5px Arial,sans-serif;fill:#fff;pointer-events:none}
+#matrix .dot.dim{opacity:.18}
+#matrix .dot.hi circle,#matrix .dot.hi rect{stroke:#111;stroke-width:2.5}
+.tip{position:fixed;z-index:3000;pointer-events:none;background:#17212b;color:#fff;font:12px/1.4 Arial,sans-serif;padding:7px 9px;border-radius:7px;max-width:260px;display:none}
+.actor{display:grid;grid-template-columns:auto 1fr;gap:10px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:7px;cursor:pointer}
+.actor:hover,.actor.hi{border-color:var(--navy);background:#f8fbff}
+.actor.hidden{display:none}
+.actor h3{font-size:12.5px;margin:0 0 3px;color:var(--ink)}
+.meta{font-size:11px;color:var(--muted);line-height:1.45}
+.meta b{color:var(--ink)}
+.chip{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;color:#fff;margin:2px 2px 0 0}
+.stag{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;background:#f0f4f8;color:#34495e;margin-right:4px}
+.nosede{color:#9a6b12}
+.leaflet-popup-content{font-size:12px;line-height:1.45}
+.pop h4{margin:0 0 4px;font-size:13px;color:var(--navy)}
+@media(max-width:900px){#app{grid-template-columns:1fr;grid-template-rows:52vh 48vh;overflow:auto}#sidebar{height:48vh;border-left:0;border-top:1px solid var(--line)}.site-home{right:12px;top:auto;bottom:12px;padding:8px 11px;font-size:11px}.map-legend{display:none}}
+</style>
+</head>
+<body>
+<a class="site-home" href="index.html">Regresar a menú</a>
+<div id="app">
+<div id="mapwrap"><div id="map"></div>
+<div class="map-tools"><select id="basemap" aria-label="Mapa base"><option value="clara">Base clara</option><option value="sat">Satélite</option></select><button type="button" id="refit">Reencuadrar</button><button type="button" id="fitAll">Ver todas las sedes</button></div>
+<div class="map-legend" id="legend"></div></div>
+<aside id="sidebar">
+<div class="kicker">07 · GOBERNANZA</div>
+<h1>Mapa de actores</h1>
+<p class="lead">Quién decide, financia, ejecuta o se ve afectado por una intervención en el centro de Saltillo. Cada actor se liga con los equipos cuyo diagnóstico toca su competencia, y las sedes se ubican con su registro en el DENUE para ver qué tan cerca están del núcleo de coincidencia de la síntesis.</p>
+<div class="warn"><b>Propuesta sugerida con base en los documentos de los equipos.</b> Los niveles de poder e interés son una estimación inicial para discutir en clase y con el socio formador. Las sedes provienen del DENUE o del mapa del Equipo 4; los actores sin sede localizada aparecen solo en la lista.</div>
+<h2>Sector</h2>
+<div class="filters" id="filters"></div>
+<h2>Matriz de poder e interés</h2>
+<svg id="matrix" viewBox="0 0 430 330" role="img" aria-label="Matriz de poder e interés de los actores"></svg>
+<div class="meta" style="margin-top:4px">Pasa el cursor sobre un número para ver el actor; haz clic para ubicar su sede en el mapa.</div>
+<h2>Actores</h2>
+<div id="list"></div>
+</aside></div>
+<div class="tip" id="tip"></div>
+<script src="data/atlas_comun.js"></script>
+<script>
+const ACTORS=[
+ {"n":"R. Ayuntamiento de Saltillo","s":"mun","rol":"Decide y regula","p":5,"i":4,"eq":["E1","E2","E3","E4","E5"],"t":"Usos del suelo, espacio público, obra, movilidad y seguridad municipal","sede":"REPUBLICANO AYUNTAMIENTO DEL MUNICIPIO DE SALTILLO","lat":25.43405,"lon":-101.0013},
+ {"n":"IMPLAN Saltillo","s":"mun","rol":"Planea","p":4,"i":5,"eq":["E1","E2","E3","E5"],"t":"Estrategias urbanas de la zona, zonificación secundaria y cartera de proyectos","sede":"INSTITUTO MUNICIPAL DE PLANEACION SALTILLO","lat":25.47284,"lon":-100.96411},
+ {"n":"Desarrollo Urbano municipal","s":"mun","rol":"Regula","p":4,"i":4,"eq":["E2","E3"],"t":"Licencias, usos del suelo y vivienda nueva en el centro","sede":"DESARROLLO URBANO","lat":25.41679,"lon":-100.96844},
+ {"n":"Obras Públicas de Saltillo","s":"mun","rol":"Ejecuta","p":4,"i":3,"eq":["E1","E3"],"t":"Drenaje pluvial, pavimentos, banquetas y espacio público","sede":"OBRAS PUBLICAS DE SALTILLO","lat":25.4148,"lon":-100.96728},
+ {"n":"Aguas de Saltillo","s":"mun","rol":"Presta el servicio","p":4,"i":3,"eq":["E1","E3","E5"],"t":"Agua y drenaje; déficit de servicios básicos (E5) y capacidad pluvial (E1)","sede":"AGUAS DE SALTILLO SUCURSAL CENTRO","lat":25.42688,"lon":-101.01208},
+ {"n":"Protección Civil","s":"mun","rol":"Regula y atiende riesgos","p":3,"i":4,"eq":["E1"],"t":"Riesgos, resiliencia e inundación pluvial","sede":"PROTECCION CIVIL","lat":25.42619,"lon":-100.94944},
+ {"n":"Comisaría de Seguridad y Protección Ciudadana / C2","s":"mun","rol":"Ejecuta","p":3,"i":4,"eq":["E4"],"t":"Videovigilancia y coordinación operativa","sede":"Equipo 4","lat":null,"lon":null,"secKey":"Comisaría de Seguridad y Protección Ciudadana / C2"},
+ {"n":"Policía Turística","s":"mun","rol":"Ejecuta","p":2,"i":5,"eq":["E4"],"t":"Presencia en el Centro Histórico; operaría el módulo de proximidad propuesto","sede":"Equipo 4","lat":null,"lon":null,"secKey":"Policía Turística · cobertura del Centro Histórico"},
+ {"n":"Gobierno del Estado de Coahuila (Palacio de Gobierno)","s":"est","rol":"Decide y financia","p":5,"i":3,"eq":["E2","E4","E5"],"t":"Inversión pública y programas estatales en el centro","sede":"PALACIO DE GOBIERNO","lat":25.42208,"lon":-101.00065},
+ {"n":"Secretaría de Vivienda y Ordenamiento Territorial","s":"est","rol":"Financia y regula","p":4,"i":4,"eq":["E2","E5"],"t":"Vivienda adecuada, repoblamiento y tenencia de la tierra","sede":"SECRETARIA DE VIVIENDA Y ORDENAMIENTO TERRITORIAL","lat":25.44031,"lon":-100.97557},
+ {"n":"Secretaría de Infraestructura, Desarrollo Urbano y Movilidad","s":"est","rol":"Financia y ejecuta","p":4,"i":3,"eq":["E2","E3"],"t":"Movilidad, transporte e infraestructura mayor","sede":"SECRETARIA DE INFRAESTRUCTURA DESARROLLO URBANO Y MOVILIDAD","lat":25.43607,"lon":-100.91377},
+ {"n":"Dirección General de Historia, Museos y Patrimonio Cultural","s":"est","rol":"Gestiona patrimonio","p":3,"i":5,"eq":["E2","E4"],"t":"Museos, patrimonio y oferta cultural del centro","sede":"DIRECCION GENERAL DE HISTORIA MUSEOS Y PATRIMONIO CULTURAL","lat":25.42102,"lon":-100.99755},
+ {"n":"Congreso del Estado","s":"est","rol":"Legisla","p":4,"i":2,"eq":["E2"],"t":"Marco legal de vivienda, patrimonio y desarrollo urbano","sede":"PALACIO DEL CONGRESO DEL ESTADO","lat":25.4341,"lon":-101.00081},
+ {"n":"Comisión Estatal de Seguridad","s":"est","rol":"Coordina","p":3,"i":3,"eq":["E4"],"t":"Coordinación de seguridad","sede":"Equipo 4","lat":null,"lon":null,"secKey":"Comisión Estatal de Seguridad"},
+ {"n":"Fiscalía General del Estado · Delegación Sureste","s":"est","rol":"Procura justicia","p":3,"i":2,"eq":["E4"],"t":"Denuncia e investigación","sede":"Equipo 4","lat":null,"lon":null,"secKey":"Fiscalía General del Estado · Delegación Sureste"},
+ {"n":"INAH Coahuila","s":"fed","rol":"Autoriza y protege","p":4,"i":5,"eq":["E2","E4"],"t":"Obras en monumentos históricos y zona de monumentos","sede":"INSTITUTO NACIONAL DE ANTROPOLOGIA E HISTORIA","lat":25.42342,"lon":-100.99936},
+ {"n":"SEDATU","s":"fed","rol":"Financia","p":3,"i":3,"eq":["E2","E3","E5"],"t":"Programas de mejoramiento urbano y vivienda","sede":"SEDATU","lat":25.4369,"lon":-100.98359},
+ {"n":"CFE","s":"fed","rol":"Presta el servicio","p":3,"i":2,"eq":["E3"],"t":"Electricidad y alumbrado","sede":null,"lat":null,"lon":null},
+ {"n":"INFONAVIT","s":"fed","rol":"Financia","p":3,"i":3,"eq":["E2","E5"],"t":"Crédito para vivienda usada y nueva en el centro","sede":null,"lat":null,"lon":null},
+ {"n":"CANACO SERVYTUR Saltillo","s":"priv","rol":"Representa y cofinancia","p":3,"i":5,"eq":["E4"],"t":"Comercio, turismo y seguridad del centro","sede":"CAMARA NACIONAL DEL COMERCIO Y SERVICIOS TURISTICOS","lat":25.44282,"lon":-100.99712},
+ {"n":"COPARMEX Coahuila Sureste","s":"priv","rol":"Representa","p":3,"i":3,"eq":["E4","E5"],"t":"Empleo y actividad económica","sede":"COPARMEX COAHUILA SURESTE","lat":25.44282,"lon":-100.99712},
+ {"n":"CMIC","s":"priv","rol":"Ejecuta","p":3,"i":3,"eq":["E2","E3"],"t":"Construcción y obra pública","sede":"CAMARA MEXICANA DE LA INDUSTRIA DE LA CONSTRUCCION","lat":25.43773,"lon":-100.97698},
+ {"n":"Desarrolladores de vivienda","s":"priv","rol":"Invierte","p":3,"i":4,"eq":["E2"],"t":"Oferta vigente y ventas concluidas (base del Equipo 2)","sede":null,"lat":null,"lon":null},
+ {"n":"Locatarios del Mercado Juárez","s":"priv","rol":"Se ve afectado","p":2,"i":5,"eq":["E4","E5"],"t":"Comercio popular, empleo y abasto","sede":"OFICINA ADMINISTRATIVA DEL MERCADO JUAREZ","lat":25.42484,"lon":-101.00094},
+ {"n":"Comerciantes del Centro Tradicional","s":"priv","rol":"Se ve afectado","p":2,"i":5,"eq":["E4"],"t":"Corredor Padre Flores y Allende, dentro de la Zona prioritaria 1","sede":"zona","lat":null,"lon":null,"zona":"E4"},
+ {"n":"Catedral de Santiago y Diócesis de Saltillo","s":"soc","rol":"Custodia patrimonio","p":3,"i":4,"eq":["E2","E4"],"t":"Patrimonio religioso, Plaza de Armas y vida comunitaria","sede":"ARCHIVO PARROQUIAL DEL SAGRARIO DE LA CATEDRAL","lat":25.42166,"lon":-100.9991},
+ {"n":"Residentes del núcleo de coincidencia","s":"soc","rol":"Se ve afectado","p":2,"i":5,"eq":["E1","E2","E4","E5"],"t":"Habitan las manzanas donde coinciden tres o más lecturas","sede":"zona","lat":null,"lon":null,"zona":"core"},
+ {"n":"Vecinos del Barrio del Ojo de Agua","s":"soc","rol":"Se ve afectado","p":2,"i":5,"eq":["E5"],"t":"Zona que señala la conclusión del Equipo 5","sede":null,"lat":null,"lon":null},
+ {"n":"Colectivos de movilidad y ciclismo","s":"soc","rol":"Aliado","p":1,"i":4,"eq":["E2","E3"],"t":"Ciclovías, caminabilidad y transporte","sede":null,"lat":null,"lon":null},
+ {"n":"Universidad Autónoma de Coahuila","s":"acad","rol":"Aliado técnico","p":3,"i":3,"eq":["E1","E2","E5"],"t":"Conocimiento, estudiantes y equipamiento en el centro","sede":"RECTORIA DE LA UNIVERSIDAD AUTONOMA DE COAHUILA","lat":25.43861,"lon":-100.99008},
+ {"n":"Benemérita Escuela Normal de Coahuila","s":"acad","rol":"Equipamiento en el polígono","p":2,"i":3,"eq":["E2","E3"],"t":"Equipamiento educativo y patrimonio","sede":"BENEMERITA ESCUELA NORMAL DE COAHUILA","lat":25.4268,"lon":-101.00791},
+ {"n":"Tecnológico de Monterrey y CFC (socio formador)","s":"acad","rol":"Facilita","p":2,"i":5,"eq":["E1","E2","E3","E4","E5"],"t":"Diagnóstico, síntesis y vinculación con actores","sede":null,"lat":null,"lon":null}
+]
+;
+const SEC=[{"kind":"propuesta","name":"Módulo móvil de proximidad","f":{"Función sugerida":"Policía Turística, orientación, recepción de reportes y patrullaje a pie."},"lat":25.422062,"lon":-101.00126,"type":"Propuesta del Equipo 4","ref":"Plaza Nueva Tlaxcala","ico":{"i":"star","m":"red"}},{"kind":"existente","name":"Comisaría de Seguridad y Protección Ciudadana / C2","f":{"Teléfono":"844 410 2010","Distancia recta":"2.55 km","Estatus":"Existente","Nota":"Videovigilancia y coordinación operativa municipal."},"lat":25.413017,"lon":-100.978157,"type":"Base y centro de control","ref":"Emilio Castelar s/n, Ampliación San Ramón","ico":{"i":"tower-broadcast","m":"darkblue"}},{"kind":"existente","name":"Estación de Policía Sur","f":{"Teléfono":"844 111 1179","Distancia recta":"2.89 km","Estatus":"Registro cartográfico; verificar operación actual","Nota":"Registro OSM amenity=police; última operación debe confirmarse en campo."},"lat":25.397773,"lon":-101.009571,"type":"Estación policial","ref":"Sector sur, próxima a la Central de Autobuses","ico":{"i":"shield","m":"blue"}},{"kind":"existente","name":"Fiscalía General del Estado · Delegación Sureste","f":{"Teléfono":"844 434 0023 / 844 438 7600","Distancia recta":"4.26 km","Estatus":"Existente","Nota":"Recepción de denuncias e investigación; no es base de patrullaje de proximidad."},"lat":25.456094,"lon":-101.022153,"type":"Justicia y denuncia","ref":"Carretera a Torreón km 2.5, C.P. 25115","ico":{"i":"scale-balanced","m":"darkpurple"}},{"kind":"existente","name":"Comisión Estatal de Seguridad","f":{"Teléfono":"911 emergencias / 089 denuncia anónima","Distancia recta":"2.81 km","Estatus":"Existente","Nota":"Oficina de coordinación; confirmar servicios de atención presencial."},"lat":25.41215,"lon":-100.97575,"type":"Coordinación de seguridad","ref":"Sector Centro de Justicia–Gran Plaza","ico":{"i":"building-shield","m":"cadetblue"}},{"kind":"cobertura","name":"Policía Turística · cobertura del Centro Histórico","f":{"Teléfono":"911 emergencias","Distancia recta":"0.12 km","Estatus":"Cobertura; no se identificó módulo fijo público","Nota":"Representa presencia en el Centro Histórico, no la ubicación de una estación."},"lat":25.421816,"lon":-101.00042,"type":"Cobertura operativa","ref":"Plaza de Armas","ico":{"i":"person-walking","m":"green"}}];
+const CORE=["0503000010248034", "0503000010290029", "0503000010233014", "0503000010163020", "0503000010163006"];
+const ZONE4={"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": {"type": "Polygon", "coordinates": [[[-101.002436, 25.419403], [-101.002451, 25.420305], [-101.003445, 25.420292], [-101.00346, 25.421194], [-101.004454, 25.421181], [-101.004468, 25.422083], [-101.004483, 25.422986], [-101.004498, 25.423888], [-101.004513, 25.424791], [-101.003519, 25.424804], [-101.003534, 25.425707], [-101.002541, 25.42572], [-101.001547, 25.425734], [-101.000553, 25.425747], [-100.999559, 25.425761], [-100.999544, 25.424858], [-100.99855, 25.424872], [-100.998535, 25.423969], [-100.997542, 25.423983], [-100.997527, 25.42308], [-100.997512, 25.422178], [-100.997497, 25.421275], [-100.998491, 25.421262], [-100.998476, 25.420359], [-100.99947, 25.420346], [-100.999455, 25.419443], [-101.000449, 25.41943], [-101.001442, 25.419416], [-101.002436, 25.419403]]]}}]};
+const TEAMS=[{"key": "E1", "name": "Equipo 1 · Medio natural", "color": "#1b9e77"}, {"key": "E3", "name": "Equipo 3 · Medio construido", "color": "#7570b3"}, {"key": "E2", "name": "Equipo 2 · Movilidad, patrimonio y mercado inmobiliario", "color": "#a6761d"}, {"key": "E5", "name": "Equipo 5 · Medio socio-económico", "color": "#66a61e"}, {"key": "E4", "name": "Equipo 4 · Especialización económica, turismo y seguridad", "color": "#e7298a"}];
+</script>
+<script>
+(function(){
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const SECT={mun:{lab:'Gobierno municipal',c:'#2a78d6',sh:'circle'},est:{lab:'Gobierno estatal',c:'#eb6834',sh:'circle'},fed:{lab:'Gobierno federal',c:'#1baf7a',sh:'circle'},priv:{lab:'Sector privado',c:'#eda100',sh:'square'},soc:{lab:'Sociedad y comunidad',c:'#e87ba4',sh:'diamond'},acad:{lab:'Academia',c:'#008300',sh:'round'}};
+const TEAMC=Object.fromEntries(TEAMS.map(t=>[t.key,t]));
+const on=new Set(Object.keys(SECT));
+ACTORS.forEach((a,i)=>{a.id=i+1;if(a.secKey){const s=SEC.find(x=>x.name===a.secKey);if(s){a.lat=s.lat;a.lon=s.lon;a.sede='Mapa del Equipo 4 · '+(s.ref||'')}}});
+function mkHtml(a,size){const s=SECT[a.s];return `<span class="mk ${s.sh}" style="width:${size}px;height:${size}px;background:${s.c}"><span>${a.id}</span></span>`}
+const AREA=window.ATLAS_COMUN?window.ATLAS_COMUN.base.area:{type:'FeatureCollection',features:[]};
+const map=L.map('map',{zoomControl:false});L.control.zoom({position:'bottomleft'}).addTo(map);L.control.scale({position:'bottomleft',imperial:false}).addTo(map);
+const BASES={clara:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles &copy; Esri, HERE, Garmin, USGS, NGA, EPA, NPS'}),sat:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles &copy; Esri, Maxar, Earthstar Geographics'})};
+let base=BASES.clara.addTo(map);document.getElementById('basemap').addEventListener('change',e=>{map.removeLayer(base);base=BASES[e.target.value].addTo(map)});
+const area=L.geoJSON(AREA,{interactive:false,style:{color:'#8b98a6',weight:.6,fillColor:'#dfe6ec',fillOpacity:.35}}).addTo(map);
+const coreSet=new Set(CORE);
+const core=L.geoJSON({type:'FeatureCollection',features:AREA.features.filter(f=>coreSet.has(f.properties.CVEGEO))},{style:{color:'#111',weight:3,fill:true,fillColor:'#3b1f63',fillOpacity:.25}}).bindTooltip('<b>Núcleo de coincidencia</b><br>Manzanas con tres o más lecturas en la síntesis',{sticky:true}).addTo(map);
+const zone=L.geoJSON(ZONE4,{style:{color:'#c2185b',weight:2.5,dashArray:'7 5',fillColor:'#e87ba4',fillOpacity:.08}}).bindTooltip('<b>Zona prioritaria 1 · Equipo 4</b><br>Centro Tradicional, Plaza Nueva Tlaxcala y Plaza de Armas',{sticky:true}).addTo(map);
+const cb=core.getBounds(),cc=cb.isValid()?cb.getCenter():area.getBounds().getCenter();
+const P0=[25.422,-101.003],KX=111320*Math.cos(P0[0]*Math.PI/180),KY=110540;
+const pj=(lat,lon)=>[(lon-P0[1])*KX,(lat-P0[0])*KY];
+const coreRings=AREA.features.filter(f=>coreSet.has(f.properties.CVEGEO)).flatMap(f=>(f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates).map(p=>p[0].map(([x,y])=>pj(y,x))));
+function inR(x,y,r){let s=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const [xi,yi]=r[i],[xj,yj]=r[j];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))s=!s}return s}
+function segD(px,py,[ax,ay],[bx,by]){const dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy;let u=l?((px-ax)*dx+(py-ay)*dy)/l:0;u=Math.max(0,Math.min(1,u));return Math.hypot(px-ax-u*dx,py-ay-u*dy)}
+function distCore(lat,lon){const [x,y]=pj(lat,lon);if(coreRings.some(r=>inR(x,y,r)))return 0;let d=1e9;coreRings.forEach(r=>{for(let i=1;i<r.length;i++)d=Math.min(d,segD(x,y,r[i-1],r[i]))});return d}
+const dtxt=d=>d==null?'':d<15?'dentro o junto al núcleo':`a ${Math.round(d).toLocaleString('es-MX')} m del núcleo`;
+const markers={};
+ACTORS.forEach(a=>{if(a.lat==null)return;a.d=distCore(a.lat,a.lon);
+ const m=L.marker([a.lat,a.lon],{icon:L.divIcon({className:'',html:mkHtml(a,22),iconSize:[22,22],iconAnchor:[11,11]}),riseOnHover:true})
+  .bindTooltip(`<b>${a.id}. ${esc(a.n)}</b><br>${esc(SECT[a.s].lab)} · ${esc(a.rol)}`)
+  .bindPopup(()=>popup(a),{maxWidth:300}).addTo(map);markers[a.id]=m});
+function srcTxt(a){return a.secKey?'Ubicación tomada del mapa del Equipo 4':'Sede registrada en el DENUE · '+a.sede}
+function body(a){return `<table style="border-collapse:collapse;width:100%;margin-top:4px"><tr><td style="color:#667;padding:2px 8px 2px 0">Rol ante la intervención</td><td><b>${esc(a.rol)}</b></td></tr><tr><td style="color:#667;padding:2px 8px 2px 0">Poder de decisión</td><td><b>${a.p} de 5</b></td></tr><tr><td style="color:#667;padding:2px 8px 2px 0">Interés en la zona</td><td><b>${a.i} de 5</b></td></tr><tr><td style="color:#667;padding:2px 8px 2px 0;vertical-align:top">Qué le toca</td><td>${esc(a.t)}</td></tr><tr><td style="color:#667;padding:2px 8px 2px 0;vertical-align:top">Diagnósticos relacionados</td><td>${a.eq.map(k=>`<span class="chip" style="background:${TEAMC[k].color}" title="${esc(TEAMC[k].name)}">${k}</span>`).join('')}</td></tr></table>`}
+function popup(a){return `<div class="pop"><div style="color:${SECT[a.s].c};font-weight:800;font-size:10.5px;letter-spacing:.04em">${esc(SECT[a.s].lab.toUpperCase())}</div><h4>${a.id}. ${esc(a.n)}</h4>${body(a)}<div style="color:#778;font-size:11px;margin-top:6px">${esc(srcTxt(a))}${a.d!=null?' · '+dtxt(a.d):''}</div></div>`}
+function fitCenter(){map.fitBounds(area.getBounds(),{padding:[20,20]})}
+fitCenter();document.getElementById('refit').addEventListener('click',fitCenter);
+document.getElementById('fitAll').addEventListener('click',()=>{const pts=ACTORS.filter(a=>a.lat!=null&&on.has(a.s)).map(a=>[a.lat,a.lon]);if(pts.length)map.fitBounds(L.latLngBounds(pts).pad(.08))});
+
+// filtros
+document.getElementById('filters').innerHTML=Object.entries(SECT).map(([k,s])=>`<button type="button" data-s="${k}">${mkHtml({s:k,id:''},13)}${s.lab} <span style="color:#889">${ACTORS.filter(a=>a.s===k).length}</span></button>`).join('');
+document.querySelectorAll('#filters button').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.s;on.has(k)?on.delete(k):on.add(k);b.classList.toggle('off',!on.has(k));apply()}));
+
+// matriz
+const W=430,H=330,m={l:44,r:12,t:14,b:40},pw=W-m.l-m.r,ph=H-m.t-m.b;
+const X=v=>m.l+(v-.5)/5*pw,Y=v=>m.t+ph-(v-.5)/5*ph;
+let svg=`<rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="#fafbfc" stroke="#e1e7ed"/>`;
+const mx=X(3)+pw/10*0,my=Y(3);
+svg+=`<rect x="${X(3.5)}" y="${m.t}" width="${m.l+pw-X(3.5)}" height="${Y(3.5)-m.t}" fill="#f1ecf8"/>`;
+svg+=`<line x1="${X(3.5)}" y1="${m.t}" x2="${X(3.5)}" y2="${m.t+ph}" stroke="#cfd8e0" stroke-dasharray="4 3"/><line x1="${m.l}" y1="${Y(3.5)}" x2="${m.l+pw}" y2="${Y(3.5)}" stroke="#cfd8e0" stroke-dasharray="4 3"/>`;
+svg+=`<text class="q" x="${m.l+pw-6}" y="${m.t+13}" text-anchor="end">GESTIONAR DE CERCA</text><text class="q" x="${m.l+6}" y="${m.t+13}">MANTENER SATISFECHOS</text><text class="q" x="${m.l+pw-6}" y="${m.t+ph-6}" text-anchor="end">MANTENER INFORMADOS</text><text class="q" x="${m.l+6}" y="${m.t+ph-6}">MONITOREAR</text>`;
+for(let v=1;v<=5;v++){svg+=`<text class="ax" x="${X(v)}" y="${m.t+ph+14}" text-anchor="middle">${v}</text><text class="ax" x="${m.l-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`}
+svg+=`<text class="ax" x="${m.l+pw/2}" y="${H-4}" text-anchor="middle">Interés en la intervención →</text><text class="ax" transform="translate(12 ${m.t+ph/2}) rotate(-90)" text-anchor="middle">Poder de decisión →</text>`;
+const cells={};ACTORS.forEach(a=>{const k=a.p+'-'+a.i;(cells[k]=cells[k]||[]).push(a)});
+Object.values(cells).forEach(g=>{const n=g.length,cols=Math.ceil(Math.sqrt(n)),step=19;g.forEach((a,j)=>{const r=Math.floor(j/cols),c=j%cols,rows=Math.ceil(n/cols);a.mx=X(a.i)+(c-(cols-1)/2)*step;a.my=Y(a.p)+(r-(rows-1)/2)*step})});
+ACTORS.forEach(a=>{const s=SECT[a.s];const shape=s.sh==='circle'?`<circle r="8.5" fill="${s.c}" stroke="#fff" stroke-width="2"/>`:s.sh==='diamond'?`<rect x="-7" y="-7" width="14" height="14" rx="2" transform="rotate(45)" fill="${s.c}" stroke="#fff" stroke-width="2"/>`:`<rect x="-8.5" y="-8.5" width="17" height="17" rx="${s.sh==='round'?6:2.5}" fill="${s.c}" stroke="#fff" stroke-width="2"/>`;
+ svg+=`<g class="dot" data-id="${a.id}" transform="translate(${a.mx.toFixed(1)} ${a.my.toFixed(1)})"><circle r="11" fill="transparent"/>${shape}<text text-anchor="middle" y="3.4">${a.id}</text></g>`});
+document.getElementById('matrix').innerHTML=svg;
+const tip=document.getElementById('tip');
+document.querySelectorAll('#matrix .dot').forEach(g=>{const a=ACTORS[g.dataset.id-1];
+ g.addEventListener('mousemove',e=>{tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+10)+'px';tip.innerHTML=`<b>${a.id}. ${esc(a.n)}</b><br>${esc(SECT[a.s].lab)} · ${esc(a.rol)}<br>Poder ${a.p} · Interés ${a.i}`;hi(a.id,true)});
+ g.addEventListener('mouseleave',()=>{tip.style.display='none';hi(a.id,false)});
+ g.addEventListener('click',()=>focus(a))});
+
+// lista
+document.getElementById('list').innerHTML='<div class="meta" style="margin-bottom:8px;background:#f6f9fb;border-radius:8px;padding:8px 10px"><b>Cómo leer cada ficha.</b> El <b>rol</b> dice qué haría el actor en una intervención (decide, financia, ejecuta, regula o se ve afectado). <b>Poder</b> es su capacidad de decidir o frenar el proyecto y <b>interés</b> cuánto le importa lo que pase en la zona, ambos de 1 a 5. Las etiquetas E1 a E5 indican con qué diagnóstico se relaciona. La distancia se mide desde la sede hasta la manzana más cercana del núcleo de coincidencia.</div>'+ACTORS.map(a=>`<div class="actor" data-id="${a.id}">${mkHtml(a,24)}<div><h3>${esc(a.n)}</h3><div class="meta"><span class="stag">${esc(SECT[a.s].lab)}</span>${body(a)}<div style="margin-top:3px">${a.lat!=null?`${esc(srcTxt(a))} · <b>${dtxt(a.d)}</b>`:a.zona?'Se representa como zona en el mapa':'<span class="nosede">Sin sede localizada en el DENUE</span>'}</div></div></div></div>`).join('');
+document.querySelectorAll('.actor').forEach(el=>{const a=ACTORS[el.dataset.id-1];el.addEventListener('click',()=>focus(a));el.addEventListener('mouseenter',()=>hi(a.id,true));el.addEventListener('mouseleave',()=>hi(a.id,false))});
+function hi(id,v){const g=document.querySelector(`#matrix .dot[data-id="${id}"]`);if(g)g.classList.toggle('hi',v);const el=document.querySelector(`.actor[data-id="${id}"]`);if(el)el.classList.toggle('hi',v);const mk=markers[id];if(mk&&mk._icon)mk._icon.style.zIndex=v?9999:'';if(mk&&mk._icon)mk._icon.firstChild.style.transform=v?'scale(1.35)':''}
+function focus(a){if(a.zona==='core'){map.fitBounds(core.getBounds(),{maxZoom:17,padding:[40,40]});core.openTooltip(core.getBounds().getCenter());return}
+ if(a.zona==='E4'){map.fitBounds(zone.getBounds(),{padding:[30,30]});zone.openTooltip(zone.getBounds().getCenter());return}
+ if(a.lat==null){const el=document.querySelector(`.actor[data-id="${a.id}"]`);el.scrollIntoView({behavior:'smooth',block:'center'});return}
+ map.setView([a.lat,a.lon],Math.max(map.getZoom(),16));markers[a.id].openPopup()}
+function apply(){ACTORS.forEach(a=>{const v=on.has(a.s);const g=document.querySelector(`#matrix .dot[data-id="${a.id}"]`);g.classList.toggle('dim',!v);document.querySelector(`.actor[data-id="${a.id}"]`).classList.toggle('hidden',!v);const mk=markers[a.id];if(mk){v?mk.addTo(map):map.removeLayer(mk)}})}
+
+// leyenda
+let lg='<div class="lg-title">SECTOR</div>'+Object.entries(SECT).map(([k,s])=>`<div class="lg-row">${mkHtml({s:k,id:''},13)}${s.lab}</div>`).join('');
+lg+='<div class="lg-title">REFERENCIAS</div><div class="lg-row"><span style="width:16px;height:11px;border:3px solid #111;background:#3b1f6340;display:inline-block"></span>Núcleo de coincidencia (síntesis)</div><div class="lg-row"><span style="width:16px;height:11px;border:2px dashed #c2185b;display:inline-block"></span>Zona prioritaria 1 · Equipo 4</div><div style="color:#889;font-size:10px;margin-top:4px">El número identifica al actor en la matriz y en la lista.</div>';
+document.getElementById('legend').innerHTML=lg;
+})();
+</script>
+</body>
+</html>
