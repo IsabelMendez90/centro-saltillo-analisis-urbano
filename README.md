@@ -22,12 +22,14 @@ Gestión y administración de proyectos territoriales de inversión · Grupo 601
 | `06_equipo4_oferta_turistica.html` | Equipo 4 · Oferta turística |
 | `06b_equipo4_seguridad_intervencion.html` | Equipo 4 · Seguridad e intervención preventiva |
 | `07_gobernanza_actores.html` | Gobernanza · Mapa de actores (propuesta docente por validar) |
+| `08_catastro_lotes.html` | Ejercicio de prototipos · Catastro y normativa PDDU 2020 por lote, con cortina, filtros, coeficientes efectivos y suma de lotes |
 
 ## Estructura para publicar
 
 Subir la carpeta completa a GitHub Pages.
 
 - `data/atlas_comun.js` contiene los datos compartidos por `00`, `01` y `04c` (manzanas, vivienda INEGI, proyectos y DENUE). Sin este archivo esas páginas no cargan.
+- `data/lotes_catastro.js` contiene los lotes y la normativa de `08`. Proviene del visor catastral municipal sin datos fiscales.
 - `assets/equipo1/hillshade_contexto.png` es el relieve de `02` y `02b`.
 
 Los archivos de trabajo de los equipos no forman parte del sitio.

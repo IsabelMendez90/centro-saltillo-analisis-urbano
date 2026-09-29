@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>08 · Catastro y normativa por lote · Centro de Saltillo</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--navy:#0f3557;--blue:#2f6690;--ink:#17212b;--muted:#5b6b7b;--line:#e1e7ed}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;color:var(--ink);background:#f5f7f9}
+#app{height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 440px;overflow:hidden}
+#mapwrap{position:relative;min-width:0}#map{position:absolute;inset:0;background:#eef1f4}
+#sidebar{height:100vh;overflow-y:auto;background:#fff;border-left:1px solid var(--line);padding:20px 20px 40px}
+.site-home{position:fixed;z-index:1200;top:12px;right:456px;background:var(--navy);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font:800 14px Arial,sans-serif;letter-spacing:.05em;text-transform:uppercase;box-shadow:0 3px 14px #0004}
+.map-tools{position:absolute;z-index:900;top:12px;left:56px;display:flex;gap:6px;flex-wrap:wrap}
+.map-tools select,.map-tools button{font:600 12px Arial,sans-serif;padding:8px 10px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;cursor:pointer}
+.map-legend{position:absolute;z-index:900;right:12px;bottom:22px;width:250px;max-height:60vh;overflow:auto;background:#fffffff2;border:1px solid #dde3e8;border-radius:10px;box-shadow:0 2px 12px #0002;padding:9px 11px;font-size:11px}
+.lg-title{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--navy);margin:8px 0 4px;text-transform:uppercase}.lg-title:first-child{margin-top:0}
+.lg-row{display:flex;align-items:center;gap:7px;margin:2px 0}.lg-row .sw{width:14px;height:11px;border-radius:2px;border:1px solid #0003;flex:0 0 auto}.lg-row .ct{margin-left:auto;color:var(--muted)}
+.kicker{font-size:10px;letter-spacing:.12em;color:var(--blue);font-weight:800}
+h1{font-size:22px;margin:4px 0 8px;color:var(--navy)}
+.lead{font-size:12.5px;line-height:1.55;color:#34495e;margin:0 0 10px}
+.warn{font-size:11px;line-height:1.5;background:#fff8ec;border-left:4px solid #c77d1a;border-radius:7px;padding:8px 10px;color:#6b4a12}
+h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy);margin:22px 0 8px}
+.ctl{font-size:12px;line-height:1.5}.ctl label{display:flex;align-items:center;gap:7px;margin:4px 0;cursor:pointer}
+.ctl select{width:100%;font:600 12px Arial,sans-serif;padding:7px 8px;border:1px solid #cfd8e0;border-radius:8px;background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row2 .cap{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+.btn{font:800 12px Arial,sans-serif;padding:8px 12px;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--navy)}.btn.on{background:#c77d1a;border-color:#c77d1a}
+#search{width:100%;font:13px Arial,sans-serif;padding:8px 10px;border:1px solid #cfd8e0;border-radius:8px}
+#results div{font-size:12px;padding:5px 7px;border-bottom:1px solid var(--line);cursor:pointer}#results div:hover{background:#f3f7fb}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}.stat{background:#f6f9fb;border-radius:8px;padding:7px 9px}.stat b{display:block;font-size:17px;color:var(--navy)}.stat span{font-size:10.5px;color:var(--muted);line-height:1.3;display:block}
+table.sel{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}table.sel td{padding:3px 4px;border-bottom:1px solid var(--line)}table.sel td:last-child{text-align:right;font-weight:700}
+.ok{color:#2b8a3e;font-weight:800}.no{color:#c92a2a;font-weight:800}
+.cap2{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin:4px 0 4px}.chips{display:flex;flex-wrap:wrap;gap:4px}.chips label{margin:0;font-size:11px;background:#f3f6f9;border-radius:999px;padding:3px 8px 3px 5px;gap:5px}.chips .sw{width:10px;height:10px;border-radius:2px;border:1px solid #0003}.quick{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}.mini{font:700 10.5px Arial,sans-serif;padding:5px 8px;border-radius:7px;border:1px solid #cfd8e0;background:#fff;cursor:pointer}.fres{margin-top:6px;font-size:11.5px;background:#eef6fb;border-radius:7px;padding:6px 8px;color:var(--navy)}#tip{position:absolute;z-index:960;pointer-events:none;background:#17212bf0;color:#fff;font:11.5px/1.45 Arial,sans-serif;padding:8px 10px;border-radius:8px;max-width:300px;display:none;box-shadow:0 4px 14px #0005}#tip b{color:#ffd8a8}#tip .h{font-weight:800;font-size:12px;color:#fff}#tip .s{color:#bcd3e4;font-size:10.5px;margin:1px 0 4px}#tip table{border-collapse:collapse}#tip td{padding:1px 6px 1px 0;vertical-align:top}#tip td.k{color:#bcd3e4}#tip .e{color:#8ce99a;font-weight:700}ol.tasks{padding-left:18px;margin:0;font-size:12px;line-height:1.5}ol.tasks li{margin-bottom:7px}ol.tasks .how{display:block;color:var(--muted);font-size:11.3px}
+.note{font-size:11.3px;line-height:1.5;color:#34495e}.note b{color:var(--ink)}
+.leaflet-popup-content{font-size:12px;line-height:1.45;margin:10px 12px;min-width:250px}
+.pop h4{margin:0 0 2px;font-size:13px;color:var(--navy)}.pop .sub{color:var(--muted);font-size:11px;margin-bottom:6px}
+.pop table{border-collapse:collapse;width:100%}.pop td{padding:2px 3px;border-bottom:1px solid #eef2f5;vertical-align:top}.pop td:first-child{color:var(--muted);width:48%}
+.pop .sec{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--blue);text-transform:uppercase;padding-top:7px}
+.pop .flag{background:#f3f0ff;border-left:3px solid #7048e8;padding:4px 6px;margin-top:6px;font-size:11px}
+.swipe-bar{position:absolute;top:0;bottom:0;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 0 1px #0f355788,0 0 8px #0005;z-index:950;cursor:ew-resize;display:none}
+.swipe-bar .knob{position:absolute;top:50%;left:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:var(--navy);color:#fff;font:800 14px Arial;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0006}
+.swipe-lbl{position:absolute;top:86px;z-index:951;background:#0f3557e6;color:#fff;font:800 11px Arial,sans-serif;padding:5px 9px;border-radius:7px;display:none;pointer-events:none;max-width:40%}
+#lblL{left:12px}#lblR{right:12px}
+@media(max-width:900px){#app{grid-template-columns:1fr;grid-template-rows:56vh 44vh;overflow:auto}#sidebar{height:44vh;border-left:0;border-top:1px solid var(--line)}.site-home{right:12px;top:auto;bottom:12px;padding:8px 11px;font-size:11px}.map-legend{width:190px;max-height:32vh;font-size:10px;bottom:10px;right:8px}.map-tools{left:50px}.swipe-lbl{top:52px;font-size:10px}}
+</style>
+</head>
+<body>
+<a class="site-home" href="index.html">Regresar a menú</a>
+<div id="app">
+<div id="mapwrap"><div id="map"></div>
+<div class="map-tools"><select id="basemap" aria-label="Mapa base"><option value="clara">Base clara</option><option value="sat">Satélite</option></select><button type="button" id="refit">Reencuadrar</button><button type="button" id="legBtn">Leyenda</button></div>
+<div class="swipe-bar" id="swipe"><div class="knob">⇆</div></div>
+<div class="swipe-lbl" id="lblL"></div><div class="swipe-lbl" id="lblR"></div>
+<div class="map-legend" id="legend"></div><div id="tip"></div></div>
+<aside id="sidebar">
+<div class="kicker">08 · EJERCICIO DE PROTOTIPOS DE VIVIENDA</div>
+<h1>Catastro y normativa por lote</h1>
+<p class="lead">Cada lote del área de estudio con el uso que registra su ficha catastral y la zonificación del Plan Director 2020 con sus coeficientes. La cortina permite comparar lo que hay hoy con lo que la norma permite, que es la base para identificar suelo subutilizado.</p>
+<div class="warn"><b>Fuentes y límites.</b> Geometría y fichas del visor catastral del municipio de Saltillo, consultadas en septiembre de 2026; no se incluyen valor catastral, adeudos ni datos de pago. El uso es el registrado en catastro y debe verificarse con imagen satelital o en campo. La normativa proviene del PDDU de Saltillo 2020 (cuadros 2, 4, 5, 6 y 10); en zona CU y en el Centro Histórico queda sujeta al Programa Parcial y a dictamen patrimonial.</div>
+
+<h2>Vista del mapa</h2>
+<div class="ctl">
+<div class="row2"><div><div class="cap" id="capA">Mapa</div><select id="viewA"></select></div><div id="boxB" style="opacity:.45"><div class="cap">Debajo de la cortina</div><select id="viewB" disabled></select></div></div>
+<label style="margin-top:8px"><input type="checkbox" id="swipeOn"> Comparar con cortina (arrastra la barra del mapa)</label>
+<label>Opacidad de los lotes <input type="range" id="op" min="20" max="100" value="80" style="flex:1"></label>
+</div>
+
+<h2>Capas de apoyo</h2>
+<div class="ctl">
+<label><input type="checkbox" id="lyMza" checked> Límite de las 343 manzanas</label>
+<label><input type="checkbox" id="ly1000"> Lotes de 1,000 m² o más (contorno negro)</label>
+<label><input type="checkbox" id="lyPat"> Lotes que requieren revisión patrimonial (contorno morado)</label>
+</div>
+
+<h2>Filtrar lotes</h2>
+<div class="ctl" id="filt">
+<div class="cap2">Uso actual</div><div id="fUso" class="chips"></div>
+<div class="quick"><button type="button" class="mini" id="fSub">Baldíos, estacionamientos y sin construcción</button><button type="button" class="mini" id="fAll">Todos los usos</button></div>
+<label>Superficie mínima del lote <b id="fAreaV" style="margin-left:auto">0 m²</b></label><input type="range" id="fArea" min="0" max="3000" step="50" value="0" style="width:100%">
+<label>Aprovechamiento máximo del CUS permitido <b id="fAprV" style="margin-left:auto">sin límite</b></label><input type="range" id="fApr" min="0" max="110" step="5" value="110" style="width:100%">
+<label>Zona normativa</label><select id="fZona"><option value="">Todas</option><option value="viv">Solo zonas que permiten vivienda vertical</option></select>
+<label>Revisión patrimonial</label><select id="fPat"><option value="">Incluir todos</option><option value="no">Excluir lotes con revisión patrimonial</option><option value="si">Solo lotes con revisión patrimonial</option></select>
+<div class="fres" id="fRes"></div>
+<button type="button" class="btn ghost" id="fReset" style="margin-top:6px">Quitar filtros</button>
+</div>
+
+<h2>Buscar lote</h2>
+<input id="search" placeholder="ID Carto o calle, por ejemplo Victoria 425">
+<div id="results"></div>
+
+<h2>Sumar lotes</h2>
+<p class="note">Activa el modo y haz clic en lotes contiguos para armar un predio. El panel suma superficie, construcción existente y lo que permite la norma. Vuelve a hacer clic en un lote para quitarlo.</p>
+<button class="btn" id="selMode" type="button">Activar suma de lotes</button> <button class="btn ghost" id="selClear" type="button">Limpiar</button> <button class="btn ghost" id="selCopy" type="button">Copiar tabla</button>
+<div id="selOut" class="note" style="margin-top:8px">Sin lotes seleccionados.</div>
+
+<h2>Resumen del área de estudio</h2>
+<div class="stats" id="stats"></div>
+
+<h2>Cómo usar el mapa</h2>
+<ul class="note" style="padding-left:18px;margin:0">
+<li>Pasa el cursor sobre un lote para ver sus superficies y coeficientes; haz clic para abrir la ficha completa.</li>
+<li>La cortina compara dos vistas del mismo lote, por ejemplo el uso actual contra la zonificación.</li>
+<li>Los filtros dejan solo el contorno tenue de los lotes que no cumplen los criterios, en ambas vistas y también en los contornos de 1,000 m² y de revisión patrimonial.</li>
+<li>La suma de lotes da la superficie de un predio formado por varios lotes y lo que la norma permitiría en él. En Rhino cada lote se encuentra con SelName y el nombre "Lote" más su ID Carto.</li>
+<li>Con la base satelital se puede verificar el estado real de cada lote.</li>
+</ul>
+
+<h2>Cómo leer la ficha del lote</h2>
+<p class="note"><b>CUS actual</b> es la construcción registrada entre la superficie de terreno. <b>COS, CUS y CAV del programa</b> son los valores del PDDU para la zona. <b>COS efectivo</b> es el menor entre el COS y 1 menos el CAV, es decir la ocupación máxima dejando el área verde mínima; el PDDU indica además que COS y CAS suman 1, por lo que el área libre resultante es 1 menos el COS. <b>CUS efectivo</b> es el CUS del programa, salvo en corredores, donde la altura depende del ancho de la vialidad y limita el CUS a COS efectivo por niveles posibles. <b>Niveles de referencia</b> es CUS entre COS, es decir los niveles posibles ocupando el COS máximo; con menos desplante caben más. <b>Potencial construible</b> es lo permitido menos lo construido. <b>Aprovechamiento</b> indica qué parte del CUS permitido usa hoy el lote. Ninguno de estos valores es un derecho automático; en el Centro Histórico se requiere dictamen.</p>
+<p class="note" style="margin-top:14px;color:var(--muted)">Docencia y acompañamiento en análisis geoespacial y cartografía interactiva · Juana Isabel Méndez Garduño</p>
+</aside>
+</div>
+<script src="data/atlas_comun.js"></script>
+<script src="data/lotes_catastro.js"></script>
+<script>
+(function(){
+const D=window.LOTES, C=D.cols, DIC=D.dic, N=D.n, [LON0,LAT0]=D.origen;
+const fmt=(v,d=0)=>v==null||v===''?'—':Number(v).toLocaleString('es-MX',{maximumFractionDigits:d,minimumFractionDigits:0});
+const dic=(f,i)=>DIC[f][i]||'';
+// ---------- paletas ----------
+const UA_COL={'Habitación':'#f7d774','Comercio':'#e03131','Servicios y turismo':'#f06595','Equipamiento':'#1c7ed6','Áreas verdes y plazas':'#40c057','Industria, bodegas y talleres':'#9c36b5','Infraestructura':'#868e96','Estacionamiento':'#74c0fc','Baldío':'#0b7285','Sin construcción registrada':'#66d9e8','Sin información de uso':'#ced4da','Sin ficha catastral':'#e9ecef'};
+const ZN={'H0.5':['Habitacional campestre','#fff3b0'],'H1':['Habitacional densidad muy baja','#fff3b0'],'H2':['Habitacional densidad baja','#ffe066'],'H3':['Habitacional densidad media','#fcc419'],'H3.3':['Habitacional densidad media baja','#ffe066'],'H3.7':['Habitacional densidad intermedia','#fab005'],'H4':['Habitacional densidad media alta','#f59f00'],'H5':['Habitacional densidad alta','#e67700'],'CU1':['Corredor urbano habitacional y comercial','#f783ac'],'CU2':['Corredor urbano hab., comercial y servicios','#e64980'],'CU3':['Corredor urbano hab., comercial y servicios 3','#a61e4d'],'CU':['Centro urbano','#d6336c'],'SCU':['Subcentro urbano','#c2255c']};
+const E3_COL={"Habitacional Densidad Muy Baja": "#fff3b0", "Habitacional Densidad Baja": "#ffe066", "Habitacional Densidad Media": "#fcc419", "Habitacional Densidad Media Alta": "#f59f00", "Habitacional Densidad Alta": "#e67700", "Corredor Urbano (Hab/Com)": "#f783ac", "Corredor Urbano 2 (Hab/Com/Serv)": "#e64980", "Corredor Urbano 3 (Hab/Com/Serv)": "#a61e4d", "Comercio y Abasto": "#c92a2a", "Equipamiento": "#1971c2", "Recreativo y Áreas Verdes": "#37b24d", "Parque Lineal": "#8ce99a", "Industria Ligera": "#9c36b5", "Industria Extractiva": "#5f3dc4", "Bodegas y Talleres": "#b197fc", "Infraestructura": "#868e96", "Sin clasificación": "#dee2e6"};
+const APR_COL={'Sin construcción':'#08415c','Usa menos de 25% del CUS':'#0b7285','Usa 25 a 50% del CUS':'#3bc9db','Usa 50 a 100% del CUS':'#c5f6fa','Rebasa el CUS permitido':'#862e9c','Condominio revisar':'#ffd8a8','Norma sin CUS (CU, SCU u otro uso)':'#e9ecef'};
+const VIEWS={
+ ua:{name:'Uso actual según catastro',cat:i=>dic('ua',C.ua[i]),col:k=>UA_COL[k]||'#ccc',order:Object.keys(UA_COL)},
+ zon:{name:'Zonificación PDDU 2020',cat:i=>{const z=dic('zn',C.zn[i]);return z?z:'E3 · '+dic('ze',C.ze[i]);},col:k=>ZN[k]?ZN[k][1]:(E3_COL[k.replace('E3 · ','')]||'#dee2e6'),label:k=>ZN[k]?k+' · '+ZN[k][0]:k.replace('E3 · ','')+' (sin tabla, mapa E3)',order:Object.keys(ZN)},
+ apr:{name:'Aprovechamiento del CUS permitido',cat:i=>dic('apr',C.apr[i]),col:k=>APR_COL[k]||'#e9ecef',order:Object.keys(APR_COL)}
+};
+// ---------- filtros ----------
+const F={uso:new Set(Object.keys(UA_COL)),area:0,apr:110,zona:'',pat:''};
+const VIVV=new Set(['H2','H3','H3.3','H3.7','H4','H5','CU1','CU2','CU3','CU4','CU','SCU']);
+function pasa(i){if(!F.uso.has(dic('ua',C.ua[i])))return false;if(C.a[i]<F.area)return false;
+ if(F.apr<110){const p=C.aprp[i];if(p==null||p>F.apr)return false;}
+ if(F.zona==='viv'&&!VIVV.has(dic('zn',C.zn[i])))return false;
+ if(F.pat==='no'&&C.rp[i])return false;if(F.pat==='si'&&!C.rp[i])return false;return true;}
+function filtRes(){let n=0,a=0;for(let i=0;i<N;i++)if(pasa(i)){n++;a+=C.a[i];}const el=document.getElementById('fRes');if(el)el.innerHTML=`<b>${fmt(n)}</b> lotes cumplen los filtros · ${fmt(a/1e4,1)} ha`;}
+// ---------- valores efectivos ----------
+function efect(i){const cos=C.cos[i],cav=C.cav[i],cus=C.cusm[i],a=C.a[i];if(cos==null&&cus==null)return null;
+ const cosE=cos!=null?(cav!=null?Math.min(cos,1-cav):cos):null;let cusE=cus,lim='';
+ if(C.alt[i]!=null&&cus!=null&&cosE!=null){const nv=Math.floor(C.alt[i]/3);const c2=+(cosE*nv).toFixed(2);if(c2<cus){cusE=c2;lim='altura '+fmt(C.alt[i],1)+' m, '+nv+' niveles';}}
+ return {cos,cus,cav,cosE,cusE,lim,desp:cosE!=null?a*cosE:null,cons:cusE!=null?a*cusE:null,libre:cosE!=null?a*(1-cosE):null};}
+// ---------- geometría ----------
+function dec(ring){const out=[];let x=0,y=0;for(let k=0;k<ring.length;k+=2){x+=ring[k];y+=ring[k+1];out.push([LAT0+y/1e6,LON0+x/1e6]);}return out;}
+const GEO=C.geom.map(polys=>polys.map(p=>p.map(dec)));
+// ---------- mapa ----------
+const map=L.map('map',{preferCanvas:true,zoomControl:true,minZoom:13,maxZoom:20});
+const bases={clara:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:16,attribution:'Tiles &copy; Esri, HERE, Garmin, USGS, NGA, EPA, NPS'}),
+ sat:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:19,attribution:'Tiles &copy; Esri, Maxar, Earthstar Geographics'})};
+map.createPane('labels');map.getPane('labels').style.zIndex=640;map.getPane('labels').style.pointerEvents='none';
+const labels={clara:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{pane:'labels',maxZoom:20,maxNativeZoom:16}),
+ sat:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',{pane:'labels',maxZoom:20,maxNativeZoom:19,opacity:.9})};
+let base='clara';bases.clara.addTo(map);labels.clara.addTo(map);
+document.getElementById('basemap').onchange=e=>{map.removeLayer(bases[base]);map.removeLayer(labels[base]);base=e.target.value;bases[base].addTo(map);labels[base].addTo(map);};
+map.createPane('pB');map.getPane('pB').style.zIndex=410;
+map.createPane('pA');map.getPane('pA').style.zIndex=420;
+map.createPane('pOver');map.getPane('pOver').style.zIndex=430;map.getPane('pOver').style.pointerEvents='none';
+const rA=L.canvas({pane:'pA',padding:.3}),rB=L.canvas({pane:'pB',padding:.3}),rOver=L.canvas({pane:'pOver',padding:.3});
+let OP=.8;
+function makeLayer(renderer){const g=L.layerGroup();const polys=new Array(N);for(let i=0;i<N;i++){const p=L.polygon(GEO[i],{renderer,weight:.5,color:'#5c6670',fillOpacity:OP,fillColor:'#ccc'});p._i=i;p.on('click',onLot);p.on('mouseover',hoverOn);p.on('mousemove',hoverMove);p.on('mouseout',hoverOff);polys[i]=p;g.addLayer(p);}g.polys=polys;return g;}
+const A=makeLayer(rA).addTo(map);let B=null;
+let viewA='ua',viewB='zon';
+function estilo(i,v){const V=VIEWS[v];return pasa(i)?{fillColor:V.col(V.cat(i)),fillOpacity:OP,color:'#5c6670',weight:.5,opacity:1}:{fillColor:'#ffffff',fillOpacity:0,color:'#aab4be',weight:.4,opacity:.35};}
+function paint(layer,v){for(const p of layer.polys){p._v=v;p.setStyle(estilo(p._i,v));}}
+function overlays(){big.eachLayer(p=>p.setStyle({opacity:pasa(p._i)?1:0}));pat.eachLayer(p=>p.setStyle({opacity:pasa(p._i)?1:0}));}
+function repaint(){paint(A,viewA);if(B)paint(B,viewB);overlays();filtRes();}
+paint(A,viewA);filtRes();
+// manzanas y capas de apoyo
+const mza=L.geoJSON(window.ATLAS_COMUN.base.area,{pane:'pOver',renderer:rOver,interactive:false,style:{color:'#0f3557',weight:1.3,fill:false,opacity:.75}}).addTo(map);
+const big=L.layerGroup(),pat=L.layerGroup();
+for(let i=0;i<N;i++){if(C.a[i]>=1000){const q=L.polygon(GEO[i],{renderer:rOver,interactive:false,color:'#111',weight:2.4,fill:false});q._i=i;big.addLayer(q);}if(C.rp[i]){const q=L.polygon(GEO[i],{renderer:rOver,interactive:false,color:'#7048e8',weight:1,dashArray:'3 3',fill:false});q._i=i;pat.addLayer(q);}}
+const tog=(id,l)=>{document.getElementById(id).onchange=e=>e.target.checked?l.addTo(map):map.removeLayer(l);};
+tog('lyMza',mza);tog('ly1000',big);tog('lyPat',pat);
+const AREA_B=mza.getBounds();map.fitBounds(AREA_B,{padding:[10,10]});setTimeout(()=>{map.invalidateSize();map.fitBounds(AREA_B,{padding:[10,10]});},150);window.addEventListener('load',()=>{map.invalidateSize();map.fitBounds(AREA_B,{padding:[10,10]});});
+document.getElementById('refit').onclick=()=>map.fitBounds(AREA_B,{padding:[10,10]});
+// ---------- selects ----------
+const selA=document.getElementById('viewA'),selB=document.getElementById('viewB');
+for(const [k,v] of Object.entries(VIEWS)){selA.add(new Option(v.name,k));selB.add(new Option(v.name,k));}
+selA.value=viewA;selB.value=viewB;
+selA.onchange=()=>{viewA=selA.value;paint(A,viewA);legend();labelsSwipe();};
+selB.onchange=()=>{viewB=selB.value;if(B)paint(B,viewB);legend();labelsSwipe();};
+document.getElementById('op').oninput=e=>{OP=e.target.value/100;paint(A,viewA);if(B)paint(B,viewB);};
+// ---------- cortina ----------
+const bar=document.getElementById('swipe'),lblL=document.getElementById('lblL'),lblR=document.getElementById('lblR');let swipeOn=false,pos=.5;
+function clip(){const pane=map.getPane('pA');if(!swipeOn){pane.style.clip='';return;}const sz=map.getSize(),x=sz.x*pos;const nw=map.containerPointToLayerPoint([0,0]),se=map.containerPointToLayerPoint(sz),cx=map.containerPointToLayerPoint([x,0]).x;pane.style.clip=`rect(${nw.y}px,${cx}px,${se.y}px,${nw.x}px)`;bar.style.left=x+'px';}
+function labelsSwipe(){lblL.textContent='◀ '+VIEWS[viewA].name;lblR.textContent=VIEWS[viewB].name+' ▶';}
+document.getElementById('swipeOn').onchange=e=>{swipeOn=e.target.checked;selB.disabled=!swipeOn;document.getElementById('boxB').style.opacity=swipeOn?1:.45;document.getElementById('capA').textContent=swipeOn?'Arriba (izquierda)':'Mapa';
+ if(swipeOn){if(!B){B=makeLayer(rB);paint(B,viewB);}B.addTo(map);}else if(B)map.removeLayer(B);
+ [bar,lblL,lblR].forEach(el=>el.style.display=swipeOn?'block':'none');labelsSwipe();clip();legend();};
+map.on('move zoom resize viewreset zoomend moveend',clip);
+let drag=false;const mw=document.getElementById('mapwrap');
+const startDrag=e=>{drag=true;map.dragging.disable();e.preventDefault();};
+const moveDrag=e=>{if(!drag)return;const r=mw.getBoundingClientRect();const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;pos=Math.min(.98,Math.max(.02,cx/r.width));clip();};
+const endDrag=()=>{if(drag){drag=false;map.dragging.enable();}};
+bar.addEventListener('mousedown',startDrag);bar.addEventListener('touchstart',startDrag,{passive:false});
+window.addEventListener('mousemove',moveDrag);window.addEventListener('touchmove',moveDrag,{passive:false});
+window.addEventListener('mouseup',endDrag);window.addEventListener('touchend',endDrag);
+// ---------- leyenda ----------
+function counts(v){const V=VIEWS[v],c={};for(let i=0;i<N;i++){const k=V.cat(i);c[k]=(c[k]||0)+1;}return c;}
+function legBlock(v){const V=VIEWS[v],c=counts(v);const keys=Object.keys(c).sort((a,b)=>{const ia=V.order.indexOf(a),ib=V.order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||c[b]-c[a];});
+ return `<div class="lg-title">${V.name}</div>`+keys.map(k=>`<div class="lg-row"><span class="sw" style="background:${V.col(k)}"></span><span>${V.label?V.label(k):k}</span><span class="ct">${fmt(c[k])}</span></div>`).join('');}
+function legend(){let h=legBlock(viewA);if(swipeOn&&viewB!==viewA)h+=legBlock(viewB);h+='<div class="lg-title">Apoyo</div><div class="lg-row"><span class="sw" style="background:#fff;border:2px solid #111"></span>Lote de 1,000 m² o más</div><div class="lg-row"><span class="sw" style="background:#fff;border:2px dashed #7048e8"></span>Revisión patrimonial</div>';document.getElementById('legend').innerHTML=h;}
+legend();
+const legEl=document.getElementById('legend');if(window.innerWidth<900)legEl.style.display='none';document.getElementById('legBtn').onclick=()=>{legEl.style.display=legEl.style.display==='none'?'block':'none';};
+// ---------- ficha del lote ----------
+function ficha(i){const id=C.id[i],zn=dic('zn',C.zn[i]),alt=C.alt[i]!=null?fmt(C.alt[i],1)+' m':(dic('alt_t',C.alt_t[i])||'—');
+ const rows=(t,arr)=>`<tr><td colspan="2" class="sec">${t}</td></tr>`+arr.filter(r=>r[1]!==undefined).map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+ let h=`<div class="pop"><h4>${id?'Lote '+id:'Lote sin ID Carto'}</h4><div class="sub">${C.ub[i]||'Sin ubicación en ficha'} · Manzana ${dic('mz',C.mz[i]).slice(-7)}</div><table>`;
+ h+=rows('Situación actual (catastro)',[['Uso actual',dic('ua',C.ua[i])],['Uso en la ficha',dic('uf',C.uf[i])||'—'],['Tipo de uso del predio',dic('tu',C.tu[i])||'—'],['Superficie del polígono',fmt(C.a[i],1)+' m²'],['Terreno según ficha',C.st[i]!=null?fmt(C.st[i],1)+' m²':'—'],['Construcción según ficha',C.sc[i]!=null?fmt(C.sc[i],1)+' m²':'—'],['CUS actual',C.cus[i]!=null?fmt(C.cus[i],2):'—']]);
+ h+=rows('Normativa PDDU 2020',[['Zona',zn?zn+(ZN[zn]?' · '+ZN[zn][0]:''):'Sin tabla ('+dic('ze',C.ze[i])+')'],['Fuente de la zona',dic('fzn',C.fzn[i])||'—'],['COS máximo',fmt(C.cos[i],2)],['CUS máximo',fmt(C.cusm[i],2)+(C.cuse[i]!=null?' (efectivo por altura '+fmt(C.cuse[i],2)+')':'')],['CAS o CAV mínimo',fmt(C.cav[i],2)],['Densidad máxima',C.dens[i]!=null?fmt(C.dens[i])+' viv/ha':'—'],['COS efectivo respetando CAV',efect(i)&&efect(i).cosE!=null?fmt(efect(i).cosE,2)+' · desplante '+fmt(efect(i).desp)+' m²':'—'],['CUS efectivo',efect(i)&&efect(i).cusE!=null?fmt(efect(i).cusE,2)+' · '+fmt(efect(i).cons)+' m² construibles':'—'],['Niveles de referencia',fmt(C.niv[i])],['Altura máxima',alt],['Sección vial colindante',C.sv[i]!=null?fmt(C.sv[i],1)+' m':undefined],['Remetimientos',dic('rem',C.rem[i])||'—'],['Nota',dic('nn',C.nn[i])||undefined]]);
+ h+=rows('Potencial',[['Viviendas máximas en el lote',fmt(C.vmax[i])],['Potencial construible',C.pot[i]!=null?fmt(C.pot[i])+' m²':'—'],['Aprovechamiento del CUS',C.aprp[i]!=null?fmt(C.aprp[i])+'%':'—']]);
+ h+='</table>';
+ if(C.rp[i])h+=`<div class="flag"><b>Requiere revisión patrimonial.</b> ${C.ch[i]?'Sector catastral Centro Histórico. ':''}${C.pat[i]?'Elemento del atlas de patrimonio en el lote: '+C.pat[i]+'.':''}</div>`;
+ if(C.tp[i])h+='<div class="flag" style="border-color:#e8590c;background:#fff4e6">Condominio. La ficha puede registrar solo la parte privativa.</div>';
+ if(C.dif[i]!=null&&Math.abs(C.dif[i])>10)h+=`<div class="flag" style="border-color:#868e96;background:#f8f9fa">El polígono y la ficha difieren ${fmt(C.dif[i])}% en superficie.</div>`;
+ return h+'</div>';}
+// ---------- selección ----------
+let selMode=false;const SEL=new Map();const selLayer=L.layerGroup().addTo(map);
+function onLot(e){const i=e.target._i;if(!pasa(i))return;if(selMode){toggleSel(i);return;}L.popup({maxWidth:340}).setLatLng(e.latlng).setContent(ficha(i)).openOn(map);}
+function toggleSel(i){if(SEL.has(i)){selLayer.removeLayer(SEL.get(i));SEL.delete(i);}else{const p=L.polygon(GEO[i],{color:'#c77d1a',weight:3,fillOpacity:.15,fillColor:'#c77d1a',interactive:false,pane:'pOver'});SEL.set(i,p);selLayer.addLayer(p);}selSummary();}
+function selSummary(){const out=document.getElementById('selOut');if(!SEL.size){out.innerHTML='Sin lotes seleccionados.';return;}
+ let a=0,sc=0,v=0,pot=0,b=0,zs=new Set(),rp=0,ids=[];for(const i of SEL.keys()){a+=C.a[i]||0;sc+=C.sc[i]||0;v+=C.vmax[i]||0;pot+=C.pot[i]||0;const u=dic('ua',C.ua[i]);if(u==='Baldío'||u==='Estacionamiento'||u==='Sin construcción registrada')b++;const z=dic('zn',C.zn[i]);zs.add(z||'sin tabla');if(C.rp[i])rp++;ids.push(C.id[i]);}
+ const ok=a>=1000;
+ out.innerHTML=`<table class="sel"><tr><td>Lotes</td><td>${SEL.size}</td></tr><tr><td>Superficie total</td><td>${fmt(a,1)} m² <span class="${ok?'ok':'no'}">${ok?'cumple 1,000 m²':'menos de 1,000 m²'}</span></td></tr><tr><td>Construcción existente</td><td>${fmt(sc)} m²</td></tr><tr><td>Baldíos, estacionamientos o sin construcción</td><td>${b}</td></tr><tr><td>Viviendas máximas según norma</td><td>${fmt(v)}</td></tr><tr><td>Potencial construible</td><td>${fmt(pot)} m²</td></tr><tr><td>Zonas normativas</td><td>${[...zs].join(', ')}</td></tr><tr><td>Con revisión patrimonial</td><td>${rp}</td></tr></table>`+(zs.size>1?'<p class="note" style="color:#c92a2a">Los lotes tienen zonas distintas; hay que definir qué norma aplica a cada porción.</p>':'')+`<p class="note">En Rhino: SelName con ${ids.filter(Boolean).slice(0,6).map(x=>'"Lote '+x+'"').join(', ')}${ids.length>6?'…':''}</p>`;}
+document.getElementById('selMode').onclick=e=>{selMode=!selMode;e.target.classList.toggle('on',selMode);e.target.textContent=selMode?'Suma activa, clic para terminar':'Activar suma de lotes';map.closePopup();};
+document.getElementById('selClear').onclick=()=>{selLayer.clearLayers();SEL.clear();selSummary();};
+document.getElementById('selCopy').onclick=()=>{const head=['ID_CARTO','UBICACION','SUPERFICIE_M2','CONSTRUCCION_M2','USO_ACTUAL','ZONA','COS','CUS','DENSIDAD','VIV_MAX','POTENCIAL_M2'];const lines=[head.join('\t')];for(const i of SEL.keys())lines.push([C.id[i],C.ub[i],C.a[i],C.sc[i],dic('ua',C.ua[i]),dic('zn',C.zn[i]),C.cos[i],C.cusm[i],C.dens[i],C.vmax[i],C.pot[i]].map(x=>x==null?'':x).join('\t'));
+ const t=lines.join('\n');(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>alert('Tabla copiada; pégala en Excel o en tu ficha.')).catch(()=>prompt('Copia la tabla',t));};
+// ---------- búsqueda ----------
+const norm=s=>(s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+const UBN=C.ub.map(norm);
+document.getElementById('search').oninput=e=>{const q=norm(e.target.value.trim()),res=document.getElementById('results');res.innerHTML='';if(q.length<2)return;const hits=[];for(let i=0;i<N&&hits.length<8;i++){if(String(C.id[i])===q||UBN[i].includes(q))hits.push(i);}
+ res.innerHTML=hits.length?hits.map(i=>`<div data-i="${i}">Lote ${C.id[i]||'s/ID'} · ${C.ub[i]||'sin ubicación'} · ${fmt(C.a[i])} m²</div>`).join(''):'<div style="cursor:default;color:#5b6b7b">Sin resultados</div>';
+ res.querySelectorAll('[data-i]').forEach(d=>d.onclick=()=>{const i=+d.dataset.i,b=L.polygon(GEO[i]).getBounds();map.fitBounds(b,{maxZoom:19});setTimeout(()=>L.popup({maxWidth:340}).setLatLng(b.getCenter()).setContent(ficha(i)).openOn(map),350);});};
+// ---------- controles de filtro ----------
+(function(){const box=document.getElementById('fUso');box.innerHTML=Object.keys(UA_COL).map(k=>`<label><input type="checkbox" value="${k}" checked><span class="sw" style="background:${UA_COL[k]}"></span>${k}</label>`).join('');
+ const sync=()=>{F.uso=new Set([...box.querySelectorAll('input:checked')].map(x=>x.value));repaint();};
+ box.querySelectorAll('input').forEach(x=>x.onchange=sync);
+ const setUso=list=>{box.querySelectorAll('input').forEach(x=>x.checked=list.includes(x.value));sync();};
+ document.getElementById('fSub').onclick=()=>setUso(['Baldío','Estacionamiento','Sin construcción registrada']);
+ document.getElementById('fAll').onclick=()=>setUso(Object.keys(UA_COL));
+ const fa=document.getElementById('fArea'),fav=document.getElementById('fAreaV');fa.oninput=()=>{F.area=+fa.value;fav.textContent=fmt(F.area)+' m²';};fa.onchange=repaint;
+ const fp=document.getElementById('fApr'),fpv=document.getElementById('fAprV');fp.oninput=()=>{F.apr=+fp.value;fpv.textContent=F.apr>=110?'sin límite':'hasta '+F.apr+'%';};fp.onchange=repaint;
+ document.getElementById('fZona').onchange=e=>{F.zona=e.target.value;repaint();};
+ document.getElementById('fPat').onchange=e=>{F.pat=e.target.value;repaint();};
+ document.getElementById('fReset').onclick=()=>{fa.value=0;fa.oninput();fp.value=110;fp.oninput();document.getElementById('fZona').value='';document.getElementById('fPat').value='';F.zona='';F.pat='';setUso(Object.keys(UA_COL));};})();
+// ---------- información al pasar el cursor ----------
+const tip=document.getElementById('tip');let hov=null;
+function tipHTML(i){const e=efect(i),zn=dic('zn',C.zn[i]);let h=`<div class="h">${C.id[i]?'Lote '+C.id[i]:'Lote sin ID'}</div><div class="s">${C.ub[i]||''} · ${dic('ua',C.ua[i])} · ${zn||'sin tabla ('+dic('ze',C.ze[i])+')'}</div><table>`;
+ h+=`<tr><td class="k">Lote</td><td><b>${fmt(C.a[i])} m²</b></td></tr><tr><td class="k">Construcción</td><td><b>${C.sc[i]!=null?fmt(C.sc[i])+' m²':'sin dato'}</b>${C.cus[i]!=null?' · CUS actual '+fmt(C.cus[i],2):''}</td></tr>`;
+ if(e){h+=`<tr><td class="k">Programa</td><td>COS ${fmt(e.cos,2)} · CUS ${fmt(e.cus,2)} · CAV ${fmt(e.cav,2)}</td></tr>`;
+  h+=`<tr><td class="k">Efectivo</td><td class="e">COS ${fmt(e.cosE,2)} · CUS ${fmt(e.cusE,2)}</td></tr>`;
+  h+=`<tr><td class="k"></td><td>desplante ${fmt(e.desp)} m² · construcción ${fmt(e.cons)} m² · área libre ${fmt(e.libre)} m²</td></tr>`;
+  if(e.lim)h+=`<tr><td class="k"></td><td>CUS limitado por ${e.lim}</td></tr>`;}
+ else h+=`<tr><td class="k">Programa</td><td>${zn==='CU'?'Sujeto al Programa Parcial del Centro Histórico':'Sin coeficientes en las tablas del PDDU'}</td></tr>`;
+ return h+'</table>';}
+function placeTip(ev){const r=document.getElementById('mapwrap').getBoundingClientRect();let x=ev.originalEvent.clientX-r.left+14,y=ev.originalEvent.clientY-r.top+14;const w=tip.offsetWidth,hh=tip.offsetHeight;if(x+w>r.width-8)x-=w+28;if(y+hh>r.height-8)y-=hh+28;tip.style.left=x+'px';tip.style.top=y+'px';}
+function hoverOn(ev){if(L.Browser.mobile)return;const p=ev.target;if(!pasa(p._i))return;if(hov&&hov!==p)hov.setStyle(estilo(hov._i,hov._v));hov=p;p.setStyle({weight:2.2,color:'#0f3557'});tip.innerHTML=tipHTML(p._i);tip.style.display='block';placeTip(ev);}
+function hoverMove(ev){if(tip.style.display==='block')placeTip(ev);}
+function hoverOff(ev){const p=ev.target;p.setStyle(estilo(p._i,p._v));if(hov===ev.target)hov=null;tip.style.display='none';}
+// ---------- resumen ----------
+(function(){let bal=0,bA=0,est=0,eA=0,sin=0,low=0,big1=0,viv=0;for(let i=0;i<N;i++){const u=dic('ua',C.ua[i]);if(u==='Baldío'){bal++;bA+=C.a[i];viv+=C.vmax[i]||0;}if(u==='Estacionamiento'){est++;eA+=C.a[i];viv+=C.vmax[i]||0;}if(u==='Sin construcción registrada')sin++;if(C.aprp[i]!=null&&C.aprp[i]<25&&!C.tp[i]&&C.sc[i]>0)low++;if(C.a[i]>=1000)big1++;}
+ const s=[[fmt(N),'lotes catastrales, '+fmt(C.id.filter((x,i)=>C.st[i]!=null).length)+' con ficha'],[fmt(bal),'baldíos registrados · '+fmt(bA/1e4,1)+' ha'],[fmt(est),'estacionamientos · '+fmt(eA/1e4,1)+' ha'],[fmt(sin),'lotes sin construcción registrada'],[fmt(low),'lotes construidos que usan menos de 25% del CUS'],[fmt(big1),'lotes de 1,000 m² o más'],[fmt(viv),'viviendas que permitiría la norma en baldíos y estacionamientos']];
+ document.getElementById('stats').innerHTML=s.map(x=>`<div class="stat"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');})();
+})();
+</script>
+</body>
+</html>
