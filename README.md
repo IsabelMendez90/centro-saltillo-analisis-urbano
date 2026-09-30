@@ -9,7 +9,7 @@ Gestión y administración de proyectos territoriales de inversión · Grupo 601
 |---|---|
 | `index.html` | Portada y menú |
 | `00_generalidades_sitio.html` | Generalidades del sitio. Lectura guiada y exploración libre |
-| `01_sintesis.html` | Síntesis. Coincidencias entre las conclusiones de los equipos, con seguridad, paradas, vivienda y DENUE como contexto |
+| `01_sintesis.html` | Síntesis inicial. Coincidencias entre las conclusiones de los equipos, con seguridad, paradas, vivienda y DENUE como contexto |
 | **Diagnóstico urbano** | |
 | `02_equipo1_medio_natural.html` | Equipo 1 · Riesgo e hidrología |
 | `02b_equipo1_relieve_topografia.html` | Equipo 1 · Relieve y topografía |
@@ -23,22 +23,16 @@ Gestión y administración de proyectos territoriales de inversión · Grupo 601
 | `06b_equipo4_seguridad_intervencion.html` | Equipo 4 · Seguridad e intervención preventiva |
 | `07_gobernanza_actores.html` | Gobernanza · Mapa de actores (propuesta docente por validar) |
 | `08_catastro_lotes.html` | Ejercicio de prototipos · Catastro y normativa PDDU 2020 por lote, con cortina, filtros, coeficientes efectivos y suma de lotes |
+| `09_sintesis_equipo1.html` … `09_sintesis_equipo5.html` | Síntesis de cada equipo, con su reporte en `assets/sintesis/` |
+| `10_sintesis_depurada.html` | Síntesis depurada. Coincidencias entre las cinco síntesis de los equipos, con suelo vacante y predios subutilizados por lote; reporte en `assets/reporte_sintesis_depurada.pdf` |
 
-## Estructura para publicar
 
-Subir la carpeta completa a GitHub Pages.
-
-- `data/atlas_comun.js` contiene los datos compartidos por `00`, `01` y `04c` (manzanas, vivienda INEGI, proyectos y DENUE). Sin este archivo esas páginas no cargan.
-- `data/lotes_catastro.js` contiene los lotes y la normativa de `08`. Proviene del visor catastral municipal sin datos fiscales.
-- `assets/equipo1/hillshade_contexto.png` es el relieve de `02` y `02b`.
-
-Los archivos de trabajo de los equipos no forman parte del sitio.
 
 ## Área de estudio
 
 Todas las capas por manzana usan las mismas 343 manzanas. La capa original del Equipo 1 tenía 346 unidades, que correspondían a 343 manzanas, 2 unidades fuera del polígono (ID 715 y 7588) y una manzana partida en dos fragmentos (ID 1574 y 2668). Se depuró a las 343 manzanas oficiales; la manzana partida conserva los atributos de su fragmento mayor.
 
-## Síntesis (01)
+## Síntesis inicial (01)
 
 Cada equipo aporta las manzanas a las que apunta su conclusión y el mapa cuenta cuántas lecturas coinciden en cada manzana.
 
