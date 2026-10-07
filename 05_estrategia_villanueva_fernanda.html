@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patio Ramos Arizpe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500;62..125,700;62..125,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#efede6; --paper:#f7f6f1; --ink:#1d1f1e; --ink2:#4b4f4c; --mute:#8a8d88; --rule:#d6d3c9; --rule2:#e4e1d8;
+  --accent:#b8562f; --ok:#2f7d4f; --okbg:#e2efe5; --bad:#b03a2e; --badbg:#f6e1dd; --warn:#9a6a12; --warnbg:#f4ead3;
+  --tA:#e08a2e; --tB:#2f8f9d; --tC:#b44f8c; --tN:#8d9197; --tP:#d9b3cc; --verde:#7fa36a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+.wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;max-width:1500px;margin:0 auto;padding:20px}
+.viewer{position:sticky;top:20px;height:calc(100vh - 40px);min-height:520px;border:1px solid var(--rule);border-radius:4px;overflow:hidden;background:#e9e7e0}
+#c3d{position:absolute;inset:0}
+#lbl{position:absolute;inset:0;pointer-events:none}
+.bar{position:absolute;top:12px;left:12px;right:12px;display:flex;flex-wrap:wrap;gap:8px;z-index:3}
+.seg{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--paper)}
+.seg button,.tog{font:500 12px "IBM Plex Mono",monospace;border:0;background:var(--paper);color:var(--ink);padding:7px 10px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button.on{background:var(--ink);color:#fff}
+.tog{border:1px solid var(--rule);border-radius:3px}
+.tog.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sun{position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:7px 10px;font:500 12px "IBM Plex Mono",monospace;z-index:3}
+.sun select{font:inherit;border:1px solid var(--rule);background:#fff;padding:2px 4px}
+.sun input{width:120px;accent-color:var(--accent)}
+.legend{position:absolute;right:12px;bottom:12px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:8px 10px;font:500 11px "IBM Plex Mono",monospace;z-index:3}
+.legend div{display:flex;align-items:center;gap:7px;margin:2px 0}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block}
+.chip{position:absolute;left:12px;top:56px;background:var(--ink);color:#fff;font:500 12px "IBM Plex Mono",monospace;padding:6px 9px;border-radius:3px;z-index:3;display:none}
+.lab{font:600 11px "IBM Plex Mono",monospace;color:var(--ink);background:rgba(247,246,241,.85);padding:2px 5px;border-radius:2px;white-space:nowrap}
+.lab.st{font:600 12px "Archivo",sans-serif;letter-spacing:.04em;text-transform:uppercase;background:none;color:#5d5f5b}
+.lab.lot{background:none;color:var(--accent)}
+.lab.nrm{background:#e8743b;color:#fff}
+.err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;color:var(--ink2)}
+.panel{min-width:0}
+.kicker{font:600 11px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+h1{font:800 clamp(44px,6vw,76px)/.92 "Archivo",sans-serif;font-stretch:88%;letter-spacing:-.02em;margin:8px 0 14px}
+.lead{font-size:16px;color:var(--ink2);margin:0 0 18px;max-width:62ch}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);margin-bottom:30px}
+.kpis div{padding:10px 12px 10px 0}
+.kpis div+div{padding-left:12px;border-left:1px solid var(--rule)}
+.kpis b{display:block;font:700 32px/1.1 "Archivo",sans-serif}
+.kpis span{font:500 11px "IBM Plex Mono",monospace;color:var(--ink2)}
+section{margin:0 0 34px}
+h2{font:700 24px/1.15 "Archivo",sans-serif;margin:4px 0 8px}
+p.sub{margin:0 0 12px;color:var(--ink2)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font:600 10.5px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:left;border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:7px 6px}
+td{border-bottom:1px solid var(--rule2);padding:7px 6px;vertical-align:top}
+td.n,th.n{text-align:right;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+td.k{font:500 12px "IBM Plex Mono",monospace;color:var(--mute);width:22px}
+td.ind{padding-left:22px;color:var(--ink2)}
+tr.b td{font-weight:600}
+tr.sel td{background:#fbe9dd}
+#tWings tbody tr{cursor:pointer}
+#tWings tbody tr:hover td{background:#f3efe6}
+.src{font:500 11px "IBM Plex Mono",monospace;color:var(--mute)}
+.pill{display:inline-block;font:600 11px "IBM Plex Mono",monospace;padding:2px 7px;border-radius:2px;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)} .bad{background:var(--badbg);color:var(--bad)} .warn{background:var(--warnbg);color:var(--warn)}
+.note{border-left:3px solid var(--accent);padding:6px 12px;color:var(--ink2);font-size:13.5px;margin:12px 0 0;background:var(--paper)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.cols h3{font:600 11px "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px}
+.cols ul{margin:0;padding-left:18px;font-size:13.5px}
+.cols li{margin:0 0 7px}
+.bar2{height:6px;background:var(--rule2);border-radius:3px;position:relative;margin-top:4px}
+.bar2 i{position:absolute;left:0;top:0;bottom:0;background:var(--ink);border-radius:3px}
+footer{border-top:1px solid var(--rule);padding-top:12px;font:500 11px/1.6 "IBM Plex Mono",monospace;color:var(--mute)}
+@media (max-width:980px){
+  .wrap{grid-template-columns:1fr;padding:16px}
+  .viewer{position:relative;top:0;height:62vh;min-height:420px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kpis div:nth-child(3){padding-left:0;border-left:0}
+  .cols{grid-template-columns:1fr}
+  .legend{display:none}
+  .table-x{overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="viewer" id="viewer">
+    <div id="c3d"></div><div id="lbl"></div>
+    <div class="bar">
+      <div class="seg" id="views"><button data-v="axo" class="on">Axonométrico</button><button data-v="top">Planta</button><button data-v="street">Desde Ramos Arizpe</button></div>
+      <button class="tog" id="tNorma">Normativa</button>
+      <button class="tog on" id="tCtx">Contexto</button>
+      <button class="tog on" id="tLab">Etiquetas</button>
+    </div>
+    <div class="chip" id="chip"></div>
+    <div class="sun">Sol <select id="sDate"><option value="355">21 dic</option><option value="80" selected>21 mar</option><option value="172">21 jun</option></select>
+      <input type="range" id="sHour" min="7" max="19" step="0.25" value="11"><span id="sTxt">11:00</span></div>
+    <div class="legend">
+      <div><span class="sw" style="background:var(--tA)"></span>Tipo A · 76 m²</div>
+      <div><span class="sw" style="background:var(--tB)"></span>Tipo B · 92 m²</div>
+      <div><span class="sw" style="background:var(--tC)"></span>Tipo C · 105 m²</div>
+      <div><span class="sw" style="background:#e3ddd2;border:1px solid #bdb5a8"></span>Área libre lateral</div>
+      <div><span class="sw" style="background:var(--tN)"></span>Núcleo de escaleras</div>
+      <div><span class="sw" style="background:var(--verde)"></span>Patio con vegetación</div>
+      <div><span class="sw" style="background:#c9c4bb"></span>Vecinos (altura estimada)</div>
+    </div>
+    <div class="err" id="err">No se pudo cargar el visor 3D. Revisa la conexión y vuelve a abrir la página.</div>
+  </div>
+
+  <div class="panel">
+    <div class="kicker">Prototipo de vivienda · Centro de Saltillo · Manzana 0286-018</div>
+    <h1>Patio<br>Ramos Arizpe</h1>
+    <p class="lead">Dos casas de un nivel en Miguel Ramos Arizpe 835 y 851 se integran en un predio de 2,574 m². Un anillo de vivienda de 3 niveles rodea un patio con vegetación, se separa 5.5 m de la calle y deja área libre a los lados. Son 42 departamentos en tres tipologías, servidos por dos núcleos de escaleras.</p>
+    <div class="kpis">
+      <div><b>42</b><span>viviendas</span></div>
+      <div><b>163</b><span>viv/ha</span></div>
+      <div><b>1.50</b><span>CUS · 3,870 m²</span></div>
+      <div><b>0.50</b><span>COS · 1,290 m²</span></div>
+    </div>
+
+    <section>
+      <div class="kicker">Tarea 3 · Volumetría</div>
+      <h2>Edificios</h2>
+      <p class="sub">El anillo se lee en cuatro alas. Toca una fila o un volumen para ubicarlo. Altura de 3 m por nivel.</p>
+      <div class="table-x"><table id="tWings">
+        <thead><tr><th>Ala</th><th class="n">Niv.</th><th class="n">Altura</th><th class="n">Desplante</th><th class="n">Construido</th><th class="n">CUS</th><th class="n">Viv.</th><th>Tipos</th></tr></thead>
+        <tbody><tr data-w="Frente Ramos Arizpe"><td><b>Frente Ramos Arizpe</b></td><td class="n">3</td><td class="n">9 m</td><td class="n">364</td><td class="n">1,066</td><td class="n">0.41</td><td class="n">12</td><td>A y B + núcleo</td></tr><tr data-w="Lateral sureste"><td><b>Lateral sureste</b></td><td class="n">3</td><td class="n">9 m</td><td class="n">310</td><td class="n">937</td><td class="n">0.36</td><td class="n">12</td><td>A y B</td></tr><tr data-w="Fondo"><td><b>Fondo</b></td><td class="n">3</td><td class="n">9 m</td><td class="n">390</td><td class="n">1,170</td><td class="n">0.45</td><td class="n">12</td><td>B y C</td></tr><tr data-w="Lateral noroeste"><td><b>Lateral noroeste</b></td><td class="n">3</td><td class="n">9 m</td><td class="n">226</td><td class="n">698</td><td class="n">0.27</td><td class="n">6</td><td>A y B + núcleo</td></tr><tr class="b"><td>Total</td><td class="n">3</td><td class="n">9 m</td><td class="n">1,290</td><td class="n">3,870</td><td class="n">1.50</td><td class="n">42</td><td></td></tr></tbody>
+      </table></div>
+      <table style="margin-top:14px">
+        <thead><tr><th>Tipología</th><th class="n">Unidades</th><th class="n">Promedio</th><th class="n">Total</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sw" style="background:var(--tA)"></span> Tipo A</td><td class="n">14</td><td class="n">76 m²</td><td class="n">1,063 m²</td></tr>
+          <tr><td><span class="sw" style="background:var(--tB)"></span> Tipo B</td><td class="n">20</td><td class="n">92 m²</td><td class="n">1,836 m²</td></tr>
+          <tr><td><span class="sw" style="background:var(--tC)"></span> Tipo C</td><td class="n">8</td><td class="n">105 m²</td><td class="n">839 m²</td></tr>
+          <tr><td><span class="sw" style="background:var(--tN)"></span> Núcleos de servicio (2 × 3 niveles)</td><td class="n">6</td><td class="n">22 m²</td><td class="n">132 m²</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 3 · Ficha técnica</div>
+      <h2>Parámetros del proyecto</h2>
+      <table>
+        <thead><tr><th></th><th>Concepto</th><th class="n">m²</th><th class="n">Valor</th></tr></thead>
+        <tbody>
+          <tr class="b"><td class="k">a</td><td>Terreno del proyecto</td><td class="n">2,574</td><td class="n">0.26 ha</td></tr>
+          <tr class="b"><td class="k">b</td><td>COS · desplante de edificios</td><td class="n">1,290</td><td class="n">50.1 %</td></tr>
+          <tr class="b"><td class="k">c</td><td>Espacio abierto total</td><td class="n">1,284</td><td class="n">49.9 %</td></tr>
+          <tr><td></td><td class="ind">Patio con vegetación, área verde</td><td class="n">324</td><td class="n">12.6 %</td></tr>
+          <tr><td></td><td class="ind">Área libre lateral y frente</td><td class="n">960</td><td class="n">37.3 %</td></tr>
+          <tr class="b"><td class="k">d</td><td>CUS · construido total</td><td class="n">3,870</td><td class="n">1.50 veces</td></tr>
+          <tr><td></td><td class="ind">Planta baja · 14 viv + núcleos</td><td class="n">1,290</td><td class="n"></td></tr>
+          <tr><td></td><td class="ind">Nivel 2 · 14 viv + núcleos</td><td class="n">1,290</td><td class="n"></td></tr>
+          <tr><td></td><td class="ind">Nivel 3 · 14 viv + núcleos</td><td class="n">1,290</td><td class="n"></td></tr>
+          <tr class="b"><td class="k">e</td><td>Densidad · 42 viv ÷ 0.26 ha</td><td class="n">—</td><td class="n">163 viv/ha</td></tr>
+        </tbody>
+      </table>
+      <p class="note">El CUS de cada ala está en la tabla de Edificios. El terreno es el polígono catastral de los dos lotes (2,574 m²); las fichas registran 2,645 m². El área verde cuenta solo el patio con vegetación. La planta baja de Tipo C es un solo volumen de 310 m² que se cuenta como 3 departamentos, igual que en el nivel 3.</p>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 2 · Lineamientos</div>
+      <h2>Qué permite la norma (CU-2)</h2>
+      <p class="sub">Con el Cuadro 10 caben en el predio hasta 1,931 m² de desplante y 11,584 m² construidos, con un máximo de 64 viviendas. Por lo menos 386 m² deben ser área verde.</p>
+      <div class="table-x"><table>
+        <thead><tr><th>Lineamiento</th><th>Valor para el predio</th><th>Fuente</th></tr></thead>
+        <tbody>
+          <tr><td><b>Zonificación secundaria</b></td><td>CU-2 · Corredor urbano habitacional, comercio y servicios</td><td class="src">PDDU 2020 · ficha catastral</td></tr>
+          <tr><td><b>Uso predominante actual</b></td><td>Habitación unifamiliar, dos casas de un nivel con 1,691 m² construidos</td><td class="src">Catastro</td></tr>
+          <tr><td><b>Usos permitidos</b></td><td>Vivienda unifamiliar y multifamiliar, comercio y servicios de corredor; vivienda vertical permitida</td><td class="src">PDDU 2020</td></tr>
+          <tr><td><b>Usos no compatibles</b></td><td>Revisar en la matriz de compatibilidad cualquier giro distinto de vivienda en planta baja</td><td class="src">Tabla de compatibilidad</td></tr>
+          <tr><td><b>Tipo de vialidad</b></td><td>Miguel Ramos Arizpe, sección de 26 m, frente de 55 m. Al noroeste colinda con el lote 65174</td><td class="src">PDDU 2020 · estructura vial</td></tr>
+          <tr><td><b>Cajones</b></td><td>Vivienda multifamiliar según Reglamento; no se resuelven en esta etapa</td><td class="src">Reglamento de Desarrollo Urbano</td></tr>
+          <tr><td><b>COS</b></td><td>0.75 máx. → 1,931 m²</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>CAV</b></td><td>0.15 mín. → 386 m² de área verde</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>CUS</b></td><td>4.7 máx.; con la altura de 20.8 m el CUS efectivo es 4.5 → 11,584 m²</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Densidad</b></td><td>250 viv/ha → 64 viviendas</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Altura</b></td><td>6 niveles; 20.8 m, el 80 % del ancho de la vialidad</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Remetimientos</b></td><td>Frente 5.5 m · fondo 25 % de la altura · laterales 10 % de la altura repartido en ambos lados</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Patrimonio</b></td><td>Sector Centro Histórico, requiere revisión patrimonial. Sin inmuebles catalogados en los lotes</td><td class="src">Catastro · Atlas de patrimonio</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 4 · Comparativa</div>
+      <h2>Permitido contra propuesto</h2>
+      <div class="table-x"><table>
+        <thead><tr><th>Parámetro</th><th class="n">Norma</th><th class="n">Propuesta</th><th>Uso de la norma</th><th>Resultado</th></tr></thead>
+        <tbody><tr><td><b>COS</b></td><td class="n">≤ 0.75</td><td class="n">0.50</td><td style="min-width:90px"><div class="bar2"><i style="width:67%"></i></div><span class="src">67 %</span></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Área libre</b></td><td class="n">≥ 25 %</td><td class="n">49.9 %</td><td style="min-width:90px"></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Área verde (CAV)</b></td><td class="n">≥ 15 %</td><td class="n">12.6 %</td><td style="min-width:90px"><div class="bar2"><i style="width:84%"></i></div><span class="src">84 %</span></td><td><span class="pill bad">No cumple</span></td></tr><tr><td><b>CUS</b></td><td class="n">≤ 4.7</td><td class="n">1.50</td><td style="min-width:90px"><div class="bar2"><i style="width:33%"></i></div><span class="src">33 %</span></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Densidad</b></td><td class="n">≤ 250 (64)</td><td class="n">163 (42)</td><td style="min-width:90px"><div class="bar2"><i style="width:66%"></i></div><span class="src">66 %</span></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Niveles</b></td><td class="n">≤ 6</td><td class="n">3</td><td style="min-width:90px"><div class="bar2"><i style="width:50%"></i></div><span class="src">50 %</span></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Altura</b></td><td class="n">≤ 20.8 m</td><td class="n">9 m</td><td style="min-width:90px"><div class="bar2"><i style="width:43%"></i></div><span class="src">43 %</span></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Remet. frente</b></td><td class="n">5.5 m</td><td class="n">5.5 m</td><td style="min-width:90px"></td><td><span class="pill warn">Cumple al límite</span></td></tr><tr><td><b>Remet. fondo</b></td><td class="n">25 % altura = 2.25 m</td><td class="n">2.5 m</td><td style="min-width:90px"></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Remet. laterales</b></td><td class="n">10 % altura = 0.9 m</td><td class="n">2.6 y 5.5 m</td><td style="min-width:90px"></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Cajones</b></td><td class="n">Reglamento</td><td class="n">sin resolver</td><td style="min-width:90px"></td><td><span class="pill bad">No cumple</span></td></tr></tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 4 · Compatibilidades e incongruencias</div>
+      <h2>Lo que la norma permite y<br>lo que el proyecto aprovecha</h2>
+      <div class="cols">
+        <div><h3>Compatibilidades</h3><ul>
+          <li>COS de 0.50 contra 0.75 permitido; la mitad del predio queda abierta entre patio y área libre.</li>
+          <li>Se construyen 3,870 m² donde hoy hay 1,691 m²; la propuesta multiplica por 2.3 lo construido sin pasar de 3 niveles.</li>
+          <li>El frente respeta exactamente los 5.5 m sobre Ramos Arizpe y el fondo queda a 2.5 m contra 2.25 m exigidos.</li>
+          <li>Tres niveles y 9 m frente a 20.8 m permitidos; el anillo conversa con vecinos de uno y dos niveles en el Centro Histórico.</li>
+          <li>Vivienda multifamiliar permitida en CU-2 y tres tipologías de 76 a 105 m² para hogares distintos.</li>
+        </ul></div>
+        <div><h3>Incongruencias</h3><ul>
+          <li>El área verde es de 12.6 % y la norma pide 15 %. Faltan 62 m², que caben en los 960 m² de área libre lateral si una parte se ajardina.</li>
+          <li>Se usa el 33 % del CUS pero el 66 % de la densidad. La densidad es el límite real; un cuarto nivel daría 56 viviendas (218 viv/ha) y un quinto ya rebasaría las 250 viv/ha aunque el CUS y la altura lo permitan.</li>
+          <li>Un cuarto nivel también subiría el remetimiento de fondo a 3 m; hoy el anillo está a 2.5 m del lindero.</li>
+          <li>No se resolvieron cajones de estacionamiento ni el acceso vehicular.</li>
+          <li>El predio está en el sector Centro Histórico; la fachada a Ramos Arizpe requiere revisión patrimonial.</li>
+        </ul></div>
+      </div>
+      <p class="note">Activa <b>Normativa</b> en el visor. El volumen naranja es la envolvente que permite la norma, 20.8 m de altura con el remetimiento de 5.5 m al frente.</p>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 1 · Predio</div>
+      <h2>Dos casas, un frente</h2>
+      <div class="table-x"><table>
+        <thead><tr><th>Lote (ID carto)</th><th>Dirección</th><th class="n">Largo × ancho</th><th class="n">Superficie</th><th class="n">Construido</th></tr></thead>
+        <tbody><tr><td><b>65088</b><br><span class="src">0040210011</span></td><td>Miguel Ramos Arizpe 835<br><span class="src">Habitación · 1 nivel</span></td><td class="n">51.0 × 26.4 m</td><td class="n">1,187 m²</td><td class="n">1,098 m²</td></tr><tr><td><b>65184</b><br><span class="src">0040210121</span></td><td>Miguel Ramos Arizpe 851<br><span class="src">Habitación · 1 nivel</span></td><td class="n">50.3 × 28.1 m</td><td class="n">1,387 m²</td><td class="n">593 m²</td></tr><tr class="b"><td>Predio total</td><td>Frente a Ramos Arizpe</td><td class="n">54.5 × 50.3 m</td><td class="n">2,574 m²</td><td class="n">1,691 m²</td></tr></tbody>
+      </table></div>
+      <p class="note">Manzana 0286-018 entre Miguel Ramos Arizpe, Cuauhtémoc, Carlos Salazar y Cristóbal Colón. Superficie de 10,607 m², 14 lotes, 11 de casa habitación y 3 comerciales, casi todos de un nivel. Los dos lotes del proyecto dan a Ramos Arizpe en el extremo norte de la manzana, con el lote 65174 como vecino al noroeste, y hoy usan menos del 25 % del CUS que permite la norma.</p>
+    </section>
+
+    <footer>Fuentes · PDDU Saltillo 2020 (Cuadro 10) · Catastro municipal, fichas y polígonos · Plataforma de Análisis Urbano Centro de Saltillo · Contexto con niveles estimados a partir de la superficie construida catastral.<br>Fernanda Villanueva Hernández · Gestión y administración de proyectos territoriales de inversión (Gpo 601) · Tec de Monterrey</footer>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script>window.DATA={"units":[{"id":0,"t":"N","l":0,"a":22.0,"w":"Lateral noroeste","n":0,"p":[[-23.67,-1.28],[-23.67,-1.28],[-21.39,3.72],[-21.39,3.72],[-21.39,3.72],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-20.03,-2.95],[-20.03,-2.95],[-20.03,-2.95],[-23.67,-1.29]]},{"id":1,"t":"N","l":0,"a":22.0,"w":"Frente Ramos Arizpe","n":0,"p":[[-12.67,22.82],[-12.67,22.82],[-10.38,27.82],[-10.38,27.82],[-10.38,27.82],[-6.74,26.16],[-6.74,26.16],[-6.74,26.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-12.67,22.82]]},{"id":2,"t":"A","l":2,"a":71.8,"w":"Lateral sureste","n":1,"p":[[5.44,-14.57],[5.44,-14.57],[8.48,-7.9],[8.48,-7.9],[8.48,-7.9],[17.79,-12.15],[17.79,-12.15],[17.79,-12.15],[13.95,-18.46],[13.95,-18.46],[13.95,-18.46],[5.44,-14.57]]},{"id":3,"t":"A","l":2,"a":78.2,"w":"Lateral sureste","n":1,"p":[[8.48,-7.9],[8.48,-7.9],[11.53,-1.23],[11.53,-1.23],[11.53,-1.23],[21.62,-5.84],[21.62,-5.84],[21.62,-5.84],[17.79,-12.15],[17.79,-12.15],[17.79,-12.15],[8.48,-7.9]]},{"id":4,"t":"A","l":2,"a":84.5,"w":"Lateral sureste","n":1,"p":[[11.53,-1.23],[11.53,-1.23],[14.57,5.44],[14.57,5.44],[14.58,5.44],[25.45,0.47],[25.45,0.47],[25.45,0.47],[21.62,-5.84],[21.62,-5.84],[21.62,-5.84],[11.53,-1.23]]},{"id":5,"t":"C","l":2,"a":103.2,"w":"Fondo","n":1,"p":[[-1.74,-22.29],[-1.74,-22.29],[2.41,-13.19],[2.41,-13.19],[2.41,-13.19],[11.81,-17.48],[11.81,-17.48],[11.81,-17.48],[7.65,-26.58],[7.65,-26.58],[7.65,-26.58],[-1.74,-22.29]]},{"id":6,"t":"C","l":2,"a":103.2,"w":"Fondo","n":1,"p":[[-11.13,-18.0],[-11.13,-18.0],[-6.98,-8.91],[-6.98,-8.91],[-6.98,-8.91],[2.41,-13.19],[2.41,-13.19],[2.41,-13.19],[-1.74,-22.29],[-1.74,-22.29],[-1.74,-22.29],[-11.13,-18.0]]},{"id":7,"t":"C","l":2,"a":103.2,"w":"Fondo","n":1,"p":[[-20.52,-13.72],[-20.52,-13.72],[-16.37,-4.62],[-16.37,-4.62],[-16.37,-4.62],[-6.98,-8.91],[-6.98,-8.91],[-6.98,-8.91],[-11.13,-18.0],[-11.13,-18.0],[-11.13,-18.0],[-20.52,-13.72]]},{"id":8,"t":"B","l":2,"a":80.2,"w":"Fondo","n":1,"p":[[-27.78,-10.4],[-27.78,-10.4],[-26.92,-8.39],[-26.92,-8.39],[-23.67,-1.29],[-23.67,-1.28],[-23.67,-1.29],[-20.03,-2.95],[-16.37,-4.62],[-16.37,-4.62],[-16.37,-4.62],[-20.52,-13.72],[-20.52,-13.72],[-20.52,-13.72],[-27.78,-10.4]]},{"id":9,"t":"B","l":2,"a":95.9,"w":"Lateral noroeste","n":1,"p":[[-21.39,3.72],[-21.39,3.72],[-18.78,9.44],[-18.78,9.44],[-18.78,9.44],[-9.68,5.29],[-9.68,5.29],[-9.68,5.29],[-14.57,-5.44],[-14.57,-5.44],[-14.58,-5.44],[-20.03,-2.95],[-20.03,-2.95],[-20.03,-2.95],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.76,2.06],[-17.76,2.06],[-17.76,2.06],[-17.76,2.06],[-21.39,3.72]]},{"id":10,"t":"B","l":2,"a":117.9,"w":"Lateral noroeste","n":1,"p":[[-18.78,9.44],[-18.78,9.44],[-13.88,20.16],[-13.88,20.16],[-13.88,20.16],[-4.78,16.01],[-4.78,16.01],[-4.78,16.01],[-9.68,5.29],[-9.68,5.29],[-9.68,5.29],[-18.78,9.44]]},{"id":11,"t":"A","l":2,"a":62.2,"w":"Frente Ramos Arizpe","n":1,"p":[[-13.88,20.16],[-13.88,20.16],[-12.67,22.82],[-12.67,22.82],[-12.67,22.82],[-9.04,21.16],[-9.04,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.17],[-9.03,21.17],[-9.03,21.17],[-9.02,21.17],[-9.02,21.17],[-9.02,21.17],[-9.02,21.17],[-6.74,26.16],[-6.74,26.16],[-6.74,26.16],[-1.29,23.67],[-1.28,23.67],[-1.29,23.67],[-4.78,16.01],[-4.78,16.01],[-4.78,16.01],[-13.88,20.16]]},{"id":12,"t":"B","l":2,"a":82.4,"w":"Lateral sureste","n":1,"p":[[18.49,3.65],[18.49,3.65],[22.65,12.75],[22.65,12.75],[22.65,12.75],[30.68,9.08],[30.68,9.08],[30.68,9.08],[27.36,3.61],[25.85,1.13],[25.45,0.47],[25.45,0.47],[25.45,0.47],[18.49,3.65]]},{"id":13,"t":"B","l":2,"a":96.9,"w":"Frente Ramos Arizpe","n":1,"p":[[9.68,7.67],[9.68,7.67],[13.83,16.77],[13.83,16.77],[13.83,16.77],[22.65,12.75],[22.65,12.75],[22.65,12.75],[18.49,3.65],[18.49,3.65],[18.49,3.65],[9.68,7.67]]},{"id":14,"t":"B","l":2,"a":96.9,"w":"Frente Ramos Arizpe","n":1,"p":[[0.86,11.7],[0.86,11.7],[5.01,20.8],[5.01,20.8],[5.01,20.8],[13.83,16.77],[13.83,16.77],[13.83,16.77],[9.68,7.67],[9.68,7.67],[9.68,7.67],[0.86,11.7]]},{"id":15,"t":"A","l":2,"a":69.2,"w":"Frente Ramos Arizpe","n":1,"p":[[-5.44,14.57],[-5.44,14.58],[-1.29,23.67],[-1.28,23.67],[-1.28,23.67],[5.01,20.8],[5.01,20.8],[5.01,20.8],[0.86,11.7],[0.86,11.7],[0.86,11.7],[-5.44,14.57]]},{"id":16,"t":"N","l":2,"a":22.0,"w":"Lateral noroeste","n":0,"p":[[-23.67,-1.28],[-23.67,-1.28],[-21.39,3.72],[-21.39,3.72],[-21.39,3.72],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-20.03,-2.95],[-20.03,-2.95],[-20.03,-2.95],[-23.67,-1.29]]},{"id":17,"t":"N","l":2,"a":22.0,"w":"Frente Ramos Arizpe","n":0,"p":[[-12.67,22.82],[-12.67,22.82],[-10.38,27.82],[-10.38,27.82],[-10.38,27.82],[-6.74,26.16],[-6.74,26.16],[-6.74,26.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-12.67,22.82]]},{"id":18,"t":"A","l":1,"a":71.8,"w":"Lateral sureste","n":1,"p":[[5.44,-14.57],[5.44,-14.57],[8.48,-7.9],[8.48,-7.9],[8.48,-7.9],[17.79,-12.15],[17.79,-12.15],[17.79,-12.15],[13.95,-18.46],[13.95,-18.46],[13.95,-18.46],[5.44,-14.57]]},{"id":19,"t":"A","l":1,"a":78.2,"w":"Lateral sureste","n":1,"p":[[8.48,-7.9],[8.48,-7.9],[11.53,-1.23],[11.53,-1.23],[11.53,-1.23],[21.62,-5.84],[21.62,-5.84],[21.62,-5.84],[17.79,-12.15],[17.79,-12.15],[17.79,-12.15],[8.48,-7.9]]},{"id":20,"t":"A","l":1,"a":84.5,"w":"Lateral sureste","n":1,"p":[[11.53,-1.23],[11.53,-1.23],[14.57,5.44],[14.57,5.44],[14.58,5.44],[25.45,0.47],[25.45,0.47],[25.45,0.47],[21.62,-5.84],[21.62,-5.84],[21.62,-5.84],[11.53,-1.23]]},{"id":21,"t":"B","l":1,"a":85.3,"w":"Fondo","n":1,"p":[[-20.06,-13.92],[-20.06,-13.92],[-15.91,-4.83],[-15.91,-4.83],[-15.91,-4.83],[-8.15,-8.37],[-8.15,-8.37],[-8.15,-8.37],[-12.3,-17.47],[-12.3,-17.47],[-12.3,-17.47],[-20.06,-13.92]]},{"id":22,"t":"B","l":1,"a":85.3,"w":"Fondo","n":1,"p":[[-27.78,-10.4],[-27.78,-10.4],[-26.92,-8.39],[-26.92,-8.39],[-23.67,-1.29],[-23.67,-1.28],[-23.67,-1.29],[-20.03,-2.95],[-15.91,-4.83],[-15.91,-4.83],[-15.91,-4.83],[-20.06,-13.92],[-20.06,-13.92],[-20.06,-13.92],[-27.78,-10.4]]},{"id":23,"t":"B","l":1,"a":95.9,"w":"Lateral noroeste","n":1,"p":[[-21.39,3.72],[-21.39,3.72],[-18.78,9.44],[-18.78,9.44],[-18.78,9.44],[-9.68,5.29],[-9.68,5.29],[-9.68,5.29],[-14.57,-5.44],[-14.57,-5.44],[-14.58,-5.44],[-20.03,-2.95],[-20.03,-2.95],[-20.03,-2.95],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.76,2.06],[-17.76,2.06],[-17.76,2.06],[-17.76,2.06],[-21.39,3.72]]},{"id":24,"t":"B","l":1,"a":117.9,"w":"Lateral noroeste","n":1,"p":[[-18.78,9.44],[-18.78,9.44],[-13.88,20.16],[-13.88,20.16],[-13.88,20.16],[-4.78,16.01],[-4.78,16.01],[-4.78,16.01],[-9.68,5.29],[-9.68,5.29],[-9.68,5.29],[-18.78,9.44]]},{"id":25,"t":"A","l":1,"a":62.2,"w":"Frente Ramos Arizpe","n":1,"p":[[-13.88,20.16],[-13.88,20.16],[-12.67,22.82],[-12.67,22.82],[-12.67,22.82],[-9.04,21.16],[-9.04,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.17],[-9.03,21.17],[-9.03,21.17],[-9.02,21.17],[-9.02,21.17],[-9.02,21.17],[-9.02,21.17],[-6.74,26.16],[-6.74,26.16],[-6.74,26.16],[-1.29,23.67],[-1.28,23.67],[-1.29,23.67],[-4.78,16.01],[-4.78,16.01],[-4.78,16.01],[-13.88,20.16]]},{"id":26,"t":"B","l":1,"a":75.5,"w":"Lateral sureste","n":1,"p":[[19.12,3.36],[19.12,3.36],[23.28,12.46],[23.28,12.46],[23.28,12.46],[30.68,9.08],[30.68,9.08],[30.68,9.08],[27.36,3.61],[25.85,1.13],[25.45,0.47],[25.45,0.47],[25.45,0.47],[19.12,3.36]]},{"id":27,"t":"B","l":1,"a":90.0,"w":"Frente Ramos Arizpe","n":1,"p":[[10.94,7.1],[10.94,7.1],[15.09,16.2],[15.09,16.2],[15.09,16.2],[23.28,12.46],[23.28,12.46],[23.28,12.46],[19.12,3.36],[19.12,3.36],[19.12,3.36],[10.94,7.1]]},{"id":28,"t":"B","l":1,"a":90.0,"w":"Frente Ramos Arizpe","n":1,"p":[[2.75,10.84],[2.75,10.84],[6.9,19.93],[6.9,19.93],[6.9,19.93],[15.09,16.2],[15.09,16.2],[15.09,16.2],[10.94,7.1],[10.94,7.1],[10.94,7.1],[2.75,10.84]]},{"id":29,"t":"B","l":1,"a":90.0,"w":"Frente Ramos Arizpe","n":1,"p":[[-5.44,14.57],[-5.44,14.58],[-1.29,23.67],[-1.28,23.67],[-1.28,23.67],[6.9,19.93],[6.9,19.93],[6.9,19.93],[2.75,10.84],[2.75,10.84],[2.75,10.84],[-5.44,14.57]]},{"id":30,"t":"N","l":1,"a":22.0,"w":"Lateral noroeste","n":0,"p":[[-23.67,-1.28],[-23.67,-1.28],[-21.39,3.72],[-21.39,3.72],[-21.39,3.72],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-20.03,-2.95],[-20.03,-2.95],[-20.03,-2.95],[-23.67,-1.29]]},{"id":31,"t":"N","l":1,"a":22.0,"w":"Frente Ramos Arizpe","n":0,"p":[[-12.67,22.82],[-12.67,22.82],[-10.38,27.82],[-10.38,27.82],[-10.38,27.82],[-6.74,26.16],[-6.74,26.16],[-6.74,26.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-12.67,22.82]]},{"id":32,"t":"C","l":1,"a":109.7,"w":"Fondo","n":1,"p":[[-2.33,-22.02],[-2.33,-22.02],[1.83,-12.93],[1.83,-12.93],[1.83,-12.93],[11.81,-17.48],[11.81,-17.48],[11.81,-17.48],[7.65,-26.58],[7.65,-26.58],[7.65,-26.58],[-2.33,-22.02]]},{"id":33,"t":"C","l":1,"a":109.7,"w":"Fondo","n":1,"p":[[-12.3,-17.47],[-12.3,-17.47],[-8.15,-8.37],[-8.15,-8.37],[-8.15,-8.37],[1.83,-12.93],[1.83,-12.93],[1.83,-12.93],[-2.33,-22.02],[-2.33,-22.02],[-2.33,-22.02],[-12.3,-17.47]]},{"id":34,"t":"B","l":0,"a":80.2,"w":"Fondo","n":1,"p":[[-27.78,-10.4],[-27.78,-10.4],[-26.92,-8.39],[-26.92,-8.39],[-23.67,-1.29],[-23.67,-1.28],[-23.67,-1.29],[-20.03,-2.95],[-16.37,-4.62],[-16.37,-4.62],[-16.37,-4.62],[-20.52,-13.72],[-20.52,-13.72],[-20.52,-13.72],[-27.78,-10.4]]},{"id":35,"t":"B","l":0,"a":90.0,"w":"Frente Ramos Arizpe","n":1,"p":[[-5.44,14.57],[-5.44,14.58],[-1.29,23.67],[-1.28,23.67],[-1.28,23.67],[6.9,19.93],[6.9,19.93],[6.9,19.93],[2.75,10.84],[2.75,10.84],[2.75,10.84],[-5.44,14.57]]},{"id":36,"t":"B","l":0,"a":90.0,"w":"Frente Ramos Arizpe","n":1,"p":[[2.75,10.84],[2.75,10.84],[6.9,19.93],[6.9,19.93],[6.9,19.93],[15.09,16.2],[15.09,16.2],[15.09,16.2],[10.94,7.1],[10.94,7.1],[10.94,7.1],[2.75,10.84]]},{"id":37,"t":"B","l":0,"a":109.8,"w":"Lateral noroeste","n":1,"p":[[-21.39,3.72],[-21.39,3.72],[-18.2,10.7],[-18.2,10.7],[-18.2,10.7],[-9.1,6.55],[-9.1,6.55],[-9.1,6.55],[-14.57,-5.44],[-14.57,-5.44],[-14.58,-5.44],[-20.03,-2.95],[-20.03,-2.95],[-20.03,-2.95],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.05],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.75,2.06],[-17.76,2.06],[-17.76,2.06],[-17.76,2.06],[-17.76,2.06],[-21.39,3.72]]},{"id":38,"t":"B","l":0,"a":90.0,"w":"Frente Ramos Arizpe","n":1,"p":[[10.94,7.1],[10.94,7.1],[15.09,16.2],[15.09,16.2],[15.09,16.2],[23.28,12.46],[23.28,12.46],[23.28,12.46],[19.12,3.36],[19.12,3.36],[19.12,3.36],[10.94,7.1]]},{"id":39,"t":"B","l":0,"a":75.5,"w":"Lateral sureste","n":1,"p":[[19.12,3.36],[19.12,3.36],[23.28,12.46],[23.28,12.46],[23.28,12.46],[30.68,9.08],[30.68,9.08],[30.68,9.08],[27.36,3.61],[25.85,1.13],[25.45,0.47],[25.45,0.47],[25.45,0.47],[19.12,3.36]]},{"id":40,"t":"A","l":0,"a":84.5,"w":"Lateral sureste","n":1,"p":[[11.53,-1.23],[11.53,-1.23],[14.57,5.44],[14.57,5.44],[14.58,5.44],[25.45,0.47],[25.45,0.47],[25.45,0.47],[21.62,-5.84],[21.62,-5.84],[21.62,-5.84],[11.53,-1.23]]},{"id":41,"t":"A","l":0,"a":78.2,"w":"Lateral sureste","n":1,"p":[[8.48,-7.9],[8.48,-7.9],[11.53,-1.23],[11.53,-1.23],[11.53,-1.23],[21.62,-5.84],[21.62,-5.84],[21.62,-5.84],[17.79,-12.15],[17.79,-12.15],[17.79,-12.15],[8.48,-7.9]]},{"id":42,"t":"A","l":0,"a":71.8,"w":"Lateral sureste","n":1,"p":[[5.44,-14.57],[5.44,-14.57],[8.48,-7.9],[8.48,-7.9],[8.48,-7.9],[17.79,-12.15],[17.79,-12.15],[17.79,-12.15],[13.95,-18.46],[13.95,-18.46],[13.95,-18.46],[5.44,-14.57]]},{"id":43,"t":"A","l":0,"a":72.1,"w":"Frente Ramos Arizpe","n":1,"p":[[-14.29,19.26],[-14.29,19.26],[-12.67,22.82],[-12.67,22.82],[-12.67,22.82],[-9.04,21.16],[-9.04,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.16],[-9.03,21.17],[-9.03,21.17],[-9.03,21.17],[-9.02,21.17],[-9.02,21.17],[-9.02,21.17],[-9.02,21.17],[-6.74,26.16],[-6.74,26.16],[-6.74,26.16],[-1.29,23.67],[-1.28,23.67],[-1.29,23.67],[-5.19,15.11],[-5.19,15.11],[-5.19,15.11],[-14.29,19.26]]},{"id":44,"t":"A","l":0,"a":94.1,"w":"Lateral noroeste","n":1,"p":[[-18.2,10.7],[-18.2,10.7],[-14.29,19.26],[-14.29,19.26],[-14.29,19.26],[-5.19,15.11],[-5.19,15.11],[-5.19,15.11],[-9.1,6.55],[-9.1,6.55],[-9.1,6.55],[-18.2,10.7]]},{"id":45,"t":"C","l":0,"a":309.7,"w":"Fondo","n":3,"p":[[-20.52,-13.72],[-20.52,-13.72],[-16.37,-4.62],[-16.37,-4.62],[-16.37,-4.62],[11.81,-17.48],[11.81,-17.48],[11.81,-17.48],[7.65,-26.58],[7.65,-26.58],[7.65,-26.58],[-20.52,-13.72]]}],"patio":[[4.45,-11.92],[-11.92,-4.45],[-4.45,11.92],[11.92,4.45]],"libre":[[[5.44,-14.57],[-14.57,-5.44],[-5.44,14.57],[14.57,5.44]],[[-10.98,34.14],[38.59,11.51],[12.28,-31.82],[-31.18,-11.98]]],"lotsU":[[10.44,-30.97],[5.0,-28.48],[-5.99,-23.44],[-6.29,-23.3],[-22.48,-15.87],[-25.38,-14.54],[-26.15,-14.19],[-31.18,-11.98],[-27.2,-2.71],[-10.98,34.14],[-10.83,34.07],[14.58,22.47],[38.59,11.51],[32.06,0.75],[30.55,-1.73],[12.28,-31.82]],"env":[[5.0,-28.48],[-5.99,-23.44],[-6.29,-23.3],[-22.48,-15.87],[-25.38,-14.54],[-26.15,-14.19],[-31.18,-11.98],[-27.2,-2.71],[-10.98,34.14],[-10.83,34.07],[-13.11,29.07],[12.3,17.47],[30.68,9.08],[27.36,3.61],[32.06,0.75],[30.55,-1.73],[12.28,-31.82],[10.44,-30.97]],"ctx":[{"p":[[58.05,0.68],[94.0,-15.52],[130.32,-29.83],[149.28,-37.71],[152.83,-40.4],[154.24,-42.13],[156.17,-46.15],[156.64,-48.33],[156.51,-52.78],[78.03,-156.21],[76.06,-156.64],[-19.74,-106.23],[-20.18,-104.49],[38.23,-5.95],[41.04,-7.23],[42.61,-4.26],[44.65,-1.44],[48.79,0.75],[53.43,1.49]],"n":1},{"p":[[-85.09,-130.81],[-80.26,-121.6],[-110.95,-105.79],[-115.67,-114.69],[-120.28,-112.26],[-113.92,-100.49],[-74.88,-120.78],[-81.41,-132.75]],"n":1},{"p":[[40.81,218.94],[3.23,148.93],[-73.67,196.27],[-33.41,260.34]],"n":1},{"p":[[3.23,148.93],[-19.89,105.72],[-61.2,128.74],[-43.93,159.49],[-36.58,173.43]],"n":1},{"p":[[-100.93,150.88],[-19.89,105.72],[-42.11,64.2],[-116.53,98.01],[-129.33,103.37]],"n":1},{"p":[[-48.71,150.87],[-61.2,128.74],[-100.93,150.88],[-87.37,173.54]],"n":1},{"p":[[-43.93,159.49],[-48.71,150.87],[-87.37,173.54],[-82.21,182.16]],"n":1},{"p":[[-36.58,173.43],[-43.93,159.49],[-82.21,182.16],[-73.67,196.27]],"n":1},{"p":[[120.3,7.83],[116.74,4.72],[-6.87,60.77],[-8.59,65.12],[66.47,205.65],[176.54,409.24],[241.28,373.65],[298.45,343.11],[226.58,210.42],[198.83,156.67],[136.89,38.84]],"n":0},{"p":[[175.98,6.96],[170.94,-2.75],[151.81,8.09],[156.72,17.21]],"n":1},{"p":[[169.73,41.39],[194.46,29.03],[187.03,19.41],[164.01,30.76]],"n":1},{"p":[[164.01,30.76],[183.37,21.22],[175.98,6.96],[156.72,17.21]],"n":3},{"p":[[148.15,9.9],[175.32,-5.23],[177.11,-1.93],[190.82,-8.81],[170.43,-35.08],[133.08,-18.57]],"n":1},{"p":[[12.28,-31.82],[7.28,-40.04],[-7.25,-33.2],[-16.79,-29.37],[-30.77,-23.06],[-26.15,-14.19]],"n":1},{"p":[[1.08,-50.44],[-11.96,-44.02],[-35.31,-31.78],[-30.77,-23.06],[-16.79,-29.37],[-7.25,-33.2],[7.28,-40.04]],"n":1},{"p":[[-3.02,-57.31],[-8.27,-66.1],[-43.33,-47.17],[-38.44,-37.79]],"n":1},{"p":[[-8.27,-66.1],[-14.93,-77.27],[-49.96,-58.25],[-43.33,-47.17]],"n":1},{"p":[[-14.93,-77.27],[-22.57,-90.08],[-57.63,-70.67],[-53.36,-62.87],[-52.88,-63.12],[-49.96,-58.25]],"n":1},{"p":[[-22.57,-90.08],[-28.9,-100.74],[-30.43,-101.17],[-50.84,-90.22],[-44.18,-78.12]],"n":1},{"p":[[-44.18,-78.12],[-50.84,-90.22],[-64.67,-82.8],[-57.63,-70.67]],"n":1},{"p":[[-53.36,-62.87],[-64.67,-82.8],[-95.15,-66.42],[-84.56,-46.04]],"n":2},{"p":[[-26.15,-14.19],[-43.33,-47.17],[-76.19,-30.08],[-59.77,1.06]],"n":1},{"p":[[-10.98,34.14],[-31.18,-11.98],[-59.77,1.06],[-36.25,45.5]],"n":1},{"p":[[-43.33,-47.17],[-52.88,-63.12],[-84.56,-46.04],[-76.19,-30.08]],"n":2},{"p":[[1.08,-50.44],[-3.02,-57.31],[-38.44,-37.79],[-35.31,-31.78],[-11.96,-44.02]],"n":1},{"p":[[-62.77,25.74],[-89.31,39.5],[-91.61,34.94],[-99.45,39.11],[-95.68,46.71],[-89.31,43.66],[-77.94,64.32],[-48.92,51.16]],"n":1},{"p":[[-62.77,25.74],[-67.89,16.4],[-102.14,33.7],[-99.45,39.11],[-91.61,34.94],[-89.31,39.5]],"n":1},{"p":[[-67.89,16.4],[-73.05,7.0],[-107.63,22.64],[-102.14,33.7]],"n":1},{"p":[[-110.72,24.08],[-72.63,6.77],[-76.5,-1.35],[-100.58,10.66],[-100.73,10.38],[-114.28,17.39]],"n":2},{"p":[[-107.57,-35.24],[-113.26,-45.39],[-106.66,-48.65],[-106.84,-48.99],[-103.34,-50.84],[-107.13,-57.74],[-122.15,-49.6],[-112.96,-32.4]],"n":1},{"p":[[-106.03,-19.43],[-122.15,-49.6],[-130.43,-45.11],[-114.37,-14.87]],"n":1},{"p":[[-114.37,-14.87],[-130.43,-45.11],[-138.38,-40.79],[-121.42,-11.03]],"n":1},{"p":[[-121.42,-11.03],[-138.38,-40.79],[-142.72,-38.44],[-125.92,-8.58]],"n":2},{"p":[[-136.86,-18.26],[-146.84,-36.21],[-154.57,-31.94],[-144.68,-13.96]],"n":1},{"p":[[-114.28,17.39],[-100.73,10.38],[-100.58,10.66],[-76.5,-1.35],[-90.75,-27.76],[-138.14,-2.06],[-154.57,-31.94],[-183.38,-16.05],[-168.0,13.89],[-168.47,14.14],[-167.99,15.03],[-179.04,21.28],[-152.42,68.88],[-137.23,91.57],[-112.75,80.32],[-136.29,34.48],[-112.01,21.53]],"n":2},{"p":[[-103.41,76.03],[-128.25,30.29],[-136.29,34.48],[-112.75,80.32]],"n":2},{"p":[[-94.64,72.0],[-97.12,67.53],[-96.46,67.21],[-118.81,24.98],[-128.25,30.29],[-103.41,76.03]],"n":2},{"p":[[-90.75,-27.76],[-97.04,-39.35],[-106.79,-33.85],[-107.57,-35.24],[-112.96,-32.4],[-106.03,-19.43]],"n":1},{"p":[[-97.04,-39.35],[-103.34,-50.84],[-106.84,-48.99],[-106.66,-48.65],[-113.26,-45.39],[-106.79,-33.85]],"n":1},{"p":[[-125.92,-8.58],[-142.72,-38.44],[-146.84,-36.21],[-130.21,-6.29]],"n":1},{"p":[[-136.86,-18.26],[-144.68,-13.96],[-138.14,-2.06],[-130.21,-6.29]],"n":1},{"p":[[-77.94,64.32],[-89.31,43.66],[-95.68,46.71],[-107.63,22.64],[-110.72,24.08],[-112.01,21.53],[-118.81,24.98],[-96.46,67.21],[-97.12,67.53],[-94.64,72.0]],"n":3},{"p":[[-113.47,-68.98],[-116.65,-74.91],[-137.02,-63.74],[-133.89,-57.91]],"n":2},{"p":[[-116.65,-74.91],[-119.69,-80.58],[-140.07,-69.4],[-137.02,-63.74]],"n":2},{"p":[[-119.69,-80.58],[-122.88,-86.55],[-143.37,-75.52],[-140.07,-69.4]],"n":1},{"p":[[-122.88,-86.55],[-127.61,-95.36],[-147.9,-84.26],[-143.37,-75.52]],"n":2},{"p":[[-156.59,-79.51],[-127.61,-95.36],[-134.57,-108.36],[-163.72,-92.62]],"n":1},{"p":[[-142.64,-53.17],[-156.98,-79.3],[-171.54,-71.34],[-157.32,-45.21]],"n":1},{"p":[[-133.89,-57.91],[-147.9,-84.26],[-156.98,-79.3],[-142.64,-53.17]],"n":1},{"p":[[-35.56,-111.04],[-40.42,-118.86],[-46.79,-115.49],[-47.08,-116.05],[-51.27,-113.82],[-51.47,-114.21],[-54.62,-112.53],[-48.93,-102.35],[-36.3,-108.92]],"n":1},{"p":[[-40.42,-118.86],[-45.88,-127.67],[-59.23,-120.77],[-54.62,-112.53],[-51.47,-114.21],[-51.27,-113.82],[-47.08,-116.05],[-46.79,-115.49]],"n":1},{"p":[[-45.88,-127.67],[-49.72,-133.85],[-74.88,-120.78],[-71.43,-114.44]],"n":1},{"p":[[-74.88,-120.78],[-49.72,-133.85],[-53.1,-139.32],[-78.34,-127.13]],"n":1},{"p":[[-78.34,-127.13],[-53.1,-139.32],[-56.7,-145.12],[-81.41,-132.75]],"n":1},{"p":[[-109.33,-118.03],[-115.67,-114.69],[-110.95,-105.79],[-104.74,-108.93]],"n":2},{"p":[[-71.43,-114.44],[-74.88,-120.78],[-113.92,-100.49],[-109.44,-91.85],[-104.58,-94.43],[-105.25,-95.64],[-83.28,-107.26],[-83.6,-107.87]],"n":1},{"p":[[-105.45,-84.15],[-81.76,-96.58],[-83.95,-100.83],[-80.78,-102.47],[-83.28,-107.26],[-105.25,-95.64],[-104.58,-94.43],[-109.44,-91.85]],"n":1},{"p":[[-74.61,-90.63],[-80.78,-102.47],[-83.95,-100.83],[-81.76,-96.58],[-105.45,-84.15],[-101.33,-76.19]],"n":3},{"p":[[-74.61,-90.63],[-62.13,-97.38],[-71.43,-114.44],[-83.6,-107.87]],"n":1},{"p":[[-59.23,-120.77],[-71.43,-114.44],[-61.32,-95.89],[-48.93,-102.35]],"n":1},{"p":[[-98.65,-112.15],[-103.33,-121.2],[-109.33,-118.03],[-104.74,-108.93]],"n":2},{"p":[[-97.29,-124.38],[-103.33,-121.2],[-98.65,-112.15],[-92.66,-115.32]],"n":2},{"p":[[-91.21,-127.58],[-97.29,-124.38],[-92.66,-115.32],[-86.52,-118.46]],"n":2},{"p":[[-85.09,-130.81],[-91.21,-127.58],[-86.52,-118.46],[-80.26,-121.6]],"n":2},{"p":[[11.73,-160.83],[34.04,-173.28],[28.49,-180.25],[49.65,-192.59],[40.86,-203.98],[-3.14,-178.77]],"n":1},{"p":[[-23.19,-160.44],[-25.3,-164.07],[-47.48,-150.59],[-45.46,-147.21],[-44.44,-147.81],[-44.18,-147.34]],"n":1},{"p":[[-42.54,-142.29],[-20.34,-155.45],[-23.19,-160.44],[-44.18,-147.34],[-44.44,-147.81],[-45.46,-147.21]],"n":2},{"p":[[-36.69,-132.49],[-6.72,-149.69],[11.77,-160.78],[-0.05,-175.04],[-19.58,-163.1],[-19.29,-162.6],[-23.19,-160.44],[-20.34,-155.45],[-42.54,-142.29]],"n":1},{"p":[[-16.51,-119.19],[-27.31,-137.87],[-36.69,-132.49],[-25.88,-114.33]],"n":2},{"p":[[-11.03,-122.03],[-21.82,-141.03],[-27.31,-137.87],[-16.51,-119.19]],"n":2},{"p":[[-5.18,-125.06],[-16.49,-144.08],[-21.82,-141.03],[-11.03,-122.03]],"n":1},{"p":[[0.15,-127.83],[-11.24,-147.1],[-16.49,-144.08],[-5.18,-125.06]],"n":1},{"p":[[5.97,-130.84],[-5.69,-150.31],[-11.24,-147.1],[0.15,-127.83]],"n":2},{"p":[[5.97,-130.84],[11.16,-133.54],[-0.62,-153.35],[-5.69,-150.31]],"n":2},{"p":[[11.16,-133.54],[16.6,-136.36],[4.53,-156.44],[-0.62,-153.35]],"n":2},{"p":[[21.99,-139.15],[9.7,-159.53],[4.53,-156.44],[16.6,-136.36]],"n":1},{"p":[[27.4,-141.96],[15.24,-162.79],[9.7,-159.53],[21.99,-139.15]],"n":1},{"p":[[32.91,-144.82],[20.72,-165.84],[15.24,-162.79],[27.4,-141.96]],"n":1},{"p":[[38.19,-147.55],[25.8,-168.68],[20.72,-165.84],[32.91,-144.82]],"n":2},{"p":[[43.98,-150.56],[31.97,-172.12],[25.8,-168.68],[38.19,-147.55]],"n":1},{"p":[[49.12,-153.22],[37.19,-175.75],[33.75,-173.75],[34.04,-173.28],[31.97,-172.12],[43.98,-150.56]],"n":1},{"p":[[54.76,-156.15],[42.66,-178.91],[37.19,-175.75],[49.12,-153.22]],"n":2}],"mz":[[[-142.22,106.88],[-412.96,224.6],[-329.83,346.14],[-274.9,401.52],[-228.99,443.44],[-14.42,322.17],[-49.48,273.61]],[[124.93,-280.7],[240.94,-352.86],[152.88,-408.31],[135.27,-420.37],[90.8,-456.04],[68.83,-442.4],[86.04,-417.9],[80.58,-414.5],[63.61,-438.93],[-61.33,-362.77],[-16.56,-301.33],[5.6,-318.58],[15.47,-303.79],[31.97,-312.83],[34.35,-309.06],[12.93,-296.63],[4.14,-309.06],[-12.16,-295.9],[14.44,-265.21],[45.75,-285.01],[50.42,-279.16],[18.28,-259.62],[44.86,-226.94]],[[136.41,-19.66],[244.12,181.32],[315.91,144.43],[177.66,-38.74]],[[-139.86,-155.56],[-97.63,-77.7],[-27.86,-114.38],[-74.66,-190.55]],[[-127.29,100.44],[-0.7,314.37],[73.37,272.27],[-38.57,61.23]],[[-105.9,-62.99],[-194.78,-13.43],[-135.49,88.97],[-45.54,48.3]],[[-110.41,-71.32],[-139.88,-123.97],[-191.08,-97.75],[-197.32,-109.17],[-146.43,-137.15],[-162.97,-167.39],[-202.97,-143.8],[-209.35,-155.59],[-168.52,-180.5],[-213.94,-269.82],[-313.04,-211.66],[-198.55,-19.77]],[[-93.56,-70.21],[-32.5,42.4],[42.02,8.71],[18.74,-35.08],[-23.99,-107.79]],[[-152.35,-307.92],[-205.13,-278.06],[-141.95,-159.43],[-76.79,-193.76]],[[-17.2,-110.53],[29.57,-30.95],[48.67,5.7],[169.85,-49.08],[81.38,-163.6]],[[-146.07,-311.43],[-21.13,-117.22],[79.39,-169.11],[41.37,-216.71],[-32.31,-306.85],[-68.99,-358.18]],[[247.04,-347.83],[96.1,-253.4],[49.96,-222.08],[87.28,-173.19],[285.73,-276.72]],[[359.05,-122.59],[185.28,-42.26],[234.87,23.45],[396.22,-52.07]],[[147.9,-90.43],[177.51,-52.54],[255.55,-87.83],[233.83,-126.55]],[[287.96,-272.03],[91.59,-169.0],[107.52,-143.79],[154.37,-168.47],[158.02,-163.11],[111.82,-138.43],[144.25,-95.15],[238.09,-134.22],[263.5,-91.42],[354.24,-132.44]],[[-476.1,-88.84],[-456.41,-53.53],[-431.19,-68.64],[-427.63,-60.61],[-452.03,-46.06],[-448.3,-39.35],[-423.61,-52.45],[-419.4,-45.0],[-444.18,-31.92],[-414.38,21.8],[-385.71,76.06],[-332.34,49.75],[-350.48,9.08],[-343.54,5.57],[-324.68,45.7],[-213.13,-12.13],[-328.64,-204.03],[-345.07,-195.59],[-490.78,-198.84],[-496.51,-89.35]],[[-316.66,49.51],[-413.94,96.52],[-366.1,189.53],[-285.98,153.99],[-295.72,119.14],[-288.39,115.47],[-293.19,96.49],[-289.06,94.17],[-281.73,117.47],[-287.06,122.13],[-277.45,151.01],[-148.0,94.62],[-149.97,92.57],[-209.23,-5.59]],[[316.81,347.49],[124.22,-14.03],[-27.13,55.93],[169.04,423.17]]],"lots":[{"id":65088,"clave":"0040210011","dir":"Miguel Ramos Arizpe 835","uso":"Habitación","a":1187.0,"af":1203.8,"sc":1097.77,"ne":1,"largo":51.0,"ancho":26.4,"p":[[12.28,-31.82],[10.44,-30.97],[5.0,-28.48],[-5.99,-23.44],[-6.29,-23.3],[-2.33,-14.2],[-0.65,-10.33],[5.15,2.99],[6.33,5.68],[6.82,5.46],[9.8,12.0],[11.32,15.32],[13.96,21.12],[14.58,22.47],[38.59,11.51],[32.06,0.75],[30.55,-1.73]],"lp":[25.0,-7.5]},{"id":65184,"clave":"0040210121","dir":"Miguel Ramos Arizpe 851","uso":"Habitación","a":1387.2,"af":1441.0,"sc":593.44,"ne":1,"largo":50.3,"ancho":28.1,"p":[[14.58,22.47],[13.96,21.12],[11.32,15.32],[9.8,12.0],[6.82,5.46],[6.33,5.68],[5.15,2.99],[-0.65,-10.33],[-2.33,-14.2],[-6.29,-23.3],[-22.48,-15.87],[-25.38,-14.54],[-26.15,-14.19],[-31.18,-11.98],[-27.2,-2.71],[-10.98,34.14],[-10.83,34.07]],"lp":[-21.4,9.4]}],"streets":[{"n":"Miguel Ramos Arizpe","p":[26.2,29.7]},{"n":"Cuauhtémoc","p":[-55.2,26.8]}]};</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {CSS2DRenderer,CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+const D=window.DATA, box=document.getElementById('viewer'), host=document.getElementById('c3d');
+const COL={A:0xe08a2e,B:0x2f8f9d,C:0xb44f8c,N:0x8d9197};
+const TN={A:'Tipo A',B:'Tipo B',C:'Tipo C',N:'Núcleo de servicio'};
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+host.appendChild(renderer.domElement);
+const lr=new CSS2DRenderer(); document.getElementById('lbl').appendChild(lr.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xe9e7e0);
+scene.fog=new THREE.Fog(0xe9e7e0,320,620);
+const cam=new THREE.PerspectiveCamera(35,1,0.5,2000);
+const ctl=new OrbitControls(cam,renderer.domElement); ctl.enableDamping=true; ctl.maxPolarAngle=Math.PI*0.495;
+scene.add(new THREE.HemisphereLight(0xffffff,0xc9c2b5,1.6));
+const sun=new THREE.DirectionalLight(0xfff4e2,1.7); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-130;sc.right=130;sc.top=130;sc.bottom=-130;sc.near=1;sc.far=600; sun.shadow.bias=-0.0004;
+scene.add(sun); scene.add(sun.target);
+
+function shape(p){const s=new THREE.Shape(); p.forEach((q,i)=>i?s.lineTo(q[0],q[1]):s.moveTo(q[0],q[1])); return s;}
+function prism(p,h,y0){const g=new THREE.ExtrudeGeometry(shape(p),{depth:h,bevelEnabled:false}); g.rotateX(-Math.PI/2); g.translate(0,y0,0); return g;}
+function flat(p,y){const g=new THREE.ShapeGeometry(shape(p)); g.rotateX(-Math.PI/2); g.translate(0,y,0); return g;}
+function outline(p,y,color,op){const pts=p.map(q=>new THREE.Vector3(q[0],y,-q[1])); pts.push(pts[0].clone());
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color,transparent:op<1,opacity:op}));}
+function label(txt,x,y,z,cls){const d=document.createElement('div'); d.className='lab '+(cls||''); d.textContent=txt; const o=new CSS2DObject(d); o.position.set(x,y,-z); return o;}
+
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),new THREE.MeshLambertMaterial({color:0xd5d1c8}));
+ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+const ctx=new THREE.Group(), labs=new THREE.Group(), norm=new THREE.Group(); scene.add(ctx,labs,norm);
+const mzMat=new THREE.MeshLambertMaterial({color:0xece9e2});
+D.mz.forEach(p=>{const m=new THREE.Mesh(flat(p,0.05),mzMat); m.receiveShadow=true; scene.add(m);});
+const cMat=new THREE.MeshLambertMaterial({color:0xcdc8bf}), eMat=new THREE.LineBasicMaterial({color:0xa9a398});
+D.ctx.forEach(c=>{const h=Math.max(c.n*3,0.3); const g=prism(c.p,h,0.06); const m=new THREE.Mesh(g,cMat); m.castShadow=m.receiveShadow=true; ctx.add(m);
+  ctx.add(new THREE.LineSegments(new THREE.EdgesGeometry(g,30),eMat));});
+const lotMat=new THREE.MeshLambertMaterial({color:0xefe2d3});
+D.lots.forEach(l=>{const m=new THREE.Mesh(flat(l.p,0.08),lotMat); m.receiveShadow=true; scene.add(m); scene.add(outline(l.p,0.12,0x9b8f80,1));
+  const cx=l.p.reduce((a,q)=>a+q[0],0)/l.p.length, cy=l.p.reduce((a,q)=>a+q[1],0)/l.p.length; });
+scene.add(outline(D.lotsU,0.14,0x1d1f1e,1));
+D.libre.forEach(p=>{const m=new THREE.Mesh(flat(p,0.13),new THREE.MeshLambertMaterial({color:0xe3ddd2})); m.receiveShadow=true; scene.add(m);});
+const pat=new THREE.Mesh(flat(D.patio,0.16),new THREE.MeshLambertMaterial({color:0x7fa36a})); pat.receiveShadow=true; scene.add(pat);
+// unidades
+const units=[], edgeM=new THREE.LineBasicMaterial({color:0x2a2a2a,transparent:true,opacity:.45});
+D.units.forEach(u=>{const g=prism(u.p,2.94,u.l*3+0.03); const mat=new THREE.MeshLambertMaterial({color:COL[u.t],transparent:true,opacity:1});
+  const m=new THREE.Mesh(g,mat); m.castShadow=m.receiveShadow=true; m.userData=u; scene.add(m); units.push(m);
+  scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(g,20),edgeM));});
+// normativa
+const eg=prism(D.env,20.8,0.2);
+const em=new THREE.Mesh(eg,new THREE.MeshBasicMaterial({color:0xe8743b,transparent:true,opacity:.13,depthWrite:false})); norm.add(em);
+norm.add(new THREE.LineSegments(new THREE.EdgesGeometry(eg),new THREE.LineBasicMaterial({color:0xe8743b})));
+const ec=D.env.reduce((a,q)=>[a[0]+q[0]/D.env.length,a[1]+q[1]/D.env.length],[0,0]);
+norm.add(label('Altura máxima 20.8 m · 6 niveles',ec[0],21.5,ec[1],'nrm'));
+norm.visible=false;
+// etiquetas
+D.streets.forEach(s=>labs.add(label(s.n,s.p[0],0.5,s.p[1],'st')));
+D.lots.forEach(l=>labs.add(label('Lote '+l.id,l.lp[0],0.6,l.lp[1],'lot')));
+labs.add(label('Patio',0,1.2,0));
+// vistas
+const C0=new THREE.Vector3(0,4,0);
+function setView(v){
+  if(v==='axo'){cam.position.set(105,92,-115); ctl.target.copy(C0);}
+  if(v==='top'){cam.position.set(0,240,0.01); ctl.target.set(0,0,0);}
+  if(v==='street'){const s=D.streets[0].p, L=Math.hypot(s[0],s[1]), ox=s[0]/L, oy=s[1]/L, tx=oy, ty=-ox; cam.position.set(s[0]+ox*11-tx*22,1.7,-(s[1]+oy*11-ty*22)); ctl.target.set(s[0]*0.3+tx*8,6,-(s[1]*0.3+ty*8));}
+  cam.fov=v==='street'?66:35; cam.updateProjectionMatrix(); ctl.update();}
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#views button').forEach(x=>x.classList.toggle('on',x===b)); setView(b.dataset.v);});
+function tog(id,obj){const b=document.getElementById(id); const sync=()=>{obj.visible=b.classList.contains('on'); obj.traverse(o=>{if(o.isCSS2DObject){o.visible=obj.visible; o.element.style.display=obj.visible?'':'none';}});}; b.onclick=()=>{b.classList.toggle('on'); sync();}; sync();}
+tog('tNorma',norm); tog('tCtx',ctx); tog('tLab',labs);
+// sol
+const sD=document.getElementById('sDate'), sH=document.getElementById('sHour'), sT=document.getElementById('sTxt');
+function setSun(){const N=+sD.value, h=+sH.value, lat=25.42*Math.PI/180;
+  const dec=23.44*Math.PI/180*Math.sin(2*Math.PI*(284+N)/365), H=(h-12)*15*Math.PI/180;
+  const se=Math.sin(lat)*Math.sin(dec)+Math.cos(lat)*Math.cos(dec)*Math.cos(H), e=Math.asin(se);
+  const az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(lat)-Math.tan(dec)*Math.cos(lat))+Math.PI;
+  const E=Math.sin(az)*Math.cos(e), Nn=Math.cos(az)*Math.cos(e), U=Math.sin(e);
+  sun.position.set(E*300,U*300,-Nn*300); sun.intensity=e>0?1.7:0;
+  const hh=Math.floor(h), mm=Math.round((h-hh)*60); sT.textContent=hh+':'+String(mm).padStart(2,'0');}
+sD.onchange=setSun; sH.oninput=setSun; setSun();
+// selección
+const chip=document.getElementById('chip'), rows=[...document.querySelectorAll('#tWings tbody tr')];
+function highlight(w,u){units.forEach(m=>{const dim=w&&m.userData.w!==w; m.material.opacity=dim?0.22:1; m.material.depthWrite=!dim; m.castShadow=!dim;});
+  rows.forEach(r=>r.classList.toggle('sel',r.dataset.w===w));
+  if(u){chip.style.display='block'; chip.textContent=TN[u.t]+' · '+Math.round(u.a)+' m²'+(u.n>1?' · '+u.n+' departamentos':'')+' · nivel '+(u.l+1)+' · '+u.w;} else chip.style.display='none';}
+rows.forEach(r=>r.onclick=()=>highlight(r.classList.contains('sel')?null:r.dataset.w,null));
+const ray=new THREE.Raycaster(), mp=new THREE.Vector2(); let down=null;
+renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;
+  const r=renderer.domElement.getBoundingClientRect(); mp.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+  ray.setFromCamera(mp,cam); const h=ray.intersectObjects(units)[0]; h?highlight(h.object.userData.w,h.object.userData):highlight(null,null);});
+function resize(){const w=box.clientWidth,h=box.clientHeight; renderer.setSize(w,h); lr.setSize(w,h); cam.aspect=w/h; cam.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(box); resize(); setView('axo');
+(function loop(){requestAnimationFrame(loop); ctl.update(); renderer.render(scene,cam); lr.render(scene,cam);})();
+window.__ok=true;
+</script>
+<script>setTimeout(()=>{if(!window.__ok)document.getElementById('err').style.display='flex';},8000);</script>
+</body>
+</html>

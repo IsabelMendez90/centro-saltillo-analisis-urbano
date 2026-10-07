@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proyecto de vivienda · Centro de Saltillo</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/data/atlas_comun.js"></script>
+<script src="https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/data/lotes_catastro.js"></script>
+<style>
+:root{--navy:#173955;--ink:#17212b;--muted:#5b6b7b;--line:#dfe6ec;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;color:var(--ink);background:#f5f7f9}
+#app{height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 370px}
+#map{height:100%;width:100%}
+#panel{background:#fff;border-left:1px solid var(--line);padding:20px;overflow:auto}
+.kicker{font-size:10px;letter-spacing:.12em;color:#2f6690;font-weight:800}
+h1{font-size:22px;color:var(--navy);margin:4px 0 8px}
+.lead{font-size:12.5px;line-height:1.55;color:#34495e;margin:0 0 14px}
+h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy);margin:20px 0 8px}
+.control{display:flex;gap:8px;align-items:center;margin:7px 0;font-size:12px}
+button,select{font:700 12px Arial;padding:8px 10px;border-radius:8px;border:1px solid #cfd8e0;background:#fff;cursor:pointer}
+button.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:11px;margin:6px 0}
+.sw{width:14px;height:14px;border:1px solid #0002;border-radius:3px;flex:0 0 auto}
+.note{font-size:10.5px;line-height:1.45;color:var(--muted);margin-top:14px}
+.maplibregl-popup-content{font:12px/1.45 Arial,sans-serif;border-radius:9px;min-width:220px}
+.maplibregl-popup-content b{color:#173955;font-size:13px}
+.popup-label{color:#697784;font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin-top:6px}
+.popup-val{font-weight:700}
+@media(max-width:850px){#app{grid-template-columns:1fr;grid-template-rows:62vh 38vh}#panel{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="map"></div>
+  <aside id="panel">
+    <div class="kicker">PROYECTO DE VIVIENDA · SALTILLO</div>
+    <h1>Implantación, programa y volumetría</h1>
+    <p class="lead">Haz clic directamente sobre cada piso para consultar su uso y superficie construida. También puedes seleccionar las áreas verdes para ver su superficie.</p>
+
+    <h2>Vista</h2>
+    <div class="row">
+      <select id="basemap">
+        <option value="clara">OpenStreetMap</option>
+        <option value="sat">Satélite</option>
+      </select>
+      <button class="primary" id="reset">Reencuadrar</button>
+    </div>
+    <div class="control"><input type="checkbox" id="lots" checked> <label for="lots">Catastro base</label></div>
+    <div class="control"><input type="checkbox" id="site" checked> <label for="site">Predio</label></div>
+    <div class="control"><input type="checkbox" id="landscape" checked> <label for="landscape">Áreas exteriores</label></div>
+    <div class="control"><input type="checkbox" id="existing" checked> <label for="existing">Edificio existente · lote 612</label></div>
+    <div class="control"><input type="checkbox" id="mode3d" checked> <label for="mode3d">Vista 3D</label></div>
+
+    <h2>Programa</h2>
+    <div class="legend-row"><span class="sw" style="background:#d1ad24"></span> Vivienda</div>
+    <div class="legend-row"><span class="sw" style="background:#c96b48"></span> Comercio y servicios</div>
+    <div class="legend-row"><span class="sw" style="background:#4f96a3"></span> Amenidades residenciales</div>
+    <div class="legend-row"><span class="sw" style="background:#7b6399"></span> Centro cultural-comunitario</div>
+    <div class="legend-row"><span class="sw" style="background:#69a66b"></span> Áreas verdes</div>
+    <div class="legend-row"><span class="sw" style="background:#cfae72"></span> Zonas de recreación</div>
+
+    <p class="note"><b>Nota:</b> el área mostrada al seleccionar un piso corresponde a la superficie construida de esa planta/huella. La presentación reporta 650 m² totales destinados a comercio y servicios en planta baja; esa cifra es programática y no equivale necesariamente a la huella completa de los niveles identificados como mixtos/comerciales.</p>
+  </aside>
+</div>
+
+<script>
+const PROJECT = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"building": "Edificio A", "floor": "Planta baja", "use": "Amenidades residenciales", "base": 0, "height": 3, "area": 370.4}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00949404158565, 25.41596022951581], [-101.00956791874991, 25.416006131281527], [-101.00961163599702, 25.41595536734413], [-101.009673839644, 25.41599681565792], [-101.00962199140122, 25.41606086733981], [-101.00975143509136, 25.416144245376593], [-101.00969844102606, 25.416208302542785], [-101.00943676594, 25.416036205501626], [-101.00949404158565, 25.41596022951581]]]}}, {"type": "Feature", "properties": {"building": "Edificio A", "floor": "Nivel 2", "use": "Vivienda", "base": 3, "height": 6, "area": 229.0}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00949921768782, 25.4159853180078], [-101.00956388420038, 25.41602549695187], [-101.00961310820917, 25.415967209991173], [-101.00965990161491, 25.41599878135474], [-101.00960809703426, 25.416062793435636], [-101.00973750454452, 25.416146667394983], [-101.00970222686612, 25.416188700046835], [-101.00946410376815, 25.41603189653398], [-101.00949921768782, 25.4159853180078]]]}}, {"type": "Feature", "properties": {"building": "Edificio B", "floor": "Planta baja", "use": "Amenidades residenciales", "base": 0, "height": 3, "area": 200.0}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00958439684214, 25.41627962123322], [-101.00953621483502, 25.41633676397688], [-101.00933894573653, 25.416199572594927], [-101.0093865351346, 25.41614172374888], [-101.00958439684214, 25.41627962123322]]]}}, {"type": "Feature", "properties": {"building": "Edificio B", "floor": "Nivel 2", "use": "Vivienda", "base": 3, "height": 6, "area": 105.0}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00955654280511, 25.416282963643702], [-101.00952647576761, 25.41631862244476], [-101.00936055328201, 25.416203231076555], [-101.00939040762104, 25.41616717759622], [-101.00955654280511, 25.416282963643702]]]}}, {"type": "Feature", "properties": {"building": "Edificio C", "floor": "Planta baja", "use": "Comercio y servicios", "base": 0, "height": 3, "area": 312.8}, "geometry": {"type": "Polygon", "coordinates": [[[-101.0090381185582, 25.41595562587953], [-101.00899292014344, 25.41601048741277], [-101.00930880430235, 25.416229692162503], [-101.00935856703694, 25.41617337541855], [-101.0090381185582, 25.41595562587953]]]}}, {"type": "Feature", "properties": {"building": "Edificio C", "floor": "Nivel 2", "use": "Vivienda", "base": 3, "height": 6, "area": 173.2}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00904201483905, 25.41598081814721], [-101.00901455888291, 25.41601414400613], [-101.009299384828, 25.416211796204124], [-101.00933008375318, 25.416176565298418], [-101.00904201483905, 25.41598081814721]]]}}, {"type": "Feature", "properties": {"building": "Edificio D", "floor": "Planta baja", "use": "Comercio y servicios", "base": 0, "height": 3, "area": 1040.6}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00894224363722, 25.415618052660086], [-101.00944557768223, 25.4159301795066], [-101.00934537543118, 25.416064770336696], [-101.00890702707589, 25.41579294448738], [-101.00895186180716, 25.415733311742105], [-101.00888620025871, 25.415692593584666], [-101.00894224363759, 25.415618052660328], [-101.00894224363722, 25.415618052660086]]]}}, {"type": "Feature", "properties": {"building": "Edificio D", "floor": "Nivel 2", "use": "Vivienda", "base": 3, "height": 6, "area": 796.7}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00895278641241, 25.415635519909955], [-101.00942359509395, 25.415927477426845], [-101.00934009346429, 25.416039636107715], [-101.00893465119977, 25.415788215787543], [-101.00897948587581, 25.415728583087155], [-101.00891355604259, 25.415687698576672], [-101.00895278641241, 25.415635519909955]]]}}, {"type": "Feature", "properties": {"building": "Edificio D", "floor": "Nivel 3", "use": "Vivienda", "base": 6, "height": 9, "area": 576.5}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00896359745697, 25.41565315354723], [-101.0094016501015, 25.41592479842064], [-101.00933481149997, 25.416014501878333], [-101.00896227532111, 25.41578348708264], [-101.00900710994195, 25.41572385442712], [-101.00894118010301, 25.41568296992944], [-101.00896359745697, 25.41565315354723]]]}}]};
+const EXISTING = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"building": "Edificio existente · Lote 612", "floor": "Planta baja", "use": "Centro cultural-comunitario (reutilización propuesta)", "base": 0, "height": 3, "area": 196.1, "status": "Edificio existente", "note": "Geometría corregida con base en las cotas del archivo CAD: 32.19 × 6.09 m."}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00996724228825, 25.416440051979485], [-101.0097085176066, 25.416269090867164], [-101.00967275559954, 25.416313453281237], [-101.00993148033476, 25.416484414452906], [-101.00996724228825, 25.416440051979485]]]}}]};
+const SITE = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"area": 1508.2}, "geometry": {"type": "Polygon", "coordinates": [[[-101.0093413179299, 25.416224042511455], [-101.00931109889626, 25.416254239617853], [-101.00925438488267, 25.41621395562118], [-101.00920022367798, 25.416175485433445], [-101.0088839086646, 25.415958814621966], [-101.00869805625133, 25.415832286639485], [-101.00873053080423, 25.4157937024756], [-101.00878292046902, 25.41571577875331], [-101.0088428129662, 25.41561809241606], [-101.00887379773732, 25.415558657138003], [-101.00894870769686, 25.415414965781537], [-101.0089703123745, 25.41537352237172], [-101.00900284799711, 25.41531111221443], [-101.00914794177157, 25.41538646492117], [-101.00914668420694, 25.415388071780797], [-101.00909299492913, 25.415456649624694], [-101.00900988885768, 25.415562804876807], [-101.00898999539099, 25.415588215414477], [-101.00898522593322, 25.415594307086796], [-101.0089702099475, 25.415613487261577], [-101.00898522593322, 25.415594307086796], [-101.00898999539099, 25.415588215414477], [-101.00900988885768, 25.415562804876807], [-101.00909299492913, 25.415456649624694], [-101.00914668420694, 25.415388071780797], [-101.00914794177157, 25.41538646492117], [-101.00900284799711, 25.41531111221443], [-101.0089703123745, 25.41537352237172], [-101.00894870769686, 25.415414965781537], [-101.00887379773732, 25.415558657138003], [-101.0093413179299, 25.416224042511455]]]}}, {"type": "Feature", "properties": {"area": 1479.2}, "geometry": {"type": "Polygon", "coordinates": [[[-101.0089702099475, 25.415613487261577], [-101.00899199797908, 25.415626934860384], [-101.00903861593874, 25.415655709413087], [-101.00910161612043, 25.41569459412223], [-101.00910287953442, 25.415695378449513], [-101.00913528926505, 25.41571548899466], [-101.00916304808713, 25.415732713086598], [-101.0092289191041, 25.41577358686057], [-101.00925800866708, 25.415791637668438], [-101.00932081059044, 25.415830606230728], [-101.00938582843352, 25.415871033021546], [-101.00942662305162, 25.415896399024415], [-101.00947255478435, 25.415924958039575], [-101.00952804169131, 25.415959458857486], [-101.00956375447416, 25.415981664440924], [-101.00956921067679, 25.415975328655], [-101.00959094089929, 25.415950096030432], [-101.00959896185947, 25.41594078234682], [-101.00960733777693, 25.415931055785357], [-101.00964079321469, 25.415951340574697], [-101.00967594754428, 25.41597265557637], [-101.00967396926822, 25.415975096467662], [-101.00970209510199, 25.41599238674458], [-101.00966503670047, 25.41603816788448], [-101.00964998229114, 25.416056765503335], [-101.00977959899969, 25.416140254951724], [-101.00977159495999, 25.41614992949557], [-101.00976257166586, 25.416160836632358], [-101.00972634886445, 25.416204621310207], [-101.00974847624177, 25.416219520208582], [-101.00979055675295, 25.416247852854717], [-101.0098497698811, 25.416287722411326], [-101.00989242440929, 25.41631644165609], [-101.0100062057824, 25.416393051327706], [-101.00996724228825, 25.416440051979485], [-101.00975044357224, 25.416296794647238], [-101.0097085176066, 25.416269090867164], [-101.00967275559954, 25.416313453281237], [-101.00969057309659, 25.416325833010006], [-101.00974924243106, 25.416366595598113], [-101.00976186120259, 25.416375363388884], [-101.00980679161285, 25.416406580004875], [-101.00981893676939, 25.41641501846232], [-101.0098340845377, 25.41642554352292], [-101.00985506956849, 25.416440123124474], [-101.00988673166961, 25.416462122242446], [-101.00988960454636, 25.416464117641482], [-101.00992645937265, 25.41648972424163], [-101.00991048892054, 25.416509185668634], [-101.00985118035868, 25.416581458693074], [-101.00976067745282, 25.416518016013026], [-101.00974386675219, 25.416506231849663], [-101.0097357550575, 25.41650054562949], [-101.00971478190584, 25.416485843080434], [-101.00967727362105, 25.41645954937699], [-101.00964373572376, 25.41643603946378], [-101.00961335059434, 25.416414739573483], [-101.00945192459501, 25.416301578894878], [-101.0094145853771, 25.416275403768672], [-101.0093413179299, 25.416224042511455], [-101.0094145853771, 25.416275403768672], [-101.00945192459501, 25.416301578894878], [-101.00961335059434, 25.416414739573483], [-101.00964373572376, 25.41643603946378], [-101.00967727362105, 25.41645954937699], [-101.00971478190584, 25.416485843080434], [-101.0097357550575, 25.41650054562949], [-101.00974386675219, 25.416506231849663], [-101.00976067745282, 25.416518016013026], [-101.00985118035868, 25.416581458693074], [-101.00991048892054, 25.416509185668634], [-101.00992645937265, 25.41648972424163], [-101.00988960454636, 25.416464117641482], [-101.00988673166961, 25.416462122242446], [-101.00985506956849, 25.416440123124474], [-101.0098340845377, 25.41642554352292], [-101.00981893676939, 25.41641501846232], [-101.00980679161285, 25.416406580004875], [-101.00976186120259, 25.416375363388884], [-101.00974924243106, 25.416366595598113], [-101.00969057309659, 25.416325833010006], [-101.00967275559954, 25.416313453281237], [-101.0089702099475, 25.415613487261577]]]}}]};
+const GREEN = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"area": 184.5, "category": "Área verde", "id": 1, "description": "Área verde del proyecto"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.0097243624205, 25.416203265864535], [-101.00971195425586, 25.41619481440066], [-101.00975497394998, 25.41614375840632], [-101.00962548831424, 25.416060353355558], [-101.00967724622535, 25.415996286853407], [-101.0096111632009, 25.41595225358443], [-101.00956739667076, 25.416003074749423], [-101.0089604387909, 25.415626554462392], [-101.00896880857975, 25.41561535060863], [-101.00956427659823, 25.415984720928755], [-101.0096078309379, 25.415934145905695], [-101.0096985996601, 25.415992895272396], [-101.00964648343972, 25.41605727823942], [-101.00977607853129, 25.416140753768023], [-101.0097243624205, 25.416203265864535]]]}}, {"type": "Feature", "properties": {"area": 106.6, "category": "Área verde", "id": 2, "description": "Área verde del proyecto"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.0095346557821, 25.41633852185177], [-101.00933924839515, 25.416202625204427], [-101.00930910858371, 25.416232743149912], [-101.00899141159883, 25.416012280410186], [-101.00898215265006, 25.416023284036086], [-101.00931079411808, 25.4162511891268], [-101.0093410212088, 25.416220983968604], [-101.00952506572675, 25.41635000082207], [-101.0095346557821, 25.41633852185177]]]}}, {"type": "Feature", "properties": {"area": 172.8, "category": "Área verde", "id": 3, "description": "Área verde del proyecto"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00940053031866, 25.416117525384394], [-101.00943971975022, 25.41607015639987], [-101.00964512123805, 25.416206662316842], [-101.00960374044341, 25.41625668015181], [-101.00940054106037, 25.4161175124007], [-101.00940053031866, 25.416117525384394]]]}}, {"type": "Feature", "properties": {"area": 47.0, "category": "Área verde", "id": 4, "description": "Pocket park / área verde, absorción y descanso"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00898070476252, 25.415576717215203], [-101.00910180743095, 25.415422029084908], [-101.00899103388154, 25.415493906554264], [-101.00898070476252, 25.415576717215203]]]}}, {"type": "Feature", "properties": {"area": 37.5, "category": "Área verde", "id": 5, "description": "Pocket park / área verde, absorción y descanso"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00899503190361, 25.415368291430998], [-101.00897603004945, 25.41548589314412], [-101.00891209725425, 25.415527377040608], [-101.00899503190361, 25.415368291430998]]]}}, {"type": "Feature", "properties": {"area": 37.0, "category": "Área verde", "id": 6, "description": "Pocket park / área verde, absorción y descanso"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00889290204599, 25.415564197029973], [-101.0089736212395, 25.415505205054703], [-101.00895621691667, 25.415600204524864], [-101.00889290204599, 25.415564197029973]]]}}, {"type": "Feature", "properties": {"area": 88.3, "category": "Área verde", "id": 7, "description": "Pocket park / área verde, absorción y descanso"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00911902834065, 25.41539224427003], [-101.00899344268858, 25.415474594643552], [-101.00901162349187, 25.4153364648522], [-101.00911902834065, 25.41539224427003], [-101.00911902834065, 25.41539224427003]]]}}, {"type": "Feature", "properties": {"area": 170.0, "category": "Área verde", "id": 8, "description": "Área verde del proyecto"}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00894393115567, 25.41599670835739], [-101.00899473548071, 25.415933667344305], [-101.00893561585654, 25.415894921433633], [-101.00891553170001, 25.415920557159968], [-101.0088288670217, 25.415860958831487], [-101.00874413565177, 25.41580600154685], [-101.00871619359202, 25.41584172526359], [-101.00894393115567, 25.41599670835739]]]}}]};
+const RECREATION = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"area": 584.9, "category": "Zona de recreación", "id": 1}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00871481241232, 25.415843491090975], [-101.0088000929378, 25.41572487713839], [-101.00888804062598, 25.41557352222988], [-101.00893407336257, 25.41560174677108], [-101.008863876986, 25.415696175152934], [-101.00892273613803, 25.415732264057237], [-101.00887704923052, 25.415793722176375], [-101.00904015556199, 25.415893728973405], [-101.00894904685258, 25.41600343338071], [-101.00871481241232, 25.415843491090975]]]}}, {"type": "Feature", "properties": {"area": 532.5, "category": "Zona de recreación", "id": 2}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00984732278839, 25.416555950322255], [-101.00989879014335, 25.416493232539366], [-101.00991086991571, 25.416478892745825], [-101.00967275559954, 25.416313453281237], [-101.00970837302503, 25.41626899533073], [-101.0099515921609, 25.416429708969588], [-101.0099784359393, 25.41639682579202], [-101.00971197718893, 25.416217417164884], [-101.0095822063876, 25.41637010163758], [-101.00984732278839, 25.416555950322255]]]}}]};
+const TRANSIT = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"area": 586.9, "category": "Zona de tránsito", "id": 1}, "geometry": {"type": "Polygon", "coordinates": [[[-101.00969297972532, 25.416218590674962], [-101.00962677740218, 25.41629364785623], [-101.00938865742111, 25.41612975814736], [-101.00932671104178, 25.4161381804847], [-101.009022128306, 25.4159337588204], [-101.00905052635244, 25.41589885996172], [-101.00935228052916, 25.4160887995847], [-101.00940139931087, 25.41602443727853], [-101.00969297972532, 25.416218590674962]]]}}]};
+const PROJECT_BOUNDS = [[-101.0099164529379, 25.415618052660086], [-101.00888620025871, 25.41648558750186]];
+const PROJECT_CENTER = [-101.00940132659831, 25.416051820080973];
+
+const USE_COL={
+  'Vivienda':'#d1ad24',
+  'Comercio y servicios':'#c96b48',
+  'Amenidades residenciales':'#4f96a3'
+};
+
+const UA_COL={
+  'Habitación':'#f7d774','Comercio':'#e03131','Servicios y turismo':'#f06595',
+  'Equipamiento':'#1c7ed6','Áreas verdes y plazas':'#40c057',
+  'Industria, bodegas y talleres':'#9c36b5','Infraestructura':'#868e96',
+  'Estacionamiento':'#74c0fc','Baldío':'#0b7285','Sin construcción registrada':'#66d9e8',
+  'Sin información de uso':'#ced4da','Sin ficha catastral':'#e9ecef'
+};
+
+function lotesGeoJSON(){
+  const D=window.LOTES;
+  if(!D) return {type:'FeatureCollection',features:[]};
+  const C=D.cols, DIC=D.dic, [LON0,LAT0]=D.origen;
+  const dic=(f,i)=>DIC[f][i]||'';
+  function dec(ring){
+    const out=[]; let x=0,y=0;
+    for(let k=0;k<ring.length;k+=2){
+      x+=ring[k]; y+=ring[k+1];
+      out.push([LON0+x/1e6, LAT0+y/1e6]);
+    }
+    return out;
+  }
+  const features=[];
+  for(let i=0;i<D.n;i++){
+    const coords=C.geom[i].map(poly=>poly.map(dec));
+    const uso=dic('ua',C.ua[i]);
+    features.push({
+      type:'Feature',
+      properties:{id:C.id[i], uso:uso, area:C.a[i], color:UA_COL[uso]||'#d9dee3'},
+      geometry:{type:'MultiPolygon',coordinates:coords}
+    });
+  }
+  return {type:'FeatureCollection',features};
+}
+
+const style={
+  version:8,
+  sources:{
+    light:{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'},
+    
+    satellite:{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256}
+  },
+  layers:[{id:'light',type:'raster',source:'light'}]
+};
+
+const map=new maplibregl.Map({
+  container:'map', style, center:PROJECT_CENTER, zoom:17.4, pitch:58, bearing:-18,
+  antialias:true, maxPitch:75
+});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-left');
+map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
+
+function popupFloor(p, lngLat){
+  const use = p.use || '—';
+  const html = `
+    <b>${p.building}</b>
+    <div class="popup-label">Piso</div><div class="popup-val">${p.floor}</div>
+    <div class="popup-label">Uso</div><div class="popup-val">${use}</div>
+    <div class="popup-label">Área de este piso</div><div class="popup-val">${Number(p.area).toLocaleString('es-MX')} m²</div>
+    <div class="popup-label">Altura representada</div><div>${p.base}–${p.height} m</div>
+    ${p.note ? `<div style="margin-top:7px;font-size:10px;color:#65727d">${p.note}</div>` : ''}
+  `;
+  new maplibregl.Popup().setLngLat(lngLat).setHTML(html).addTo(map);
+}
+
+function addGeoLayers(){
+  map.addSource('lots',{type:'geojson',data:lotesGeoJSON()});
+  map.addLayer({id:'lots-fill',type:'fill',source:'lots',
+    paint:{'fill-color':['get','color'],'fill-opacity':0.28,'fill-outline-color':'#59636d'}});
+  map.addLayer({id:'lots-line',type:'line',source:'lots',
+    paint:{'line-color':'#59636d','line-width':0.55,'line-opacity':0.65}});
+
+  map.addSource('site',{type:'geojson',data:SITE});
+  map.addLayer({id:'site-fill',type:'fill',source:'site',paint:{'fill-color':'#fff','fill-opacity':0.07}});
+  map.addLayer({id:'site-line',type:'line',source:'site',paint:{'line-color':'#111','line-width':2.6,'line-dasharray':[2,1]}});
+
+  map.addSource('green',{type:'geojson',data:GREEN});
+  map.addLayer({id:'green-fill',type:'fill',source:'green',
+    paint:{'fill-color':'#69a66b','fill-opacity':0.82,'fill-outline-color':'#426f45'}});
+
+  map.addSource('recreation',{type:'geojson',data:RECREATION});
+  map.addLayer({id:'recreation-fill',type:'fill',source:'recreation',
+    paint:{'fill-color':'#cfae72','fill-opacity':0.52,'fill-outline-color':'#8e7449'}});
+
+  map.addSource('transit',{type:'geojson',data:TRANSIT});
+  map.addLayer({id:'transit-fill',type:'fill',source:'transit',
+    paint:{'fill-color':'#b9c0c7','fill-opacity':0.42,'fill-outline-color':'#858e96'}});
+
+  map.addSource('project',{type:'geojson',data:PROJECT});
+  map.addLayer({
+    id:'project-3d',type:'fill-extrusion',source:'project',
+    paint:{
+      'fill-extrusion-color':[
+        'match',['get','use'],
+        'Vivienda','#d1ad24',
+        'Comercio y servicios','#c96b48',
+        'Amenidades residenciales','#4f96a3',
+        '#777'
+      ],
+      'fill-extrusion-height':['get','height'],
+      'fill-extrusion-base':['get','base'],
+      'fill-extrusion-opacity':0.97,
+      'fill-extrusion-vertical-gradient':true
+    }
+  });
+
+  map.addSource('existing-building',{type:'geojson',data:EXISTING});
+  map.addLayer({
+    id:'existing-3d',type:'fill-extrusion',source:'existing-building',
+    paint:{
+      'fill-extrusion-color':'#7b6399',
+      'fill-extrusion-height':['get','height'],
+      'fill-extrusion-base':['get','base'],
+      'fill-extrusion-opacity':0.95
+    }
+  });
+
+  map.on('click','project-3d',e=>popupFloor(e.features[0].properties,e.lngLat));
+  map.on('click','existing-3d',e=>popupFloor(e.features[0].properties,e.lngLat));
+
+  map.on('click','green-fill',e=>{
+    const p=e.features[0].properties;
+    new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`
+      <b>${p.description || 'Área verde'}</b>
+      <div class="popup-label">Tipo</div><div class="popup-val">${p.category}</div>
+      <div class="popup-label">Superficie</div><div class="popup-val">${Number(p.area).toLocaleString('es-MX')} m²</div>
+    `).addTo(map);
+  });
+
+  map.on('click','recreation-fill',e=>{
+    const p=e.features[0].properties;
+    new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`
+      <b>Zona de recreación</b>
+      <div class="popup-label">Superficie</div><div class="popup-val">${Number(p.area).toLocaleString('es-MX')} m²</div>
+    `).addTo(map);
+  });
+
+  ['project-3d','existing-3d','green-fill','recreation-fill'].forEach(id=>{
+    map.on('mouseenter',id,()=>map.getCanvas().style.cursor='pointer');
+    map.on('mouseleave',id,()=>map.getCanvas().style.cursor='');
+  });
+}
+
+map.on('load',()=>{
+  addGeoLayers();
+  map.fitBounds(PROJECT_BOUNDS,{padding:85,pitch:58,bearing:-18,duration:0});
+});
+
+function vis(ids,on){
+  ids.forEach(id=>{if(map.getLayer(id)) map.setLayoutProperty(id,'visibility',on?'visible':'none');});
+}
+document.getElementById('lots').onchange=e=>vis(['lots-fill','lots-line'],e.target.checked);
+document.getElementById('site').onchange=e=>vis(['site-fill','site-line'],e.target.checked);
+document.getElementById('landscape').onchange=e=>vis(['green-fill','recreation-fill','transit-fill'],e.target.checked);
+document.getElementById('existing').onchange=e=>vis(['existing-3d'],e.target.checked);
+
+document.getElementById('mode3d').onchange=e=>{
+  if(e.target.checked){
+    map.easeTo({pitch:58,bearing:-18,duration:650});
+    if(map.getLayer('project-3d')) {
+      map.setPaintProperty('project-3d','fill-extrusion-height',['get','height']);
+      map.setPaintProperty('project-3d','fill-extrusion-base',['get','base']);
+    }
+    if(map.getLayer('existing-3d')) {
+      map.setPaintProperty('existing-3d','fill-extrusion-height',['get','height']);
+      map.setPaintProperty('existing-3d','fill-extrusion-base',['get','base']);
+    }
+  } else {
+    map.easeTo({pitch:0,bearing:0,duration:650});
+    if(map.getLayer('project-3d')) {
+      map.setPaintProperty('project-3d','fill-extrusion-height',0.15);
+      map.setPaintProperty('project-3d','fill-extrusion-base',0);
+    }
+    if(map.getLayer('existing-3d')) {
+      map.setPaintProperty('existing-3d','fill-extrusion-height',0.15);
+      map.setPaintProperty('existing-3d','fill-extrusion-base',0);
+    }
+  }
+};
+
+document.getElementById('reset').onclick=()=>map.fitBounds(PROJECT_BOUNDS,{padding:85,pitch:58,bearing:-18,duration:700});
+
+document.getElementById('basemap').onchange=e=>{
+  const sat=e.target.value==='sat';
+  ['light','satellite'].forEach(id=>{if(map.getLayer(id)) map.removeLayer(id);});
+  const before = map.getLayer('lots-fill') ? 'lots-fill' : undefined;
+  if(sat){
+    if(!map.getSource('satellite')) map.addSource('satellite',{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256});
+    map.addLayer({id:'satellite',type:'raster',source:'satellite'},before);
+  } else {
+    if(!map.getSource('light')) map.addSource('light',{type:'raster',tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],tileSize:256,attribution:'© OpenStreetMap contributors'});
+    
+    map.addLayer({id:'light',type:'raster',source:'light'},before);
+    
+  }
+};
+</script>
+</body>
+</html>

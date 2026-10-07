@@ -24,8 +24,7 @@ Gestión y administración de proyectos territoriales de inversión · Grupo 601
 | `07_gobernanza_actores.html` | Gobernanza · Mapa de actores (propuesta docente por validar) |
 | `08_catastro_lotes.html` | Ejercicio de prototipos · Catastro y normativa PDDU 2020 por lote, con cortina, filtros, coeficientes efectivos y suma de lotes |
 | `09_sintesis_equipo1.html` … `09_sintesis_equipo5.html` | Síntesis de cada equipo, con su reporte en `assets/sintesis/` |
-| `10_sintesis_depurada.html` | Síntesis depurada. Coincidencias entre las cinco síntesis de los equipos, con suelo vacante y predios subutilizados por lote; reporte en `assets/reporte_sintesis_depurada.pdf` |
-
+| `sintesis_final.html` | Síntesis final. Coincidencias entre las cinco síntesis de los equipos, con suelo vacante y predios subutilizados por lote; reporte en `assets/reporte_sintesis_final.pdf` |
 
 
 ## Área de estudio

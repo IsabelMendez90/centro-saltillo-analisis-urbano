@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plaza Múzquiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500;62..125,700;62..125,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#efede6; --paper:#f7f6f1; --ink:#1d1f1e; --ink2:#4b4f4c; --mute:#8a8d88; --rule:#d6d3c9; --rule2:#e4e1d8;
+  --accent:#b8562f; --ok:#2f7d4f; --okbg:#e2efe5; --bad:#b03a2e; --badbg:#f6e1dd; --warn:#9a6a12; --warnbg:#f4ead3;
+  --tA:#1f5f7a; --tB:#2b7ea1; --tC:#3e97b8; --tD:#6db3cf; --verde:#7fa36a; --plaza:#cfe0b6; --andador:#efe6d6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+.wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;max-width:1500px;margin:0 auto;padding:20px}
+.viewer{position:sticky;top:20px;height:calc(100vh - 40px);min-height:520px;border:1px solid var(--rule);border-radius:4px;overflow:hidden;background:#e9e7e0}
+#c3d{position:absolute;inset:0}
+#lbl{position:absolute;inset:0;pointer-events:none}
+.bar{position:absolute;top:12px;left:12px;right:12px;display:flex;flex-wrap:wrap;gap:8px;z-index:3}
+.seg{display:flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--paper)}
+.seg button,.tog{font:500 12px "IBM Plex Mono",monospace;border:0;background:var(--paper);color:var(--ink);padding:7px 10px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button.on{background:var(--ink);color:#fff}
+.tog{border:1px solid var(--rule);border-radius:3px}
+.tog.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sun{position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:7px 10px;font:500 12px "IBM Plex Mono",monospace;z-index:3}
+.sun select{font:inherit;border:1px solid var(--rule);background:#fff;padding:2px 4px}
+.sun input{width:120px;accent-color:var(--accent)}
+.legend{position:absolute;right:12px;bottom:12px;background:var(--paper);border:1px solid var(--rule);border-radius:3px;padding:8px 10px;font:500 11px "IBM Plex Mono",monospace;z-index:3}
+.legend div{display:flex;align-items:center;gap:7px;margin:2px 0}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block}
+.chip{position:absolute;left:12px;top:56px;background:var(--ink);color:#fff;font:500 12px "IBM Plex Mono",monospace;padding:6px 9px;border-radius:3px;z-index:3;display:none}
+.lab{font:600 11px "IBM Plex Mono",monospace;color:var(--ink);background:rgba(247,246,241,.85);padding:2px 5px;border-radius:2px;white-space:nowrap}
+.lab.st{font:600 12px "Archivo",sans-serif;letter-spacing:.04em;text-transform:uppercase;background:none;color:#5d5f5b}
+.lab.lot{background:none;color:var(--accent)}
+.lab.nrm{background:#e8743b;color:#fff}
+.err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;color:var(--ink2)}
+.panel{min-width:0}
+.kicker{font:600 11px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+h1{font:800 clamp(44px,6vw,76px)/.92 "Archivo",sans-serif;font-stretch:88%;letter-spacing:-.02em;margin:8px 0 14px}
+.lead{font-size:16px;color:var(--ink2);margin:0 0 18px;max-width:62ch}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);margin-bottom:30px}
+.kpis div{padding:10px 12px 10px 0}
+.kpis div+div{padding-left:12px;border-left:1px solid var(--rule)}
+.kpis b{display:block;font:700 32px/1.1 "Archivo",sans-serif}
+.kpis span{font:500 11px "IBM Plex Mono",monospace;color:var(--ink2)}
+section{margin:0 0 34px}
+h2{font:700 24px/1.15 "Archivo",sans-serif;margin:4px 0 8px}
+p.sub{margin:0 0 12px;color:var(--ink2)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font:600 10.5px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);text-align:left;border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:7px 6px}
+td{border-bottom:1px solid var(--rule2);padding:7px 6px;vertical-align:top}
+td.n,th.n{text-align:right;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+td.k{font:500 12px "IBM Plex Mono",monospace;color:var(--mute);width:22px}
+td.ind{padding-left:22px;color:var(--ink2)}
+tr.b td{font-weight:600}
+tr.sel td{background:#fbe9dd}
+#tWings tbody tr{cursor:pointer}
+#tWings tbody tr:hover td{background:#f3efe6}
+.src{font:500 11px "IBM Plex Mono",monospace;color:var(--mute)}
+.pill{display:inline-block;font:600 11px "IBM Plex Mono",monospace;padding:2px 7px;border-radius:2px;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)} .bad{background:var(--badbg);color:var(--bad)} .warn{background:var(--warnbg);color:var(--warn)}
+.note{border-left:3px solid var(--accent);padding:6px 12px;color:var(--ink2);font-size:13.5px;margin:12px 0 0;background:var(--paper)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.cols h3{font:600 11px "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;margin:0 0 6px}
+.cols ul{margin:0;padding-left:18px;font-size:13.5px}
+.cols li{margin:0 0 7px}
+.bar2{height:6px;background:var(--rule2);border-radius:3px;position:relative;margin-top:4px}
+.bar2 i{position:absolute;left:0;top:0;bottom:0;background:var(--ink);border-radius:3px}
+footer{border-top:1px solid var(--rule);padding-top:12px;font:500 11px/1.6 "IBM Plex Mono",monospace;color:var(--mute)}
+@media (max-width:980px){
+  .wrap{grid-template-columns:1fr;padding:16px}
+  .viewer{position:relative;top:0;height:62vh;min-height:420px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kpis div:nth-child(3){padding-left:0;border-left:0}
+  .cols{grid-template-columns:1fr}
+  .legend{display:none}
+  .table-x{overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="viewer" id="viewer">
+    <div id="c3d"></div><div id="lbl"></div>
+    <div class="bar">
+      <div class="seg" id="views"><button data-v="axo" class="on">Axonométrico</button><button data-v="top">Planta</button><button data-v="street">Desde Múzquiz</button></div>
+      <button class="tog" id="tNorma">Normativa</button>
+      <button class="tog on" id="tCtx">Contexto</button>
+      <button class="tog on" id="tLab">Etiquetas</button>
+    </div>
+    <div class="chip" id="chip"></div>
+    <div class="sun">Sol <select id="sDate"><option value="355">21 dic</option><option value="80" selected>21 mar</option><option value="172">21 jun</option></select>
+      <input type="range" id="sHour" min="7" max="19" step="0.25" value="11"><span id="sTxt">11:00</span></div>
+    <div class="legend">
+      <div><span class="sw" style="background:var(--tA)"></span>Edificio A · 6 niv.</div>
+      <div><span class="sw" style="background:var(--tB)"></span>Edificio B · 6 niv.</div>
+      <div><span class="sw" style="background:var(--tC)"></span>Edificio C · 5 niv.</div>
+      <div><span class="sw" style="background:var(--tD)"></span>Edificio D · 5 niv.</div>
+      <div><span class="sw" style="background:var(--plaza)"></span>Plaza de cesión</div>
+      <div><span class="sw" style="background:var(--verde)"></span>Área verde</div>
+      <div><span class="sw" style="background:var(--andador)"></span>Andadores y área libre</div>
+      <div><span class="sw" style="background:#c9c4bb"></span>Vecinos (altura estimada)</div>
+    </div>
+    <div class="err" id="err">No se pudo cargar el visor 3D. Revisa la conexión y vuelve a abrir la página.</div>
+  </div>
+
+    <div class="panel">
+    <div class="kicker">Prototipo de vivienda · Centro de Saltillo · Manzana 0163-020</div>
+    <h1>Plaza<br>Múzquiz</h1>
+    <p class="lead">El estacionamiento a cielo abierto de Melchor Múzquiz 300 y 356 ocupa el corazón de la manzana. Cuatro edificios de 5 y 6 niveles se acomodan alrededor de una plaza de cesión abierta a la calle y de un jardín interior, con área libre en todo el perímetro. Son 42 viviendas sobre 1,521 m² de los dos lotes catastrales.</p>
+    <div class="kpis">
+      <div><b>42</b><span>viviendas</span></div>
+      <div><b>276</b><span>viv/ha</span></div>
+      <div><b>2.14</b><span>CUS · 3,262 m²</span></div>
+      <div><b>0.39</b><span>COS · 592 m²</span></div>
+    </div>
+
+    <section>
+      <div class="kicker">Tarea 3 · Volumetría</div>
+      <h2>Edificios</h2>
+      <p class="sub">Dos crujías a lo largo del lote con la plaza al centro, un edificio con jardín a un lado y un remate al fondo. Toca una fila o un volumen para ubicarlo. Altura de 3 m por nivel.</p>
+      <div class="table-x"><table id="tWings">
+        <thead><tr><th>Edificio</th><th class="n">Niv.</th><th class="n">Altura</th><th class="n">Desplante</th><th class="n">Construido</th><th class="n">CUS</th><th class="n">Viv.</th></tr></thead>
+        <tbody><tr data-w="Edificio A"><td><b>A</b></td><td class="n">6</td><td class="n">18 m</td><td class="n">164</td><td class="n">982</td><td class="n">0.65</td><td class="n">14</td></tr><tr data-w="Edificio B"><td><b>B</b></td><td class="n">6</td><td class="n">18 m</td><td class="n">140</td><td class="n">837</td><td class="n">0.55</td><td class="n">10</td></tr><tr data-w="Edificio C"><td><b>C</b></td><td class="n">5</td><td class="n">15 m</td><td class="n">157</td><td class="n">787</td><td class="n">0.52</td><td class="n">11</td></tr><tr data-w="Edificio D"><td><b>D</b></td><td class="n">5</td><td class="n">15 m</td><td class="n">131</td><td class="n">655</td><td class="n">0.43</td><td class="n">7</td></tr><tr class="b"><td>Total</td><td class="n">5–6</td><td class="n">15–18 m</td><td class="n">592</td><td class="n">3,262</td><td class="n">2.14</td><td class="n">42</td></tr></tbody>
+      </table></div>
+      <p class="note">Edificio D con planta baja de vestíbulo y local de barrio. Viviendas de 70 a 90 m² brutos, igual que en la propuesta original.</p>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 3 · Del esquema al predio catastral</div>
+      <h2>Cuánto cabe en los dos lotes</h2>
+      <p class="sub">El esquema original se trazó sobre imagen satelital con 1,700 m². Los lotes 8130 y 8125 suman 1,521 m² y miden 30 × 56 m. Aun construyendo hasta los linderos solo cabría el 95 % de los desplantes; con los remetimientos de la norma y área libre perimetral cabe el 54 %. Los cuatro edificios conservan su forma irregular y el conjunto completo se ajusta al 83 % del ancho y al 69 % del largo del esquema.</p>
+      <div class="table-x"><table>
+        <thead><tr><th>Concepto</th><th class="n">Esquema original</th><th class="n">En los lotes</th></tr></thead>
+        <tbody><tr><td><b>Terreno</b></td><td class="n">1,700 m² (trazado en satélite)</td><td class="n">1,521 m² (catastro)</td></tr><tr><td><b>Desplante</b></td><td class="n">1,087 m²</td><td class="n">592 m²</td></tr><tr><td><b>Construido</b></td><td class="n">5,968 m²</td><td class="n">3,262 m²</td></tr><tr><td><b>Viviendas</b></td><td class="n">75</td><td class="n">42</td></tr><tr><td><b>COS</b></td><td class="n">0.64</td><td class="n">0.39</td></tr><tr><td><b>CUS</b></td><td class="n">3.51</td><td class="n">2.14</td></tr><tr><td><b>Densidad</b></td><td class="n">441 viv/ha</td><td class="n">276 viv/ha</td></tr><tr><td><b>Plaza de cesión</b></td><td class="n">215 m²</td><td class="n">178 m²</td></tr><tr><td><b>Área verde</b></td><td class="n">188 m²</td><td class="n">163 m²</td></tr><tr><td><b>Andadores</b></td><td class="n">211 m²</td><td class="n">107 m²</td></tr><tr><td><b>Área libre perimetral</b></td><td class="n">—</td><td class="n">482 m²</td></tr><tr><td><b>Niveles</b></td><td class="n">A y B 6 · C y D 5</td><td class="n">sin cambio</td></tr></tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 3 · Ficha técnica</div>
+      <h2>Parámetros del proyecto</h2>
+      <table>
+        <thead><tr><th></th><th>Concepto</th><th class="n">m²</th><th class="n">Valor</th></tr></thead>
+        <tbody>
+          <tr class="b"><td class="k">a</td><td>Terreno del proyecto</td><td class="n">1,521</td><td class="n">0.15 ha</td></tr>
+          <tr class="b"><td class="k">b</td><td>COS · desplante de edificios</td><td class="n">592</td><td class="n">38.9 %</td></tr>
+          <tr class="b"><td class="k">c</td><td>Espacio abierto total</td><td class="n">930</td><td class="n">61.1 %</td></tr>
+          <tr><td></td><td class="ind">Plaza de cesión</td><td class="n">178</td><td class="n">11.7 %</td></tr>
+          <tr><td></td><td class="ind">Área verde, jardín</td><td class="n">163</td><td class="n">10.7 %</td></tr>
+          <tr><td></td><td class="ind">Andadores</td><td class="n">107</td><td class="n">7.0 %</td></tr>
+          <tr><td></td><td class="ind">Área libre perimetral</td><td class="n">482</td><td class="n">31.7 %</td></tr>
+          <tr class="b"><td class="k">d</td><td>CUS · construido total</td><td class="n">3,262</td><td class="n">2.14 veces</td></tr>
+          <tr class="b"><td class="k">e</td><td>Densidad · 42 viv ÷ 0.15 ha</td><td class="n">—</td><td class="n">276 viv/ha</td></tr>
+          <tr><td></td><td class="ind">Altura</td><td class="n">—</td><td class="n">5–6 niveles (15–18 m)</td></tr>
+          <tr><td></td><td class="ind">Estacionamiento</td><td class="n">—</td><td class="n">0 cajones</td></tr>
+        </tbody>
+      </table>
+      <p class="note">El CUS de cada edificio está en la tabla de Edificios. Superficies medidas sobre el polígono catastral; las fichas registran 1,538 m².</p>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 2 · Lineamientos</div>
+      <h2>Qué permite la norma (CU-2)</h2>
+      <p class="sub">Con el Cuadro 10 caben en el predio hasta 1,141 m² de desplante, 7,151 m² construidos y 38 viviendas. Por lo menos 228 m² deben ser área verde.</p>
+      <div class="table-x"><table>
+        <thead><tr><th>Lineamiento</th><th>Valor para el predio</th><th>Fuente</th></tr></thead>
+        <tbody>
+          <tr><td><b>Zonificación secundaria</b></td><td>CU-2 · Corredor urbano habitacional, comercio y servicios</td><td class="src">PDDU 2020 · ficha catastral</td></tr>
+          <tr><td><b>Uso actual</b></td><td>Estacionamiento a cielo abierto; catastro registra los dos lotes sin construcción</td><td class="src">Catastro · imagen satelital</td></tr>
+          <tr><td><b>Usos permitidos</b></td><td>Vivienda unifamiliar y multifamiliar, comercio y servicios de corredor; vivienda vertical permitida</td><td class="src">PDDU 2020</td></tr>
+          <tr><td><b>Usos no compatibles</b></td><td>Revisar en la matriz los giros prohibidos en corredor (industria, bodegas, talleres) para el local de barrio</td><td class="src">Matriz de compatibilidad</td></tr>
+          <tr><td><b>Tipo de vialidad</b></td><td>Melchor Múzquiz, calle local del centro; único frente del predio, 30 m</td><td class="src">PDDU 2020 · estructura vial</td></tr>
+          <tr><td><b>Cajones</b></td><td>1 por vivienda de hasta 150 m²; local 1 por cada 50 m²</td><td class="src">Reglamento de Construcciones, art. 42</td></tr>
+          <tr><td><b>COS</b></td><td>0.75 máx. → 1,141 m²</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>CAV</b></td><td>0.15 mín. → 228 m² de área verde</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>CUS</b></td><td>4.7 máx. → 7,151 m²</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Densidad</b></td><td>250 viv/ha → 38 viviendas</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Altura</b></td><td>80 % del ancho de la vialidad. Múzquiz mide 13 m en otros tramos, lo que daría 10.4 m y 3 niveles; medir la sección en campo</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Remetimientos</b></td><td>Frente 5.5 m · fondo 25 % de la altura · laterales 10 % de la altura repartido en ambos lados</td><td class="src">Cuadro 10</td></tr>
+          <tr><td><b>Centro Histórico</b></td><td>Obra sujeta a dictamen previo de la Junta de Protección</td><td class="src">Reglamento de DU y Construcciones, art. 46</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 4 · Comparativa</div>
+      <h2>Permitido contra propuesto</h2>
+      <div class="table-x"><table>
+        <thead><tr><th>Parámetro</th><th class="n">Norma</th><th class="n">Propuesta</th><th>Uso de la norma</th><th>Resultado</th></tr></thead>
+        <tbody><tr><td><b>COS</b></td><td class="n">≤ 0.75</td><td class="n">0.39</td><td style="min-width:90px"><div class="bar2"><i style="width:52%;"></i></div><span class="src">52 %</span></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Área libre</b></td><td class="n">≥ 25 %</td><td class="n">61.1 %</td><td style="min-width:90px"></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Área verde (CAV)</b></td><td class="n">≥ 15 %</td><td class="n">10.7 % (22.4 % con plaza)</td><td style="min-width:90px"><div class="bar2"><i style="width:71%;"></i></div><span class="src">71 %</span></td><td><span class="pill warn">Condicionado</span></td></tr><tr><td><b>CUS</b></td><td class="n">≤ 4.7</td><td class="n">2.14</td><td style="min-width:90px"><div class="bar2"><i style="width:46%;"></i></div><span class="src">46 %</span></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Densidad</b></td><td class="n">≤ 250 (38)</td><td class="n">276 (42)</td><td style="min-width:90px"><div class="bar2"><i style="width:100%;background:var(--bad)"></i></div><span class="src">110 %</span></td><td><span class="pill bad">No cumple</span></td></tr><tr><td><b>Altura</b></td><td class="n">≈ 10.4 m · 3 niv.</td><td class="n">15–18 m · 5–6 niv.</td><td style="min-width:90px"><div class="bar2"><i style="width:100%;background:var(--bad)"></i></div><span class="src">173 %</span></td><td><span class="pill bad">No cumple</span></td></tr><tr><td><b>Remet. frente</b></td><td class="n">5.5 m</td><td class="n">5.5 m</td><td style="min-width:90px"></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Remet. fondo</b></td><td class="n">25 % de 15 m = 3.75 m</td><td class="n">3.75 m</td><td style="min-width:90px"></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Remet. laterales</b></td><td class="n">10 % de 18 m = 1.8 m</td><td class="n">1.5 m por lado</td><td style="min-width:90px"></td><td><span class="pill ok">Cumple</span></td></tr><tr><td><b>Cajones</b></td><td class="n">42 + local</td><td class="n">0</td><td style="min-width:90px"></td><td><span class="pill bad">No cumple</span></td></tr></tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 4 · Compatibilidades e incongruencias</div>
+      <h2>Lo que la norma permite y<br>lo que el centro necesita</h2>
+      <div class="cols">
+        <div><h3>Compatibilidades</h3><ul>
+          <li>Vivienda multifamiliar y local de barrio son compatibles con CU-2.</li>
+          <li>COS de 0.39 y CUS de 2.14, ambos dentro de la norma; el CUS permitido de 4.7 no es lo que frena el proyecto.</li>
+          <li>Los remetimientos se cumplen y dejan 482 m² de área libre alrededor de los edificios.</li>
+          <li>Ocupa un predio vacío en el corazón de la manzana sin tocar las casas existentes.</li>
+          <li>La plaza de cesión abre el conjunto a Múzquiz y funciona como acceso peatonal.</li>
+        </ul></div>
+        <div><h3>Incongruencias</h3><ul>
+          <li>Densidad de 276 viv/ha contra 250 permitidas; para cumplir habría que bajar a 38 viviendas o hacerlas más grandes.</li>
+          <li>Altura de 5 y 6 niveles contra unos 3 niveles por la sección de Múzquiz y los 3 a 4 pisos que propone el IMPLAN para el Centro Histórico.</li>
+          <li>El área verde es de 10.7 %; solo llega a 22.4 % si la plaza de cesión se hace permeable, como propone el proyecto.</li>
+          <li>Cero cajones contra 42 más los del local exigidos; la exención por cercanía a la ruta troncal de Allende tendría que gestionarse.</li>
+          <li>El predio trazado en satélite era 12 % mayor que el catastral; el esquema se tuvo que reducir a un 54 % de su desplante.</li>
+        </ul></div>
+      </div>
+      <p class="note">Activa <b>Normativa</b> en el visor. El volumen naranja muestra la altura de 10.4 m que resultaría de una sección de 13 m en Múzquiz, con el remetimiento de 5.5 m al frente.</p>
+    </section>
+
+    <section>
+      <div class="kicker">Tarea 1 · Predio</div>
+      <h2>Un estacionamiento en el corazón de la manzana</h2>
+      <div class="table-x"><table>
+        <thead><tr><th>Lote (ID carto)</th><th>Dirección</th><th class="n">Largo × ancho</th><th class="n">Superficie</th><th class="n">Construido</th></tr></thead>
+        <tbody><tr><td><b>8125</b><br><span class="src">0010230303</span></td><td>Melchor Muzquiz 356<br><span class="src">Sin construcción registrada</span></td><td class="n">44.9 × 5.3 m</td><td class="n">236 m²</td><td class="n">0 m²</td></tr><tr><td><b>8130</b><br><span class="src">0010230343</span></td><td>Melchor Muzquiz 300<br><span class="src">Sin construcción registrada</span></td><td class="n">55.9 × 24.9 m</td><td class="n">1,285 m²</td><td class="n">0 m²</td></tr><tr class="b"><td>Predio total</td><td>Frente a Melchor Múzquiz</td><td class="n">55.8 × 30.3 m</td><td class="n">1,521 m²</td><td class="n">0 m²</td></tr></tbody>
+      </table></div>
+      <p class="note">Manzana 0163-020 entre Ignacio Allende, M. Alessio Robles, Manuel Acuña y Melchor Múzquiz. Superficie de 11,731 m², 28 lotes, 18 de casa habitación, 8 comerciales y los 2 del proyecto sin construcción, casi todos de uno y dos niveles. Parada de transporte a 186 m sobre Allende y Nuevo Mercado Municipal a unos 250 m.</p>
+    </section>
+
+    <footer>Fuentes · PDDU Saltillo 2020 (Cuadro 10) · Catastro municipal, fichas y polígonos · Reglamento de Construcciones del Estado de Coahuila · Plataforma de Análisis Urbano Centro de Saltillo · Contexto con niveles estimados a partir de la superficie construida catastral.<br>José María Culebro Cabral · Gestión y administración de proyectos territoriales de inversión (Gpo 601) · Tec de Monterrey</footer>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script>window.DATA={"units":[{"id":0,"t":"A","l":0,"a":163.6,"w":"Edificio A","n":0,"p":[[-17.26,-10.91],[-14.74,-3.27],[-10.91,5.92],[-1.87,0.2],[-13.35,-16.72]]},{"id":1,"t":"A","l":1,"a":163.6,"w":"Edificio A","n":0,"p":[[-17.26,-10.91],[-14.74,-3.27],[-10.91,5.92],[-1.87,0.2],[-13.35,-16.72]]},{"id":2,"t":"A","l":2,"a":163.6,"w":"Edificio A","n":0,"p":[[-17.26,-10.91],[-14.74,-3.27],[-10.91,5.92],[-1.87,0.2],[-13.35,-16.72]]},{"id":3,"t":"A","l":3,"a":163.6,"w":"Edificio A","n":0,"p":[[-17.26,-10.91],[-14.74,-3.27],[-10.91,5.92],[-1.87,0.2],[-13.35,-16.72]]},{"id":4,"t":"A","l":4,"a":163.6,"w":"Edificio A","n":0,"p":[[-17.26,-10.91],[-14.74,-3.27],[-10.91,5.92],[-1.87,0.2],[-13.35,-16.72]]},{"id":5,"t":"A","l":5,"a":163.6,"w":"Edificio A","n":0,"p":[[-17.26,-10.91],[-14.74,-3.27],[-10.91,5.92],[-1.87,0.2],[-13.35,-16.72]]},{"id":6,"t":"B","l":0,"a":139.6,"w":"Edificio B","n":0,"p":[[-3.21,18.64],[6.45,12.73],[-0.12,2.97],[-9.88,8.99],[-9.55,9.82],[-6.06,16.16]]},{"id":7,"t":"B","l":1,"a":139.6,"w":"Edificio B","n":0,"p":[[-3.21,18.64],[6.45,12.73],[-0.12,2.97],[-9.88,8.99],[-9.55,9.82],[-6.06,16.16]]},{"id":8,"t":"B","l":2,"a":139.6,"w":"Edificio B","n":0,"p":[[-3.21,18.64],[6.45,12.73],[-0.12,2.97],[-9.88,8.99],[-9.55,9.82],[-6.06,16.16]]},{"id":9,"t":"B","l":3,"a":139.6,"w":"Edificio B","n":0,"p":[[-3.21,18.64],[6.45,12.73],[-0.12,2.97],[-9.88,8.99],[-9.55,9.82],[-6.06,16.16]]},{"id":10,"t":"B","l":4,"a":139.6,"w":"Edificio B","n":0,"p":[[-3.21,18.64],[6.45,12.73],[-0.12,2.97],[-9.88,8.99],[-9.55,9.82],[-6.06,16.16]]},{"id":11,"t":"B","l":5,"a":139.6,"w":"Edificio B","n":0,"p":[[-3.21,18.64],[6.45,12.73],[-0.12,2.97],[-9.88,8.99],[-9.55,9.82],[-6.06,16.16]]},{"id":12,"t":"C","l":0,"a":157.4,"w":"Edificio C","n":0,"p":[[0.89,-23.28],[-7.37,-19.63],[3.68,-3.19],[9.22,-6.77],[8.59,-9.37],[6.73,-12.95],[5.27,-15.74],[3.91,-18.37],[2.8,-20.5],[3.09,-20.65]]},{"id":13,"t":"C","l":1,"a":157.4,"w":"Edificio C","n":0,"p":[[0.89,-23.28],[-7.37,-19.63],[3.68,-3.19],[9.22,-6.77],[8.59,-9.37],[6.73,-12.95],[5.27,-15.74],[3.91,-18.37],[2.8,-20.5],[3.09,-20.65]]},{"id":14,"t":"C","l":2,"a":157.4,"w":"Edificio C","n":0,"p":[[0.89,-23.28],[-7.37,-19.63],[3.68,-3.19],[9.22,-6.77],[8.59,-9.37],[6.73,-12.95],[5.27,-15.74],[3.91,-18.37],[2.8,-20.5],[3.09,-20.65]]},{"id":15,"t":"C","l":3,"a":157.4,"w":"Edificio C","n":0,"p":[[0.89,-23.28],[-7.37,-19.63],[3.68,-3.19],[9.22,-6.77],[8.59,-9.37],[6.73,-12.95],[5.27,-15.74],[3.91,-18.37],[2.8,-20.5],[3.09,-20.65]]},{"id":16,"t":"C","l":4,"a":157.4,"w":"Edificio C","n":0,"p":[[0.89,-23.28],[-7.37,-19.63],[3.68,-3.19],[9.22,-6.77],[8.59,-9.37],[6.73,-12.95],[5.27,-15.74],[3.91,-18.37],[2.8,-20.5],[3.09,-20.65]]},{"id":17,"t":"D","l":0,"a":131.1,"w":"Edificio D","n":0,"p":[[17.55,9.64],[1.79,19.48],[3.93,23.56],[21.34,17.72],[21.13,14.74],[19.67,11.93],[18.62,9.92]]},{"id":18,"t":"D","l":1,"a":131.1,"w":"Edificio D","n":0,"p":[[17.55,9.64],[1.79,19.48],[3.93,23.56],[21.34,17.72],[21.13,14.74],[19.67,11.93],[18.62,9.92]]},{"id":19,"t":"D","l":2,"a":131.1,"w":"Edificio D","n":0,"p":[[17.55,9.64],[1.79,19.48],[3.93,23.56],[21.34,17.72],[21.13,14.74],[19.67,11.93],[18.62,9.92]]},{"id":20,"t":"D","l":3,"a":131.1,"w":"Edificio D","n":0,"p":[[17.55,9.64],[1.79,19.48],[3.93,23.56],[21.34,17.72],[21.13,14.74],[19.67,11.93],[18.62,9.92]]},{"id":21,"t":"D","l":4,"a":131.1,"w":"Edificio D","n":0,"p":[[17.55,9.64],[1.79,19.48],[3.93,23.56],[21.34,17.72],[21.13,14.74],[19.67,11.93],[18.62,9.92]]}],"plaza":[[-13.35,-16.72],[-13.35,-16.72],[-13.35,-16.72],[-13.35,-16.72],[-2.17,-0.24],[-2.17,-0.24],[-2.17,-0.24],[3.63,-3.27],[3.63,-3.27],[3.63,-3.27],[-7.37,-19.63],[-7.37,-19.63],[-7.37,-19.63],[-12.73,-17.02],[-12.73,-17.02],[-12.73,-17.02],[-12.73,-17.02],[-12.73,-17.02],[-12.73,-17.02],[-12.74,-17.02],[-12.74,-17.02],[-12.74,-17.02],[-12.74,-17.02],[-12.74,-17.02],[-12.74,-17.02],[-12.74,-17.02],[-12.74,-17.02],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.03],[-12.74,-17.04],[-12.74,-17.04],[-12.74,-17.04],[-12.74,-17.04],[-12.74,-17.04],[-12.74,-17.04],[-12.74,-17.04],[-12.74,-17.04],[-5.53,-20.8],[-5.53,-20.8],[-5.53,-20.8],[-8.08,-25.68],[-8.08,-25.68],[-8.08,-25.68],[-15.9,-21.59],[-15.9,-21.59],[-15.9,-21.59]],"verde":[[-0.12,2.97],[6.45,12.73],[-3.21,18.64],[-3.52,18.37],[-2.99,19.16],[13.65,8.61],[17.13,9.43],[9.55,-6.36],[10.14,-4.05],[9.74,-3.53],[-10.1,8.65],[-9.87,8.98]],"andadores":[[[9.74,-3.53],[10.14,-4.05],[9.55,-6.36],[-11.0,6.3],[-10.1,8.65]],[[17.13,9.43],[13.65,8.61],[-2.99,19.16],[-1.93,19.9],[1.17,18.28],[1.61,19.12]]],"libre":[[[9.39,28.12],[25.28,19.47],[23.97,16.95],[21.0,11.24],[19.1,7.59],[17.1,3.74],[15.22,0.13],[13.24,-3.68],[11.87,-6.32],[10.57,-8.81],[8.06,-13.64],[6.61,-16.43],[5.24,-19.06],[4.82,-19.86],[5.46,-20.19],[6.27,-20.61],[1.16,-30.31],[1.07,-30.49],[-21.06,-18.94],[-25.74,-16.5],[-25.09,-15.32],[-21.35,-8.53],[-20.77,-7.47],[-18.5,-3.34],[-6.59,18.31],[-5.44,20.4],[-4.14,22.76],[0.54,20.31],[5.68,30.14]]],"lotsU":[[5.68,30.14],[9.39,28.12],[25.28,19.47],[23.97,16.95],[21.0,11.24],[19.1,7.59],[17.1,3.74],[15.22,0.13],[13.24,-3.68],[11.87,-6.32],[10.57,-8.81],[8.06,-13.64],[6.61,-16.43],[5.24,-19.06],[4.82,-19.86],[5.46,-20.19],[6.27,-20.61],[1.16,-30.31],[1.07,-30.49],[-21.06,-18.94],[-25.74,-16.5],[-25.09,-15.32],[-21.35,-8.53],[-20.77,-7.47],[-18.5,-3.34],[-6.59,18.31],[-5.44,20.4],[-4.14,22.76],[0.54,20.31]],"env":[[9.39,28.12],[25.28,19.47],[23.97,16.95],[21.0,11.24],[19.1,7.59],[17.1,3.74],[15.22,0.13],[13.24,-3.68],[11.87,-6.32],[10.57,-8.81],[8.06,-13.64],[6.61,-16.43],[5.24,-19.06],[4.82,-19.86],[5.46,-20.19],[6.27,-20.61],[3.64,-25.6],[-23.07,-11.65],[-21.35,-8.53],[-20.77,-7.47],[-18.5,-3.34],[-6.59,18.31],[-5.44,20.4],[-4.14,22.76],[0.54,20.31],[5.68,30.14]],"ctx":[{"p":[[37.86,-80.75],[77.14,-102.87],[72.83,-110.03],[33.68,-89.06]],"n":1},{"p":[[144.16,-81.66],[141.5,-86.57],[122.05,-76.52],[125.76,-69.57],[113.87,-63.12],[125.41,-41.69],[135.96,-46.48],[144.55,-51.1],[135.94,-65.8],[136.42,-66.05],[131.48,-74.78]],"n":1},{"p":[[-46.24,193.34],[-5.66,170.52],[-11.75,158.68],[-23.71,165.39],[-23.28,166.14],[-33.79,172.04],[-34.04,171.57],[-61.63,186.6],[-59.77,190.11],[-50.79,185.38]],"n":1},{"p":[[-61.63,186.6],[-34.04,171.57],[-33.79,172.04],[-23.28,166.14],[-23.71,165.39],[-11.75,158.68],[-13.56,155.16],[-52.41,177.35],[-63.44,183.16]],"n":1},{"p":[[-13.56,155.16],[-16.08,150.27],[-53.23,171.45],[-50.49,176.25]],"n":2},{"p":[[-16.08,150.27],[-18.85,144.89],[-49.67,161.87],[-46.51,167.61]],"n":1},{"p":[[-18.85,144.89],[-21.87,139.02],[-67.87,164.93],[-64.92,170.28]],"n":1},{"p":[[-83.42,173.5],[-21.87,139.02],[-24.46,133.97],[-86.01,168.4]],"n":2},{"p":[[-86.01,168.4],[-24.46,133.97],[-27.37,128.32],[-52.15,142.38],[-52.27,142.18],[-89.28,162.27]],"n":1},{"p":[[-89.28,162.27],[-52.27,142.18],[-52.15,142.38],[-27.37,128.32],[-30.4,122.43],[-92.04,157.1]],"n":1},{"p":[[-30.4,122.43],[-34.45,114.56],[-53.43,125.47],[-61.78,130.92],[-95.53,149.83],[-92.26,155.37],[-92.79,155.69],[-92.04,157.1]],"n":1},{"p":[[-39.6,104.54],[-49.74,110.37],[-71.14,124.23],[-101.14,142.68],[-96.56,150.44],[-58.76,129.19],[-53.43,125.47],[-34.45,114.56]],"n":1},{"p":[[-39.6,104.54],[-43.7,96.58],[-106.11,134.27],[-101.14,142.68],[-71.14,124.23],[-49.74,110.37]],"n":1},{"p":[[-43.7,96.58],[-49.59,85.29],[-112.46,123.52],[-106.11,134.27]],"n":2},{"p":[[-112.46,123.52],[-49.59,85.29],[-55.67,73.64],[-82.96,90.5],[-90.41,94.57],[-118.92,112.58]],"n":1},{"p":[[-84.47,91.33],[-55.67,73.64],[-58.4,68.48],[-62.83,70.88],[-63.17,70.27],[-66.81,72.62],[-67.26,71.92],[-71.53,74.68],[-71.16,75.25],[-87.5,85.81]],"n":1},{"p":[[-87.5,85.81],[-71.16,75.25],[-71.53,74.68],[-67.26,71.92],[-66.81,72.62],[-63.17,70.27],[-62.83,70.88],[-58.4,68.48],[-61.8,62.05],[-81.07,73.96],[-90.94,79.53]],"n":1},{"p":[[-88.32,78.02],[-81.07,73.96],[-61.8,62.05],[-64.38,57.17],[-90.86,73.34]],"n":2},{"p":[[-64.38,57.17],[-67.58,51.1],[-83.28,59.62],[-94.24,67.0],[-90.86,73.34]],"n":1},{"p":[[-70.16,46.22],[-97.14,61.57],[-94.24,67.0],[-83.28,59.62],[-67.58,51.1]],"n":1},{"p":[[-70.16,46.22],[-74.73,37.59],[-102.12,52.24],[-97.14,61.57]],"n":2},{"p":[[-87.65,34.48],[-86.83,36.08],[-90.62,38.18],[-105.89,45.36],[-102.12,52.24],[-74.73,37.59],[-78.22,30.98],[-81.78,32.86],[-82.39,31.7]],"n":1},{"p":[[-90.68,38.05],[-93.0,33.12],[-93.28,33.25],[-94.12,31.49],[-93.49,31.19],[-94.27,29.54],[-94.03,29.42],[-95.91,26.01],[-90.28,22.91],[-87.9,27.59],[-81.2,24.18],[-86.43,14.3],[-102.39,23.01],[-93.75,39.66]],"n":2},{"p":[[-100.01,42.6],[-93.75,39.66],[-102.39,23.01],[-108.58,26.39]],"n":2},{"p":[[-137.12,49.61],[-128.38,44.68],[-131.7,38.75],[-140.57,43.49]],"n":1},{"p":[[-109.92,106.89],[-106.14,104.5],[-140.57,43.49],[-144.17,45.42]],"n":1},{"p":[[-87.65,34.48],[-82.39,31.7],[-81.78,32.86],[-77.81,30.76],[-81.27,24.21],[-87.9,27.59],[-90.28,22.91],[-95.91,26.01],[-94.03,29.42],[-94.27,29.54],[-93.49,31.19],[-94.12,31.49],[-93.28,33.25],[-93.0,33.12],[-90.68,38.05],[-86.83,36.08]],"n":2},{"p":[[-105.89,45.36],[-100.01,42.6],[-108.58,26.39],[-114.41,29.56]],"n":3},{"p":[[-119.92,39.88],[-111.27,35.39],[-114.41,29.56],[-123.27,34.4]],"n":1},{"p":[[-113.4,50.54],[-105.34,46.39],[-111.27,35.39],[-119.92,39.88]],"n":2},{"p":[[-99.43,57.27],[-105.26,46.35],[-114.24,50.97],[-108.23,61.96]],"n":2},{"p":[[-102.15,73.07],[-93.59,68.23],[-99.43,57.27],[-108.23,61.96]],"n":2},{"p":[[-88.32,78.02],[-93.59,68.23],[-102.15,73.07],[-96.79,82.89]],"n":2},{"p":[[-84.47,91.33],[-90.94,79.53],[-96.79,82.89],[-90.41,94.57]],"n":3},{"p":[[-97.83,99.26],[-103.95,88.32],[-112.56,93.13],[-106.14,104.5]],"n":2},{"p":[[-112.56,93.13],[-103.95,88.32],[-110.04,77.44],[-118.68,82.28]],"n":2},{"p":[[-110.04,77.44],[-116.12,66.58],[-124.8,71.43],[-118.68,82.28]],"n":2},{"p":[[-116.12,66.58],[-122.25,55.64],[-130.96,60.51],[-124.8,71.43]],"n":2},{"p":[[-130.96,60.51],[-122.25,55.64],[-128.38,44.68],[-137.12,49.61]],"n":1},{"p":[[180.25,81.07],[256.24,40.15],[250.45,30.59],[226.44,44.3],[221.54,36.89],[205.68,45.96],[208.3,50.3],[129.03,93.45],[136.01,106.03]],"n":1},{"p":[[167.02,52.15],[141.28,9.0],[131.57,13.81],[157.36,56.92]],"n":1},{"p":[[149.95,44.57],[131.57,13.81],[126.72,16.21],[134.53,28.36],[145.53,46.48]],"n":1},{"p":[[139.81,37.32],[134.53,28.36],[126.72,16.21],[122.15,18.46],[135.49,40.0]],"n":1},{"p":[[134.58,38.53],[122.15,18.46],[113.03,22.96],[120.94,35.73],[121.59,35.32],[126.88,43.87]],"n":2},{"p":[[104.72,44.49],[120.94,35.73],[113.03,22.96],[97.5,30.62]],"n":3},{"p":[[121.61,35.36],[104.72,44.49],[109.33,53.35],[126.88,43.87]],"n":2},{"p":[[140.89,48.73],[134.58,38.53],[126.88,43.87],[109.33,53.35],[114.08,63.07]],"n":1},{"p":[[129.47,62.66],[129.54,62.27],[131.98,61.06],[132.12,61.34],[138.88,57.97],[135.48,51.62],[114.08,63.07],[116.78,68.59],[121.73,66.17],[121.91,66.54]],"n":1},{"p":[[199.46,35.62],[169.36,50.99],[120.07,75.32],[124.55,84.49],[185.35,52.88],[202.49,40.65]],"n":1},{"p":[[129.03,93.45],[208.3,50.3],[202.49,40.65],[185.35,52.88],[124.55,84.49]],"n":1},{"p":[[118.72,72.55],[136.14,63.61],[137.69,66.63],[157.36,56.92],[149.95,44.57],[145.53,46.48],[139.92,37.25],[135.49,40.0],[140.89,48.73],[135.48,51.62],[138.88,57.97],[132.12,61.34],[131.98,61.06],[129.54,62.27],[129.68,62.55],[121.91,66.54],[121.73,66.17],[116.78,68.59]],"n":1},{"p":[[120.07,75.32],[137.69,66.63],[136.14,63.61],[118.72,72.55]],"n":1},{"p":[[152.0,9.14],[166.21,35.76],[159.41,39.17],[167.02,52.15],[199.4,35.51],[191.42,22.25],[171.66,32.55],[154.86,2.28],[149.38,4.99]],"n":1},{"p":[[152.0,9.14],[149.38,4.99],[141.28,9.0],[159.41,39.17],[166.21,35.76]],"n":1},{"p":[[121.89,119.14],[113.51,102.34],[87.0,117.0],[94.85,133.32]],"n":1},{"p":[[113.51,102.34],[109.58,94.46],[61.06,121.23],[65.18,128.7]],"n":2},{"p":[[61.06,121.23],[109.58,94.46],[106.82,88.95],[81.99,102.56],[79.48,98.11],[80.27,97.67],[79.16,95.7],[77.8,96.47],[77.32,95.62],[78.07,95.2],[77.03,93.89],[46.54,110.92],[57.61,132.76],[65.18,128.7]],"n":1},{"p":[[81.99,102.56],[106.82,88.95],[102.35,79.99],[77.03,93.89],[78.07,95.2],[77.32,95.62],[77.8,96.47],[79.16,95.7],[80.27,97.67],[79.48,98.11]],"n":2},{"p":[[100.96,80.75],[92.51,65.4],[45.9,91.17],[49.46,99.29],[53.7,106.97]],"n":1},{"p":[[26.55,111.85],[35.18,106.9],[35.3,107.11],[49.46,99.29],[45.9,91.17],[91.8,65.79],[85.32,53.26],[39.89,76.43],[32.23,63.02],[24.11,67.1],[28.12,75.08],[26.94,75.65],[32.64,86.99],[18.73,93.96],[20.77,98.01],[19.85,98.47]],"n":1},{"p":[[85.32,53.26],[81.5,45.87],[42.92,66.44],[46.34,73.14]],"n":2},{"p":[[81.43,45.9],[79.81,42.59],[75.52,41.27],[58.74,49.7],[62.12,56.2]],"n":2},{"p":[[28.2,84.14],[27.51,82.68],[29.91,81.55],[26.94,75.65],[28.12,75.08],[24.11,67.1],[20.05,69.02],[26.79,84.81]],"n":3},{"p":[[26.79,84.81],[20.05,69.02],[16.02,70.94],[19.59,78.5],[11.36,82.34],[15.07,90.33]],"n":2},{"p":[[19.59,78.5],[16.02,70.94],[7.9,74.91],[11.36,82.34]],"n":1},{"p":[[11.36,82.34],[7.9,74.91],[-32.13,94.48],[-28.63,101.08],[-1.06,87.9]],"n":1},{"p":[[15.07,90.33],[11.36,82.34],[7.23,84.16],[-28.63,101.08],[-24.11,109.58]],"n":1},{"p":[[32.64,86.99],[29.91,81.55],[27.51,82.68],[28.2,84.14],[-24.11,109.58],[-21.8,113.94],[-9.37,107.81],[-9.59,107.36],[5.66,100.4]],"n":1},{"p":[[-19.64,118.0],[-15.2,115.64],[-14.93,116.14],[2.25,107.34],[6.02,105.7],[5.59,104.84],[5.27,105.0],[3.49,101.39],[-9.59,107.36],[-9.37,107.81],[-21.8,113.94]],"n":2},{"p":[[-16.07,124.73],[22.9,104.56],[20.02,98.81],[2.25,107.34],[-14.93,116.14],[-15.2,115.64],[-19.64,118.0]],"n":1},{"p":[[26.22,111.21],[22.9,104.56],[-16.07,124.73],[-12.49,131.49]],"n":1},{"p":[[10.07,131.85],[10.39,132.09],[27.65,123.44],[22.23,113.3],[-12.49,131.49],[-7.44,141.0]],"n":1},{"p":[[-5.16,145.28],[50.56,118.85],[47.43,112.67],[27.3,123.63],[10.39,132.09],[10.22,131.77],[-7.44,141.0]],"n":1},{"p":[[-0.96,153.2],[53.47,124.6],[50.56,118.85],[-5.16,145.28]],"n":1},{"p":[[3.36,161.44],[18.05,152.63],[39.97,141.08],[45.68,137.66],[41.71,130.79],[-0.96,153.2]],"n":1},{"p":[[8.44,171.16],[15.63,167.21],[14.97,166.02],[22.19,162.28],[22.33,162.56],[28.45,159.49],[23.55,149.73],[18.05,152.63],[3.36,161.44]],"n":1},{"p":[[31.92,166.41],[38.6,162.8],[30.55,146.05],[23.55,149.73]],"n":2},{"p":[[38.6,162.8],[48.86,157.27],[39.97,141.08],[30.55,146.05]],"n":2},{"p":[[48.86,157.27],[54.69,154.24],[45.68,137.66],[39.97,141.08]],"n":2},{"p":[[54.69,154.24],[65.61,148.55],[53.47,124.6],[41.71,130.79]],"n":2},{"p":[[65.61,148.55],[82.03,139.99],[73.76,124.1],[57.61,132.76]],"n":1},{"p":[[94.85,133.32],[87.0,117.0],[73.76,124.1],[82.03,139.99]],"n":1},{"p":[[48.65,63.39],[62.12,56.2],[58.74,49.7],[45.21,56.5]],"n":1},{"p":[[46.34,73.14],[42.92,66.44],[48.65,63.39],[45.21,56.5],[32.23,63.02],[39.89,76.43]],"n":3},{"p":[[53.7,106.97],[49.46,99.29],[26.55,111.85],[26.22,111.21],[22.23,113.3],[27.65,123.44],[47.43,112.67],[46.54,110.92]],"n":1},{"p":[[6.02,105.7],[20.02,98.81],[19.85,98.47],[20.77,98.01],[18.73,93.96],[3.49,101.39],[5.27,105.0],[5.59,104.84]],"n":2},{"p":[[76.4,30.37],[73.14,24.35],[44.26,39.26],[47.62,45.45]],"n":1},{"p":[[21.31,51.45],[73.14,24.35],[69.58,17.8],[65.87,19.77],[65.59,19.24],[17.0,45.03]],"n":1},{"p":[[64.64,8.69],[52.95,15.29],[11.81,37.28],[17.0,45.03],[65.59,19.24],[65.87,19.77],[69.58,17.8]],"n":1},{"p":[[11.81,37.28],[52.95,15.29],[64.64,8.69],[60.19,0.48],[5.68,30.14],[7.81,34.22],[9.25,33.46]],"n":1},{"p":[[25.28,19.47],[60.19,0.48],[55.74,-7.71],[21.0,11.24]],"n":2},{"p":[[21.0,11.24],[55.74,-7.71],[51.92,-14.75],[17.1,3.74]],"n":2},{"p":[[17.1,3.74],[51.92,-14.75],[46.43,-24.87],[11.87,-6.32]],"n":2},{"p":[[11.87,-6.32],[46.43,-24.87],[41.03,-34.83],[6.61,-16.43]],"n":2},{"p":[[6.61,-16.43],[41.03,-34.83],[34.08,-47.64],[1.16,-30.31],[6.27,-20.61],[4.82,-19.86]],"n":1},{"p":[[7.81,34.22],[0.54,20.31],[-4.14,22.76],[3.39,36.56]],"n":1},{"p":[[3.39,36.56],[-25.74,-16.5],[-38.22,-9.99],[-9.91,43.59]],"n":1},{"p":[[-9.91,43.59],[-38.22,-9.99],[-49.49,-4.82],[-36.13,18.97],[-32.47,17.04],[-16.57,47.11]],"n":5},{"p":[[-47.75,26.25],[-36.13,18.97],[-49.49,-4.82],[-60.9,1.25]],"n":2},{"p":[[-72.53,18.38],[-56.62,9.38],[-60.9,1.25],[-77.05,9.82]],"n":2},{"p":[[-68.08,26.81],[-52.06,18.05],[-56.62,9.38],[-72.53,18.38]],"n":1},{"p":[[-63.29,35.87],[-47.75,26.25],[-52.06,18.05],[-68.08,26.81]],"n":2},{"p":[[-55.0,51.56],[-23.13,34.7],[-27.91,25.67],[-59.2,43.6]],"n":1},{"p":[[-48.28,63.86],[-16.57,47.11],[-23.13,34.7],[-55.0,51.56]],"n":1},{"p":[[-12.44,64.67],[-20.41,49.13],[-48.28,63.86],[-40.49,78.59]],"n":2},{"p":[[13.55,62.0],[-2.1,39.46],[-8.37,42.78],[6.12,65.73]],"n":1},{"p":[[24.64,56.43],[9.25,33.46],[-2.1,39.46],[13.55,62.0]],"n":1},{"p":[[35.8,51.65],[47.62,45.45],[44.26,39.26],[33.38,45.04],[35.13,48.34],[33.99,48.95],[34.78,50.44],[35.07,50.29]],"n":2},{"p":[[-8.37,42.78],[-20.41,49.13],[-8.36,72.63],[6.12,65.73]],"n":1},{"p":[[-28.81,81.17],[-26.12,79.84],[-25.62,80.85],[-18.24,77.34],[-22.01,69.42],[-33.34,75.04],[-31.48,78.79],[-30.29,78.2]],"n":2},{"p":[[-18.24,77.34],[-8.36,72.63],[-12.44,64.67],[-22.01,69.42]],"n":1},{"p":[[35.8,51.65],[33.99,48.95],[35.13,48.34],[33.38,45.04],[21.31,51.45],[24.66,56.45],[25.48,56.91]],"n":3},{"p":[[118.93,-65.86],[115.38,-73.02],[111.37,-79.6],[106.47,-88.83],[100.14,-85.35],[112.67,-62.74]],"n":2},{"p":[[125.41,-41.69],[113.75,-63.34],[112.67,-62.74],[100.14,-85.35],[93.36,-81.63],[104.1,-62.38],[104.79,-62.76],[118.17,-38.06]],"n":1},{"p":[[118.53,-37.4],[104.79,-62.76],[104.1,-62.38],[93.36,-81.63],[83.43,-76.18],[108.69,-32.06]],"n":1},{"p":[[104.07,-40.13],[83.43,-76.18],[75.52,-71.84],[95.46,-35.5]],"n":1},{"p":[[95.46,-35.5],[75.52,-71.84],[49.11,-57.34],[64.08,-30.39],[84.48,-41.44],[89.55,-32.31]],"n":1},{"p":[[95.46,-35.5],[89.55,-32.31],[84.48,-41.44],[64.08,-30.39],[68.81,-21.87],[87.99,-32.27],[89.49,-29.51],[94.49,-32.22],[95.53,-30.31],[97.68,-31.46]],"n":1},{"p":[[113.17,-25.19],[109.36,-32.43],[97.78,-26.15],[97.47,-26.71],[73.67,-13.12],[78.07,-5.18],[92.07,-13.01],[91.72,-13.64]],"n":1},{"p":[[117.02,-17.9],[113.17,-25.19],[91.72,-13.64],[92.07,-13.01],[78.07,-5.18],[83.89,5.29],[106.07,-7.35],[104.07,-10.98]],"n":2},{"p":[[88.51,13.62],[107.0,3.66],[107.49,4.55],[111.44,2.37],[106.07,-7.35],[83.89,5.29]],"n":3},{"p":[[93.36,22.36],[116.29,11.15],[111.44,2.37],[107.49,4.55],[107.0,3.66],[88.51,13.62]],"n":1},{"p":[[120.68,9.01],[110.1,-10.32],[109.7,-10.11],[108.09,-13.13],[104.07,-10.98],[116.29,11.15]],"n":2},{"p":[[129.05,4.92],[117.02,-17.9],[108.09,-13.13],[109.7,-10.11],[110.1,-10.32],[120.68,9.01]],"n":1},{"p":[[133.82,-14.93],[128.52,-12.35],[128.16,-13.08],[121.32,-9.74],[129.05,4.92],[140.97,-0.91]],"n":1},{"p":[[145.29,-20.52],[133.82,-14.93],[140.97,-0.91],[152.36,-6.48]],"n":2},{"p":[[152.51,-24.42],[147.49,-21.88],[147.83,-21.2],[145.53,-20.04],[152.24,-6.71],[159.63,-10.32]],"n":1},{"p":[[133.82,-14.93],[126.85,-28.96],[114.49,-22.71],[121.32,-9.74],[128.16,-13.08],[128.52,-12.35]],"n":1},{"p":[[145.29,-20.52],[137.69,-35.63],[126.85,-28.96],[133.82,-14.93]],"n":1},{"p":[[152.51,-24.42],[144.4,-39.87],[137.47,-36.06],[145.53,-20.04],[147.83,-21.2],[147.49,-21.88]],"n":1},{"p":[[114.49,-22.71],[125.07,-28.18],[125.2,-27.94],[129.74,-30.73],[123.56,-40.76],[118.17,-38.06],[118.53,-37.4],[109.36,-32.43]],"n":1},{"p":[[144.4,-39.87],[139.67,-48.48],[123.56,-40.76],[129.74,-30.73],[137.69,-35.63],[137.47,-36.06]],"n":1},{"p":[[106.47,-88.83],[111.37,-79.6],[115.38,-73.02],[118.93,-65.86],[125.76,-69.57],[113.44,-92.65]],"n":1},{"p":[[73.67,-13.12],[97.47,-26.71],[97.78,-26.15],[108.69,-32.06],[106.35,-36.14],[95.53,-30.31],[94.49,-32.22],[89.49,-29.51],[87.99,-32.27],[68.81,-21.87]],"n":1},{"p":[[129.65,-80.53],[120.93,-96.76],[113.44,-92.65],[122.05,-76.52]],"n":2},{"p":[[104.07,-40.13],[95.46,-35.5],[97.68,-31.46],[106.35,-36.14]],"n":1},{"p":[[77.91,-159.56],[94.98,-170.04],[89.59,-182.74],[71.82,-173.37],[59.13,-202.57],[-6.99,-170.16],[8.03,-141.14],[49.54,-161.36],[58.94,-145.15],[61.18,-140.58],[81.55,-151.59]],"n":1},{"p":[[15.75,-126.22],[58.94,-145.15],[49.54,-161.36],[8.03,-141.14]],"n":1},{"p":[[106.46,-97.88],[88.05,-127.83],[87.69,-127.63],[84.43,-132.73],[81.54,-138.08],[75.23,-148.18],[61.18,-140.58],[58.94,-145.15],[15.15,-125.95],[29.97,-96.44],[68.53,-117.18],[86.74,-86.92]],"n":1},{"p":[[33.68,-89.06],[72.83,-110.03],[68.53,-117.18],[29.97,-96.44]],"n":8},{"p":[[49.37,-66.55],[86.74,-86.92],[77.14,-102.87],[37.86,-80.75],[44.15,-68.23]],"n":1},{"p":[[113.26,-101.66],[90.98,-138.65],[83.67,-134.15],[87.69,-127.63],[88.05,-127.83],[106.46,-97.88]],"n":1},{"p":[[29.36,-55.88],[20.91,-72.03],[-14.38,-54.13],[-6.19,-37.43]],"n":1},{"p":[[-14.38,-54.13],[20.91,-72.03],[15.9,-81.6],[-0.24,-72.96],[0.38,-71.8],[-0.34,-71.41],[-0.79,-71.17],[-1.42,-72.34],[-3.81,-71.06],[-2.8,-69.18],[-9.02,-65.85],[-36.01,-53.69],[-22.17,-28.87],[-6.19,-37.43]],"n":1},{"p":[[-3.81,-71.06],[-1.42,-72.34],[-0.79,-71.17],[-0.34,-71.41],[0.38,-71.8],[-0.24,-72.96],[15.9,-81.6],[8.34,-96.06],[-46.88,-67.04],[-38.98,-52.07],[-36.01,-53.69],[-9.02,-65.85],[-2.8,-69.18]],"n":1},{"p":[[-46.88,-67.04],[8.34,-96.06],[4.45,-103.49],[-50.62,-74.14]],"n":2},{"p":[[-50.62,-74.14],[4.45,-103.49],[0.59,-110.88],[-54.68,-81.85]],"n":3},{"p":[[-54.51,-81.94],[0.59,-110.88],[-2.05,-115.91],[-35.29,-99.63],[-57.82,-87.8]],"n":2},{"p":[[-78.2,-76.86],[-35.29,-99.63],[-2.05,-115.91],[-11.65,-134.26],[-35.9,-120.92],[-42.84,-116.57],[-60.22,-106.78],[-94.22,-85.49],[-86.89,-71.73]],"n":1},{"p":[[-15.3,-141.26],[-59.94,-115.56],[-63.81,-122.29],[-72.44,-116.84],[-67.8,-107.88],[-13.8,-138.38]],"n":1},{"p":[[-16.89,-144.28],[-18.79,-147.91],[-42.04,-135.43],[-41.89,-135.16],[-43.12,-134.45],[-41.38,-131.13]],"n":2},{"p":[[-17.6,-148.55],[-20.44,-154.15],[-48.43,-138.63],[-47.63,-137.27],[-48.0,-137.05],[-45.61,-133.0],[-41.89,-135.16],[-42.04,-135.43]],"n":3},{"p":[[-37.34,-144.77],[-20.44,-154.15],[-24.56,-162.29],[-41.8,-153.23]],"n":1},{"p":[[-37.34,-144.77],[-41.8,-153.23],[-57.63,-144.91],[-53.24,-135.95]],"n":1},{"p":[[-75.84,-123.42],[-59.98,-132.22],[-62.4,-136.59],[-63.17,-136.17],[-65.67,-140.68],[-80.68,-132.79]],"n":3},{"p":[[-74.25,-97.87],[-65.45,-103.32],[-80.68,-132.79],[-90.25,-127.75]],"n":1},{"p":[[-82.03,-93.05],[-74.25,-97.87],[-90.25,-127.75],[-99.61,-122.84],[-89.41,-104.66],[-88.75,-105.0]],"n":2},{"p":[[-90.83,-95.74],[-85.33,-98.93],[-88.75,-105.0],[-89.41,-104.66],[-99.61,-122.84],[-112.64,-115.98],[-107.39,-105.02],[-103.11,-107.42],[-97.74,-97.84],[-93.49,-100.31]],"n":1},{"p":[[-130.69,-95.38],[-108.54,-107.42],[-112.64,-115.98],[-135.12,-104.16]],"n":3},{"p":[[-127.14,-88.34],[-100.77,-103.24],[-103.11,-107.42],[-107.39,-105.02],[-108.54,-107.42],[-130.69,-95.38]],"n":1},{"p":[[-124.18,-82.47],[-97.74,-97.84],[-100.77,-103.24],[-127.14,-88.34]],"n":2},{"p":[[-118.34,-70.89],[-82.03,-93.05],[-85.33,-98.93],[-90.83,-95.74],[-93.49,-100.31],[-124.18,-82.47]],"n":1},{"p":[[-115.15,-64.55],[-90.39,-78.31],[-94.22,-85.49],[-118.34,-70.89]],"n":2},{"p":[[-111.72,-57.06],[-86.89,-71.73],[-90.39,-78.31],[-115.44,-64.39]],"n":2},{"p":[[-107.31,-48.38],[-73.24,-68.21],[-78.2,-76.86],[-111.72,-57.06]],"n":2},{"p":[[-67.77,-54.2],[-74.95,-67.27],[-107.31,-48.38],[-100.82,-35.61]],"n":2},{"p":[[-76.16,-38.6],[-80.6,-46.99],[-100.82,-35.61],[-96.52,-27.15]],"n":2},{"p":[[-72.42,-31.53],[-76.16,-38.6],[-96.52,-27.15],[-91.04,-16.36],[-81.4,-21.78],[-83.27,-25.43]],"n":2},{"p":[[-66.06,-19.52],[-72.42,-31.53],[-83.27,-25.43],[-81.4,-21.78],[-91.04,-16.36],[-87.24,-8.88],[-78.11,-13.04],[-78.37,-13.59]],"n":2},{"p":[[-82.73,-0.01],[-61.57,-10.2],[-66.06,-19.52],[-78.37,-13.59],[-78.11,-13.04],[-87.24,-8.88]],"n":1},{"p":[[-54.2,-13.64],[-73.66,-50.89],[-80.6,-46.99],[-66.06,-19.52],[-61.57,-10.2]],"n":2},{"p":[[-73.66,-50.89],[-54.2,-13.64],[-47.25,-16.89],[-66.77,-53.28],[-67.14,-53.07],[-67.77,-54.2]],"n":2},{"p":[[-38.98,-52.07],[-57.82,-87.8],[-78.2,-76.86],[-73.24,-68.21],[-74.95,-67.27],[-67.14,-53.07],[-66.77,-53.28],[-47.25,-16.89],[-33.08,-23.51],[-46.27,-48.09]],"n":1},{"p":[[-22.38,-29.25],[-36.01,-53.69],[-46.27,-48.09],[-33.08,-23.51]],"n":1},{"p":[[-65.45,-103.32],[-60.22,-106.78],[-42.84,-116.57],[-35.9,-120.92],[-11.65,-134.26],[-13.8,-138.38],[-67.8,-107.88]],"n":1},{"p":[[-59.94,-115.56],[-15.3,-141.26],[-16.89,-144.28],[-41.38,-131.13],[-43.12,-134.45],[-63.81,-122.29]],"n":1},{"p":[[-47.63,-137.27],[-48.43,-138.63],[-75.84,-123.42],[-72.44,-116.84],[-67.9,-119.51],[-68.06,-119.78],[-45.61,-133.0],[-48.0,-137.05]],"n":1},{"p":[[-59.98,-132.22],[-53.24,-135.95],[-57.63,-144.91],[-65.67,-140.68],[-63.17,-136.17],[-62.4,-136.59]],"n":3},{"p":[[-92.27,3.42],[-101.8,-15.22],[-131.34,-0.4],[-120.55,18.4]],"n":1},{"p":[[-101.8,-15.22],[-105.34,-22.13],[-135.17,-7.08],[-131.34,-0.4]],"n":1},{"p":[[-105.34,-22.13],[-107.93,-27.46],[-153.7,-4.13],[-150.97,0.89]],"n":1},{"p":[[-153.7,-4.13],[-107.93,-27.46],[-109.9,-31.5],[-156.01,-8.37]],"n":1},{"p":[[-155.04,-8.85],[-109.9,-31.5],[-112.3,-36.44],[-157.85,-13.83]],"n":2},{"p":[[-157.84,-13.83],[-112.3,-36.44],[-115.25,-42.49],[-139.57,-30.8],[-146.5,-27.33],[-146.24,-26.78],[-161.13,-19.65]],"n":1},{"p":[[-161.13,-19.65],[-146.24,-26.78],[-146.5,-27.33],[-139.57,-30.8],[-115.25,-42.49],[-117.84,-47.82],[-146.02,-34.27],[-146.21,-34.62],[-164.17,-25.06]],"n":1},{"p":[[-177.34,-18.29],[-146.21,-34.62],[-146.02,-34.27],[-117.84,-47.82],[-120.61,-53.51],[-180.26,-24.23]],"n":1},{"p":[[-120.61,-53.51],[-122.85,-58.09],[-209.4,-14.99],[-203.74,-4.13],[-177.34,-18.29],[-180.26,-24.23]],"n":1},{"p":[[-171.21,-49.84],[-146.39,-62.68],[-128.89,-70.59],[-134.4,-81.6],[-176.49,-60.23]],"n":3},{"p":[[-135.93,-84.66],[-145.85,-79.7],[-144.29,-76.58],[-134.4,-81.6]],"n":4},{"p":[[-148.75,33.35],[-143.36,30.49],[-171.38,-21.22],[-177.01,-18.45]],"n":1},{"p":[[-136.76,26.99],[-156.01,-8.37],[-155.04,-8.85],[-164.17,-25.06],[-171.38,-21.22],[-143.36,30.49]],"n":3},{"p":[[-128.65,22.7],[-143.07,-3.09],[-150.97,0.89],[-136.76,26.99]],"n":1},{"p":[[-120.55,18.4],[-135.17,-7.08],[-143.07,-3.09],[-128.65,22.7]],"n":2},{"p":[[-122.85,-58.09],[-125.91,-64.39],[-212.63,-21.2],[-209.4,-14.99]],"n":1},{"p":[[-125.91,-64.39],[-128.89,-70.59],[-146.39,-62.68],[-215.55,-26.81],[-212.63,-21.2]],"n":1},{"p":[[-135.93,-84.66],[-138.89,-90.6],[-174.49,-73.03],[-169.6,-63.72],[-144.29,-76.58],[-145.85,-79.7]],"n":3}],"mz":[[[-75.86,-280.15],[-186.43,-222.17],[-133.65,-115.25],[-20.2,-171.64]],[[16.65,-328.54],[-65.82,-284.69],[-36.31,-234.7],[-8.08,-177.65],[93.44,-228.02],[56.05,-279.38]],[[129.99,124.75],[18.65,182.85],[55.62,253.83],[165.47,192.67]],[[-84.92,224.39],[-170.87,56.43],[-255.83,101.43],[-235.66,136.25],[-242.0,139.7],[-262.18,104.87],[-280.29,114.68],[-227.42,204.14],[-156.38,166.91],[-154.2,170.63],[-224.18,209.61],[-184.5,276.76],[-166.08,267.08],[-184.13,235.12],[-178.48,231.73],[-159.66,263.7],[-122.29,244.05],[-136.68,218.78],[-133.74,216.87],[-118.02,241.8]],[[-16.55,-164.51],[-130.29,-108.39],[-77.18,-0.88],[38.34,-62.09]],[[96.85,-221.16],[-4.73,-170.77],[46.69,-66.51],[157.02,-126.1]],[[100.15,-228.9],[163.2,-130.18],[217.03,-169.23],[154.45,-259.29]],[[-352.0,-4.89],[-143.55,-110.25],[-196.53,-216.94],[-412.83,-105.76],[-368.58,-33.21],[-335.03,-52.92],[-332.1,-47.1],[-365.55,-28.33]],[[-140.2,-103.39],[-348.04,1.67],[-283.85,108.65],[-193.3,60.72],[-204.78,38.22],[-201.87,36.76],[-188.5,57.98],[-87.32,4.5]],[[159.75,-121.28],[49.87,-61.09],[93.94,23.98],[214.19,-37.6]],[[-55.37,40.79],[-32.03,84.7],[84.42,28.16],[41.32,-56.54],[-74.07,5.01],[-59.21,32.45],[-29.48,16.36],[-25.14,24.0]],[[-29.4,89.68],[15.22,175.6],[127.13,117.13],[86.51,32.65]],[[-84.28,10.33],[-121.0,30.27],[-91.64,84.29],[-95.41,86.42],[-127.02,33.08],[-166.29,53.99],[-104.39,175.24],[-81.11,222.39],[3.85,177.95]],[[-179.71,284.85],[-132.46,362.59],[-92.36,338.95],[-103.6,317.95],[-98.16,314.32],[-85.84,335.33],[-22.72,298.54],[-38.61,268.3],[-33.06,265.16],[-16.14,295.33],[43.29,261.29],[5.79,187.28]],[[166.37,-124.93],[213.47,-53.06],[308.74,105.03],[363.85,71.72],[270.56,-93.89],[245.71,-131.79],[221.23,-165.44],[210.96,-157.42]],[[301.91,109.15],[218.51,-32.62],[212.14,-28.92],[95.56,28.67],[175.08,185.28]]],"lots":[{"id":8125,"clave":"0010230303","dir":"Melchor Muzquiz 356","uso":"Sin construcción registrada","a":236.4,"af":228.0,"largo":44.9,"ancho":5.3,"p":[[0.54,20.31],[-21.06,-18.94],[-25.74,-16.5],[-25.09,-15.32],[-21.35,-8.53],[-20.77,-7.47],[-18.5,-3.34],[-6.59,18.31],[-5.44,20.4],[-4.14,22.76]],"lp":[-9.5,7.5]},{"id":8130,"clave":"0010230343","dir":"Melchor Muzquiz 300","uso":"Sin construcción registrada","a":1285.0,"af":1310.4,"largo":55.9,"ancho":24.9,"p":[[0.54,20.31],[5.68,30.14],[9.39,28.12],[25.28,19.47],[23.97,16.95],[21.0,11.24],[19.1,7.59],[17.1,3.74],[15.22,0.13],[13.24,-3.68],[11.87,-6.32],[10.57,-8.81],[8.06,-13.64],[6.61,-16.43],[5.24,-19.06],[4.82,-19.86],[5.46,-20.19],[6.27,-20.61],[1.16,-30.31],[1.07,-30.49],[-21.06,-18.94]],"lp":[1.3,-1.8]}],"streets":[{"n":"Melchor Múzquiz","p":[-15.7,-29.6]},{"n":"M. Alessio Robles","p":[12.1,72.2]},{"n":"Ignacio Allende","p":[69.6,41.8]},{"n":"Manuel Acuña","p":[-54.5,36.9]}],"bc":[6.7,14.6]};</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {CSS2DRenderer,CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+const D=window.DATA, box=document.getElementById('viewer'), host=document.getElementById('c3d');
+const COL={A:0x1f5f7a,B:0x2b7ea1,C:0x3e97b8,D:0x6db3cf};
+const TN={A:'Edificio A',B:'Edificio B',C:'Edificio C',D:'Edificio D'};
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+host.appendChild(renderer.domElement);
+const lr=new CSS2DRenderer(); document.getElementById('lbl').appendChild(lr.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xe9e7e0);
+scene.fog=new THREE.Fog(0xe9e7e0,320,620);
+const cam=new THREE.PerspectiveCamera(35,1,0.5,2000);
+const ctl=new OrbitControls(cam,renderer.domElement); ctl.enableDamping=true; ctl.maxPolarAngle=Math.PI*0.495;
+scene.add(new THREE.HemisphereLight(0xffffff,0xc9c2b5,1.6));
+const sun=new THREE.DirectionalLight(0xfff4e2,1.7); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048); const sc=sun.shadow.camera; sc.left=-130;sc.right=130;sc.top=130;sc.bottom=-130;sc.near=1;sc.far=600; sun.shadow.bias=-0.0004;
+scene.add(sun); scene.add(sun.target);
+
+function shape(p){const s=new THREE.Shape(); p.forEach((q,i)=>i?s.lineTo(q[0],q[1]):s.moveTo(q[0],q[1])); return s;}
+function prism(p,h,y0){const g=new THREE.ExtrudeGeometry(shape(p),{depth:h,bevelEnabled:false}); g.rotateX(-Math.PI/2); g.translate(0,y0,0); return g;}
+function flat(p,y){const g=new THREE.ShapeGeometry(shape(p)); g.rotateX(-Math.PI/2); g.translate(0,y,0); return g;}
+function outline(p,y,color,op){const pts=p.map(q=>new THREE.Vector3(q[0],y,-q[1])); pts.push(pts[0].clone());
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color,transparent:op<1,opacity:op}));}
+function label(txt,x,y,z,cls){const d=document.createElement('div'); d.className='lab '+(cls||''); d.textContent=txt; const o=new CSS2DObject(d); o.position.set(x,y,-z); return o;}
+
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),new THREE.MeshLambertMaterial({color:0xd5d1c8}));
+ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+const ctx=new THREE.Group(), labs=new THREE.Group(), norm=new THREE.Group(); scene.add(ctx,labs,norm);
+const mzMat=new THREE.MeshLambertMaterial({color:0xece9e2});
+D.mz.forEach(p=>{const m=new THREE.Mesh(flat(p,0.05),mzMat); m.receiveShadow=true; scene.add(m);});
+const cMat=new THREE.MeshLambertMaterial({color:0xcdc8bf}), eMat=new THREE.LineBasicMaterial({color:0xa9a398});
+D.ctx.forEach(c=>{const h=Math.max(c.n*3,0.3); const g=prism(c.p,h,0.06); const m=new THREE.Mesh(g,cMat); m.castShadow=m.receiveShadow=true; ctx.add(m);
+  ctx.add(new THREE.LineSegments(new THREE.EdgesGeometry(g,30),eMat));});
+const lotMat=new THREE.MeshLambertMaterial({color:0xefe2d3});
+D.lots.forEach(l=>{const m=new THREE.Mesh(flat(l.p,0.08),lotMat); m.receiveShadow=true; scene.add(m); scene.add(outline(l.p,0.12,0x9b8f80,1));
+  const cx=l.p.reduce((a,q)=>a+q[0],0)/l.p.length, cy=l.p.reduce((a,q)=>a+q[1],0)/l.p.length; });
+scene.add(outline(D.lotsU,0.14,0x1d1f1e,1));
+const andM=new THREE.MeshLambertMaterial({color:0xefe6d6});
+D.libre.concat(D.andadores).forEach(p=>{const m=new THREE.Mesh(flat(p,0.13),andM); m.receiveShadow=true; scene.add(m);});
+const plz=new THREE.Mesh(flat(D.plaza,0.15),new THREE.MeshLambertMaterial({color:0xcfe0b6})); plz.receiveShadow=true; scene.add(plz);
+const pat=new THREE.Mesh(flat(D.verde,0.16),new THREE.MeshLambertMaterial({color:0x7fa36a})); pat.receiveShadow=true; scene.add(pat);
+const trM=new THREE.MeshLambertMaterial({color:0x5f8f4a});
+[D.verde,D.plaza].forEach((p,k)=>{const xs=p.map(q=>q[0]),ys=p.map(q=>q[1]); const cx=(Math.min(...xs)+Math.max(...xs))/2, cy=(Math.min(...ys)+Math.max(...ys))/2; const n=k?2:4; for(let i=0;i<n;i++){const t=new THREE.Mesh(new THREE.SphereGeometry(1.8,10,8),trM); const f=(i-(n-1)/2)/(n); t.position.set(cx+f*(Math.max(...xs)-Math.min(...xs))*0.6,3.2,-(cy+f*(Math.max(...ys)-Math.min(...ys))*0.6)); t.castShadow=true; scene.add(t);}});
+// unidades
+const units=[], edgeM=new THREE.LineBasicMaterial({color:0x2a2a2a,transparent:true,opacity:.45});
+D.units.forEach(u=>{const g=prism(u.p,2.94,u.l*3+0.03); const mat=new THREE.MeshLambertMaterial({color:COL[u.t],transparent:true,opacity:1});
+  const m=new THREE.Mesh(g,mat); m.castShadow=m.receiveShadow=true; m.userData=u; scene.add(m); units.push(m);
+  scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(g,20),edgeM));});
+// normativa
+const eg=prism(D.env,10.4,0.2);
+const em=new THREE.Mesh(eg,new THREE.MeshBasicMaterial({color:0xe8743b,transparent:true,opacity:.13,depthWrite:false})); norm.add(em);
+norm.add(new THREE.LineSegments(new THREE.EdgesGeometry(eg),new THREE.LineBasicMaterial({color:0xe8743b})));
+const ec=D.env.reduce((a,q)=>[a[0]+q[0]/D.env.length,a[1]+q[1]/D.env.length],[0,0]);
+norm.add(label('Altura ≈ 10.4 m · 3 niveles (sección de 13 m)',ec[0],11.2,ec[1],'nrm'));
+norm.visible=false;
+// etiquetas
+D.streets.forEach(s=>labs.add(label(s.n,s.p[0],0.5,s.p[1],'st')));
+
+const tops={}; D.units.forEach(u=>{const t=tops[u.t]||(tops[u.t]={n:0,p:u.p}); t.n=Math.max(t.n,u.l+1);});
+Object.entries(tops).forEach(([k,t])=>{const cx=t.p.reduce((a,q)=>a+q[0],0)/t.p.length, cy=t.p.reduce((a,q)=>a+q[1],0)/t.p.length; labs.add(label(k+' · '+t.n+' niv.',cx,t.n*3+1.5,cy));});
+{const p=D.plaza, cx=p.reduce((a,q)=>a+q[0],0)/p.length, cy=p.reduce((a,q)=>a+q[1],0)/p.length; labs.add(label('Plaza de cesión',cx,0.8,cy,'lot'));}
+// vistas
+const C0=new THREE.Vector3(0,4,0);
+function setView(v){
+  if(v==='axo'){const s=D.streets[0].p, L=Math.hypot(s[0],s[1]), dx=s[0]/L, dy=s[1]/L; cam.position.set(dx*125-dy*75,105,-(dy*125+dx*75)); ctl.target.copy(C0);}
+  if(v==='top'){cam.position.set(0,240,0.01); ctl.target.set(0,0,0);}
+  if(v==='street'){const s=D.streets[0].p, L=Math.hypot(s[0],s[1]), ox=s[0]/L, oy=s[1]/L, tx=oy, ty=-ox; cam.position.set(s[0]+ox*11-tx*22,1.7,-(s[1]+oy*11-ty*22)); ctl.target.set(s[0]*0.3+tx*8,6,-(s[1]*0.3+ty*8));}
+  cam.fov=v==='street'?66:35; cam.updateProjectionMatrix(); ctl.update();}
+document.querySelectorAll('#views button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#views button').forEach(x=>x.classList.toggle('on',x===b)); setView(b.dataset.v);});
+function tog(id,obj){const b=document.getElementById(id); const sync=()=>{obj.visible=b.classList.contains('on'); obj.traverse(o=>{if(o.isCSS2DObject){o.visible=obj.visible; o.element.style.display=obj.visible?'':'none';}});}; b.onclick=()=>{b.classList.toggle('on'); sync();}; sync();}
+tog('tNorma',norm); tog('tCtx',ctx); tog('tLab',labs);
+// sol
+const sD=document.getElementById('sDate'), sH=document.getElementById('sHour'), sT=document.getElementById('sTxt');
+function setSun(){const N=+sD.value, h=+sH.value, lat=25.42*Math.PI/180;
+  const dec=23.44*Math.PI/180*Math.sin(2*Math.PI*(284+N)/365), H=(h-12)*15*Math.PI/180;
+  const se=Math.sin(lat)*Math.sin(dec)+Math.cos(lat)*Math.cos(dec)*Math.cos(H), e=Math.asin(se);
+  const az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(lat)-Math.tan(dec)*Math.cos(lat))+Math.PI;
+  const E=Math.sin(az)*Math.cos(e), Nn=Math.cos(az)*Math.cos(e), U=Math.sin(e);
+  sun.position.set(E*300,U*300,-Nn*300); sun.intensity=e>0?1.7:0;
+  const hh=Math.floor(h), mm=Math.round((h-hh)*60); sT.textContent=hh+':'+String(mm).padStart(2,'0');}
+sD.onchange=setSun; sH.oninput=setSun; setSun();
+// selección
+const chip=document.getElementById('chip'), rows=[...document.querySelectorAll('#tWings tbody tr')];
+function highlight(w,u){units.forEach(m=>{const dim=w&&m.userData.w!==w; m.material.opacity=dim?0.22:1; m.material.depthWrite=!dim; m.castShadow=!dim;});
+  rows.forEach(r=>r.classList.toggle('sel',r.dataset.w===w));
+  if(u){chip.style.display='block'; chip.textContent=TN[u.t]+' · nivel '+(u.l+1)+' · '+Math.round(u.a)+' m² por planta';} else chip.style.display='none';}
+rows.forEach(r=>r.onclick=()=>highlight(r.classList.contains('sel')?null:r.dataset.w,null));
+const ray=new THREE.Raycaster(), mp=new THREE.Vector2(); let down=null;
+renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)return;
+  const r=renderer.domElement.getBoundingClientRect(); mp.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
+  ray.setFromCamera(mp,cam); const h=ray.intersectObjects(units)[0]; h?highlight(h.object.userData.w,h.object.userData):highlight(null,null);});
+function resize(){const w=box.clientWidth,h=box.clientHeight; renderer.setSize(w,h); lr.setSize(w,h); cam.aspect=w/h; cam.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(box); resize(); setView('axo');
+(function loop(){requestAnimationFrame(loop); ctl.update(); renderer.render(scene,cam); lr.render(scene,cam);})();
+window.__ok=true;
+</script>
+<script>setTimeout(()=>{if(!window.__ok)document.getElementById('err').style.display='flex';},8000);</script>
+</body>
+</html>
