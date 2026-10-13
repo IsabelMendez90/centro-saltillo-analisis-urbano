@@ -70,6 +70,10 @@ h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy
 .pop td:first-child{color:var(--muted);width:48%}
 .pop .sec{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--blue);text-transform:uppercase;padding-top:7px}
 .pop .flag{background:#f3f0ff;border-left:3px solid #7048e8;padding:4px 6px;margin-top:6px;font-size:11px}
+.dbtn{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.dbtn button{font:700 12px Arial,sans-serif;padding:7px 10px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;cursor:pointer}.dbtn button.on{background:#ff6f00;border-color:#ff6f00;color:#fff}
+.dform{display:none;border:1px solid #ffcc80;background:#fff8ef;border-radius:8px;padding:10px;margin-top:8px}.dform label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:6px 0 2px}
+.dform input,.dform select,.dform textarea,.dw input,.dw select{width:100%;font:13px Arial,sans-serif;padding:6px 8px;border:1px solid #cfd8e0;border-radius:6px}.dform textarea{height:54px;resize:vertical}
+#dwHint{font-size:12px;color:#7a3b00;margin:4px 0}
 #tip{position:absolute;z-index:6;pointer-events:none;background:#fff;border:1px solid #cfd8e0;border-radius:6px;padding:5px 8px;font-size:11px;box-shadow:0 2px 8px #0002;display:none;max-width:260px}
 #tip b{color:var(--navy)}
 @media (max-width:860px){#app{grid-template-columns:1fr;grid-template-rows:62vh auto;height:auto;overflow:visible}#mapwrap{height:62vh}#sidebar{height:auto;border-left:0;border-top:1px solid var(--line)}}
@@ -91,7 +95,7 @@ h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy
   <div class="kicker"><a href="index.html">← Plataforma de Análisis Urbano</a></div>
   <div class="kicker" style="margin-top:8px">05 Estrategias · Grupo 601 · Proyectos urbanos</div>
   <h1>Mapa base del plan maestro</h1>
-  <p class="lead">La ciudad completa en el mapa y, dentro del polígono de estudio, cada lote levantado con la altura que estima el catastro. Es la base común para ubicar los catorce proyectos urbanos. Toca un lote para leer su ID Carto y su normativa; cuando cada proyecto esté digitalizado, su capa se carga aquí con la simbología común, junto a la de los demás.</p>
+  <p class="lead">La ciudad completa en el mapa y, dentro del polígono de estudio, cada lote levantado con la altura que estima el catastro. Es la base común para ubicar los catorce proyectos urbanos. Toca un lote para leer su ficha. Cada responsable dibuja aquí su proyecto con la simbología común, descarga su GeoJSON y lo ve junto al de los demás.</p>
   
   <h2>Color de los lotes</h2>
   <div class="ctl"><select id="view"><option value="neu">Neutro</option><option value="ua">Uso actual según catastro</option><option value="zon">Zonificación PDDU 2020</option><option value="apr">Aprovechamiento del CUS permitido</option></select>
@@ -99,6 +103,19 @@ h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy
   <label style="margin-top:8px">Opacidad de los volúmenes <input type="range" id="op" min="15" max="100" value="85" style="flex:1"></label></div>
   <p class="note">Toca un lote para ver su ficha catastral y normativa. Para filtrar, sumar lotes o comparar con cortina usa <a href="08_catastro_lotes.html">Catastro y normativa por lote</a>.</p>
   
+  <h2>Dibujar mi proyecto</h2>
+  <p class="note">Dibuja aquí los elementos de tu proyecto urbano y descarga el GeoJSON que se entrega. Puedes marcar puntos, líneas sobre el eje de la calle, polígonos o seleccionar lotes del catastro. Tu avance se guarda en este navegador hasta que lo borres.</p>
+  <div class="dw"><select id="dwProj"></select><input id="dwAl" placeholder="Tu nombre completo" style="margin-top:6px"></div>
+  <div class="dbtn"><button data-dm="pt">Punto</button><button data-dm="line">Línea</button><button data-dm="poly">Polígono</button><button data-dm="lots">Seleccionar lotes</button></div>
+  <div id="dwRun" class="dbtn" style="display:none"><button id="dwEnd" style="background:var(--navy);color:#fff;border-color:var(--navy)">Terminar</button><button id="dwCancel">Cancelar</button></div>
+  <div id="dwHint">Elige qué vas a dibujar.</div>
+  <div class="dform" id="dwForm"><label>Capa de la simbología común</label><select id="dwCapa"></select>
+    <div id="dwNumRow"><label>Número del proyecto</label><input id="dwNum"></div>
+    <label>Nombre</label><input id="dwNom" placeholder="Corto y único, por ejemplo Tramo peatonal Aldama, primera cuadra">
+    <label>Descripción</label><textarea id="dwDesc" placeholder="Una o dos oraciones de lo que se hace ahí"></textarea>
+    <div class="dbtn"><button id="dwSave" style="background:var(--navy);color:#fff;border-color:var(--navy)">Guardar elemento</button><button id="dwDiscard">Descartar</button></div></div>
+  <div id="dwList"></div>
+  <p style="margin:10px 0 0"><button class="btn" id="dwDl">Descargar mi GeoJSON</button></p>
   <h2>Capas de los proyectos urbanos</h2>
   <p class="note">Arrastra aquí el GeoJSON de tu proyecto o de todo el equipo. El mapa lo dibuja con la simbología común y revisa que cada elemento tenga los atributos de la plantilla. Los archivos solo se ven en tu navegador; no se suben a ningún lado.</p>
   <label class="drop" id="drop"><input type="file" id="file" accept=".geojson,.json,application/geo+json" multiple hidden>Suelta aquí uno o varios <b>.geojson</b> o haz clic para elegirlos</label>
@@ -198,7 +215,7 @@ let _init=false;const init=()=>{if(_init)return;_init=true;
   map.addLayer({id:'schools',type:'circle',source:'schools',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2.5,17,6],'circle-color':'#1c64d8','circle-stroke-color':'#fff','circle-stroke-width':1}});
   map.addLayer({id:'stops',type:'circle',source:'stops',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,3,17,7],'circle-color':'#e03131','circle-stroke-color':'#fff','circle-stroke-width':1.2}});
   map.addLayer({id:'heritage',type:'circle',source:'heritage',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2,17,5],'circle-color':'#d39b1d','circle-stroke-color':'#fff','circle-stroke-width':.8}});
-  buildLayerButtons(); legendView(); if(V) masterSetup(); USER.init();
+  buildLayerButtons(); legendView(); if(V) masterSetup(); USER.init();DRAW.init();
   const hk=decodeURIComponent(location.hash.slice(1)); if(V&&hk)setTimeout(()=>focusSt(hk),600);
 };
 map.on('style.load',()=>setTimeout(init,0));map.on('load',init);
@@ -225,7 +242,7 @@ map.on('mousemove','lots3d',e=>{const i=e.features[0].properties.i;tip.style.dis
   tip.innerHTML=`<b>${C.id[i]?'Lote '+C.id[i]:'Lote sin ID'}</b><br>${C.ub[i]||''}<br>${dic('ua',C.ua[i])} · ${dic('zn',C.zn[i])||dic('ze',C.ze[i])} · ${fmt(C.a[i])} m² · ${C.ne[i]!=null?C.ne[i]+' niv. est.':'sin ficha'}`;map.getCanvas().style.cursor='pointer';});
 map.on('mouseleave','lots3d',()=>{tip.style.display='none';map.getCanvas().style.cursor='';});
 const popup=new maplibregl.Popup({maxWidth:'340px'});
-map.on('click',e=>{const q=map.queryRenderedFeatures(e.point);if(!q.length)return;const f=q[0];tip.style.display='none';
+map.on('click',e=>{if(typeof DRAW!=='undefined'&&DRAW.active)return;const q=map.queryRenderedFeatures(e.point);if(!q.length)return;const f=q[0];tip.style.display='none';
   if(f.layer.id.startsWith('u_')){popup.setLngLat(e.lngLat).setHTML(USER.pop(f.properties)).addTo(map);return;}
   if(f.layer.id==='vbld'){const p=f.properties,s=V.meta.find(m=>m.key===p.k);popup.setLngLat(e.lngLat).setHTML(`<div class="pop"><h4>${s.full}</h4><div class="sub">${s.title}</div><table><tr><td>Elemento</td><td>${p.t||'—'}</td></tr><tr><td>Altura</td><td>${fmt(p.b,1)} a ${fmt(p.h,1)} m</td></tr><tr><td>Lotes</td><td>${s.ids.join(' + ')}${s.nsf?' + '+s.nsf+' sin ficha':''}</td></tr></table>${s.page.startsWith('05_masterplan')?'':`<p style="margin:8px 0 0"><a href="${s.page}">Ver propuesta completa →</a></p>`}</div>`).addTo(map);return;}
   if(f.layer.id==='lots3d'){popup.setLngLat(e.lngLat).setHTML(ficha(f.properties.i)).addTo(map);return;}
@@ -343,6 +360,81 @@ const USER={files:[],n:0,
   $('files').appendChild(d);},
  pop(p){const c=CAT[p.capa]||CAT.otro;const extra=Object.entries(p).filter(([k])=>!k.startsWith('_')&&!REQ.includes(k)&&k!=='num');
   return `<div class="pop"><h4>${p.num?p.num+'. ':''}${p.nombre||'Sin nombre'}</h4><div class="sub"><span style="color:${c.c};font-weight:700">${c.t}</span></div><table><tr><td>Proyecto</td><td>${p.proyecto||'—'}</td></tr><tr><td>Alumno</td><td>${p.alumno||'—'}</td></tr><tr><td>Descripción</td><td>${p.descripcion||'—'}</td></tr>${extra.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table></div>`;}
+};
+
+// ---------- editor: dibujar mi proyecto y descargar GeoJSON ----------
+const PROJ=['1. Distrito Catedral','2. DOT','3. BID Alameda','4. Calle Peatonal Aldama','5. Sistema de Parques','6. Calle Álvaro Obregón','7. Ensanche','8. Rediseño Ignacio Allende','9. Estrategia de Movilidad','10. Corredores Educativos','11. Utilización de lotes baldíos','12. Programa de imagen urbana','13. Seguridad peatonal','14. Infraestructura verde y adaptación climática'];
+const DRAW={active:null,pts:[],lots:new Set(),feats:[],edit:null,
+ init(){if(!$('dwProj'))return;
+  $('dwProj').innerHTML='<option value="">Elige tu proyecto</option>'+PROJ.map(p=>`<option>${p}</option>`).join('');
+  $('dwCapa').innerHTML=Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v.t} · ${k}</option>`).join('');
+  try{const s=JSON.parse(localStorage.getItem('pm_borrador')||'null');if(s){$('dwProj').value=s.p||'';$('dwAl').value=s.a||'';this.feats=s.f||[];}}catch(e){}
+  ['dwProj','dwAl'].forEach(id=>$(id).onchange=()=>{this.save();this.list();});
+  map.addSource('dtmp',{type:'geojson',data:this.fc([])});map.addSource('mine',{type:'geojson',data:this.fc([])});map.addSource('dsel',{type:'geojson',data:this.fc([])});
+  map.addLayer({id:'dselF',type:'fill',source:'dsel',paint:{'fill-color':'#ff6f00','fill-opacity':.45}});
+  map.addLayer({id:'mine_f',type:'fill',source:'mine',filter:['all',['==',['geometry-type'],'Polygon'],['!=',['get','_k'],'pd']],paint:{'fill-color':['get','_c'],'fill-opacity':.5}});
+  map.addLayer({id:'mine_fo',type:'line',source:'mine',filter:['==',['geometry-type'],'Polygon'],paint:{'line-color':['get','_c'],'line-width':['case',['==',['get','_k'],'pd'],3,1.5],'line-dasharray':[2,1]}});
+  map.addLayer({id:'mine_l',type:'line',source:'mine',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','_c'],'line-width':['interpolate',['linear'],['zoom'],13,['*',['get','_w'],.45],17,['*',['get','_w'],1.4]]}});
+  map.addLayer({id:'mine_p',type:'circle',source:'mine',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,4,17,9],'circle-color':['case',['==',['get','_k'],'ring'],'rgba(0,0,0,0)',['get','_c']],'circle-stroke-color':['case',['==',['get','_k'],'ring'],['get','_c'],'#ffffff'],'circle-stroke-width':['case',['==',['get','_k'],'ring'],3,1.5]}});
+  map.addLayer({id:'dtmpL',type:'line',source:'dtmp',paint:{'line-color':'#ff6f00','line-width':3,'line-dasharray':[1.5,1]}});
+  map.addLayer({id:'dtmpP',type:'circle',source:'dtmp',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':5,'circle-color':'#ff6f00','circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+  document.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>this.start(b.dataset.dm));
+  $('dwEnd').onclick=()=>this.finish();$('dwCancel').onclick=()=>this.stop();
+  $('dwSave').onclick=()=>this.commit();$('dwDiscard').onclick=()=>{$('dwForm').style.display='none';this.pending=null;this.edit=null;this.tmp();};
+  $('dwDl').onclick=()=>this.download();
+  map.on('click',e=>this.click(e));map.on('dblclick',e=>{if(this.active==='line'||this.active==='poly'){e.preventDefault();this.finish();}});
+  this.render();this.list();},
+ fc(f){return{type:'FeatureCollection',features:f}},
+ hint(t){$('dwHint').innerHTML=t;},
+ start(m){if(!$('dwProj').value||!$('dwAl').value.trim()){this.hint('<b>Primero elige tu proyecto y escribe tu nombre completo.</b>');return;}
+  this.stop(true);this.active=m;this.pts=[];this.lots.clear();map.doubleClickZoom.disable();map.getCanvas().style.cursor='crosshair';
+  document.querySelectorAll('[data-dm]').forEach(b=>b.classList.toggle('on',b.dataset.dm===m));$('dwRun').style.display='flex';
+  this.hint({pt:'Haz clic donde va el punto.',line:'Haz clic en cada vértice, sobre el eje de la calle. Doble clic o Terminar para cerrar.',poly:'Haz clic en cada vértice del perímetro. Doble clic o Terminar para cerrar.',lots:'Haz clic en los lotes que ocupa el elemento; otro clic lo quita. Terminar cuando acabes. Funciona mejor en vista Planta.'}[m]);},
+ stop(keep){this.active=null;this.pts=[];this.lots.clear();map.doubleClickZoom.enable();map.getCanvas().style.cursor='';
+  document.querySelectorAll('[data-dm]').forEach(b=>b.classList.remove('on'));$('dwRun').style.display='none';this.tmp();if(!keep)this.hint('Elige qué vas a dibujar.');},
+ tmp(){const f=[];if(this.pts.length){this.pts.forEach(p=>f.push({type:'Feature',properties:{},geometry:{type:'Point',coordinates:p}}));
+   if(this.pts.length>1)f.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:this.active==='poly'&&this.pts.length>2?[...this.pts,this.pts[0]]:this.pts}});}
+  map.getSource('dtmp').setData(this.fc(f));
+  map.getSource('dsel').setData(this.fc([...this.lots].map(i=>({type:'Feature',properties:{},geometry:LF[i].geometry}))));},
+ click(e){if(!this.active)return;const ll=[+e.lngLat.lng.toFixed(6),+e.lngLat.lat.toFixed(6)];
+  if(this.active==='pt'){this.pts=[ll];this.finish();return;}
+  if(this.active==='lots'){const q=map.queryRenderedFeatures(e.point,{layers:['lots3d']});if(!q.length)return;const i=q[0].properties.i;this.lots.has(i)?this.lots.delete(i):this.lots.add(i);this.tmp();this.hint(`${this.lots.size} lote(s) seleccionados. Terminar cuando acabes.`);return;}
+  this.pts.push(ll);this.tmp();},
+ finish(){const m=this.active;let g=null,extra={};
+  if(m==='pt'&&this.pts.length)g={type:'Point',coordinates:this.pts[0]};
+  if(m==='line'){if(this.pts.length<2){this.hint('Una línea necesita al menos dos clics.');return;}g={type:'LineString',coordinates:this.pts};}
+  if(m==='poly'){if(this.pts.length<3){this.hint('Un polígono necesita al menos tres clics.');return;}g={type:'Polygon',coordinates:[[...this.pts,this.pts[0]]]};}
+  if(m==='lots'){if(!this.lots.size){this.hint('Selecciona al menos un lote.');return;}const ids=[...this.lots];
+    const polys=[];ids.forEach(i=>LF[i].geometry.coordinates.forEach(p=>polys.push(p)));
+    g=polys.length===1?{type:'Polygon',coordinates:polys[0]}:{type:'MultiPolygon',coordinates:polys};extra.lotes=ids.map(i=>C.id[i]||'sin ID').join(' + ');}
+  if(!g)return;this.pending={g,extra};this.stop(true);this.form(m);},
+ form(m,f){const p=f?f.properties:{};$('dwForm').style.display='block';
+  $('dwCapa').value=p.capa||({pt:'proyecto_puntual',line:'calle_tipo_D',poly:'revitalizacion_espacio_publico',lots:'lote_baldio_intervencion'}[m]||'otro');
+  $('dwNom').value=p.nombre||'';$('dwDesc').value=p.descripcion||'';$('dwNum').value=p.num||(($('dwProj').value.match(/^\d+/)||[''])[0]);
+  const upd=()=>$('dwNumRow').style.display=$('dwCapa').value==='proyecto_puntual'?'':'none';$('dwCapa').onchange=upd;upd();
+  this.hint('Llena la capa, el nombre y la descripción, y guarda.');$('dwNom').focus();},
+ commit(){const nom=$('dwNom').value.trim(),desc=$('dwDesc').value.trim(),capa=$('dwCapa').value;
+  if(!nom||!desc){this.hint('<b>Falta el nombre o la descripción.</b>');return;}
+  const props={proyecto:$('dwProj').value,alumno:$('dwAl').value.trim(),capa,nombre:nom,descripcion:desc};
+  if(capa==='proyecto_puntual')props.num=+$('dwNum').value||$('dwNum').value;
+  if(this.edit!=null){const f=this.feats[this.edit];Object.assign(f.properties,props);if(capa!=='proyecto_puntual')delete f.properties.num;this.edit=null;}
+  else{Object.assign(props,this.pending.extra);this.feats.push({type:'Feature',properties:props,geometry:this.pending.g});}
+  this.pending=null;$('dwForm').style.display='none';this.save();this.render();this.list();this.hint('Guardado. Sigue dibujando o descarga tu GeoJSON.');},
+ render(){const f=this.feats.map(x=>{const c=CAT[x.properties.capa]||CAT.otro;return{type:'Feature',properties:{...x.properties,_c:c.c,_w:c.w||3,_k:c.k},geometry:x.geometry};});
+  map.getSource('mine').setData(this.fc(f));},
+ list(){const box=$('dwList');if(!this.feats.length){box.innerHTML='<p class="note">Aún no has dibujado nada.</p>';$('dwDl').disabled=true;return;}
+  $('dwDl').disabled=false;const np=this.feats.filter(f=>f.properties.capa==='proyecto_puntual').length;
+  box.innerHTML=this.feats.map((f,i)=>{const c=CAT[f.properties.capa]||CAT.otro;const gt={Point:'punto',LineString:'línea',Polygon:'polígono',MultiPolygon:'lotes'}[f.geometry.type];
+   return `<div class="file"><div class="h"><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c.c}"></i><b>${f.properties.nombre}</b><button data-e="${i}" style="color:var(--navy)" title="Editar">Editar</button><button data-d="${i}" title="Borrar">✕</button></div><div style="color:var(--muted)">${f.properties.capa} · ${gt}${f.properties.lotes?' · lotes '+f.properties.lotes:''}</div></div>`;}).join('')+
+   (np===1?'':`<p class="note" style="color:var(--red)">${np?'Hay '+np+' puntos proyecto_puntual; deja solo uno.':'Falta el punto proyecto_puntual con el número de tu proyecto.'}</p>`);
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{this.feats.splice(+b.dataset.d,1);this.save();this.render();this.list();});
+  box.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{this.edit=+b.dataset.e;this.form(null,this.feats[this.edit]);});},
+ save(){try{localStorage.setItem('pm_borrador',JSON.stringify({p:$('dwProj').value,a:$('dwAl').value,f:this.feats}));}catch(e){}},
+ download(){const p=$('dwProj').value,a=$('dwAl').value.trim();this.feats.forEach(f=>{f.properties.proyecto=p;f.properties.alumno=a;});
+  const n=(p.match(/^\d+/)||['00'])[0].padStart(2,'0'),w=(p.replace(/^\d+\.\s*/,'').split(/\s+/).filter(x=>x.length>3)[0]||'proyecto'),ap=(a.split(/\s+/)[1]||a.split(/\s+/)[0]||'alumno');
+  const clean=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]/g,'');
+  const gj={type:'FeatureCollection',name:`P${n}_${clean(w)}`,features:this.feats};
+  const url=URL.createObjectURL(new Blob([JSON.stringify(gj,null,1)],{type:'application/geo+json'}));const el=document.createElement('a');el.href=url;el.download=gj.name+'.geojson';document.body.appendChild(el);el.click();el.remove();}
 };
 
 })();
