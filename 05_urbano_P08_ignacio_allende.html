@@ -133,11 +133,10 @@ h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy
   <p class="lead">Hasiel Contreras Lucio</p>
   
   
-  <div style="display:none"><h2>Color de los lotes</h2>
-  <div class="ctl"><select id="view"><option value="neu">Neutro</option><option value="ua">Uso actual según catastro</option><option value="zon">Zonificación PDDU 2020</option><option value="apr">Aprovechamiento del CUS permitido</option></select>
+  <h2>Color de los edificios</h2>
+  <div class="ctl"><select id="view"><option value="neu">Neutro</option><option value="zon">Zonificación PDDU 2020</option><option value="ua">Uso actual según catastro</option></select>
   <div class="leg" id="vleg"></div>
   <label style="margin-top:8px">Opacidad de los volúmenes <input type="range" id="op" min="15" max="100" value="100" style="flex:1"></label></div>
-  <p class="note">Toca un lote para ver su ficha catastral y normativa. Para filtrar, sumar lotes o comparar con cortina usa <a href="https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/08_catastro_lotes.html" target="_blank">Catastro y normativa por lote</a>.</p></div>
   <h2>Capas de la propuesta</h2>
   <div id="mpLeg"></div>
   <p style="margin:10px 0 0"><button class="btn" id="mpDl">Descargar GeoJSON de mi proyecto</button></p>
@@ -295,9 +294,9 @@ $('basemap').onchange=e=>{const s=e.target.value==='sat';map.setLayoutProperty('
 $('view').value=view;
 $('view').onchange=e=>{view=e.target.value;map.setPaintProperty('lots3d','fill-extrusion-color',colExpr(view));legendView();};
 $('op').oninput=e=>{OP=e.target.value/100;map.setPaintProperty('lots3d','fill-extrusion-opacity',OP);};
-function legendView(){const V_=VIEWS[view];const cnt={};for(let i=0;i<N;i++){if(HIDE.has(i))continue;const k=V_.cat(i);cnt[k]=(cnt[k]||0)+1;}
+function legendView(){const V_=VIEWS[view];if($('vleg'))$('vleg').style.display=view==='neu'?'none':'';const cnt={};for(let i=0;i<N;i++){if(HIDE.has(i))continue;const k=V_.cat(i);cnt[k]=(cnt[k]||0)+1;}
   const keys=Object.keys(cnt).sort((a,b)=>{const ia=V_.order.indexOf(a),ib=V_.order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||cnt[b]-cnt[a];});
-  $('vleg').innerHTML=keys.map(k=>`<div><i style="--c:${V_.col(k)}"></i>${V_.label?V_.label(k):k} <span style="color:var(--muted)">${fmt(cnt[k])}</span></div>`).join('');}
+  $('vleg').innerHTML=keys.map(k=>`<div><i style="--c:${V_.col(k)}"></i>${V_.label?V_.label(k):k}</div>`).join('');}
 const LYR=[['green','Áreas verdes','#6fbf73',['green']],['schools','Escuelas','#1c64d8',['schools']],['stops','Paradas y troncal','#e03131',['stops','aqv']],['cycle','Ciclovía propuesta','#00b4d8',['cycle']],['heritage','Patrimonio','#d39b1d',['heritage']],['area','Manzanas','#0f3557',['area']]];
 function buildLayerButtons(){const box=$('lyr');LYR.forEach(([k,t,c,ids])=>{const b=document.createElement('button');b.className='on';b.style.setProperty('--c',c);b.innerHTML=`<i></i>${t}`;
   b.onclick=()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);ids.forEach(id=>map.setLayoutProperty(id,'visibility',on?'visible':'none'));};box.appendChild(b);});}
