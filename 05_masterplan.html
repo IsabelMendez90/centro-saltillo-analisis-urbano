@@ -101,6 +101,25 @@ h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy
 #ucard .uel{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:8px 10px;margin:10px 0;font-size:12px}#ucard .uel .k{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--c)}#ucard .uel b{display:block;margin:2px 0;color:var(--ink)}
 #ucard .ucats{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 12px}#ucard .ucats span{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;background:#f1f4f7;border-radius:12px;padding:3px 8px}#ucard .ucats i{width:9px;height:9px;border-radius:2px}
 #ucard .uact{display:flex;gap:8px;flex-wrap:wrap}
+</style><style>
+#edBtn.on{background:#ff6f00;border-color:#ff6f00;color:#fff}
+#edPanel{display:none;border:2px solid #ff6f00;border-radius:12px;padding:12px 14px;margin:12px 0 4px;background:#fffaf3}
+body.editing #edPanel{display:block}
+#edPanel h2{margin:0 0 4px;color:#b34700}
+.edrow{display:grid;grid-template-columns:1fr;gap:6px;margin:8px 0}
+.edrow select,.edrow input,.edf input,.edf select,.edf textarea{width:100%;font:13px Arial,sans-serif;padding:7px 8px;border:1px solid #cfd8e0;border-radius:7px;background:#fff}
+.edb{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.edb button,.edb label{font:700 12px Arial,sans-serif;padding:7px 10px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;cursor:pointer;color:#14263a}
+.edb button.on{background:#ff6f00;border-color:#ff6f00;color:#fff}
+.edb .pri{background:#0f3557;border-color:#0f3557;color:#fff}
+.edb button:disabled{opacity:.45;cursor:default}
+#edHint{font-size:12px;color:#8a3d00;margin:4px 0;min-height:16px}
+.edf{display:none;border:1px solid #ffcc80;background:#fff;border-radius:8px;padding:10px;margin-top:8px}
+.edf label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:7px 0 2px}.edf textarea{height:58px;resize:vertical}
+.edi{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:7px;padding:7px 9px;margin-top:7px;font-size:12px;background:#fff}
+.edi .h{display:flex;align-items:center;gap:8px}.edi .h b{flex:1}.edi .h button{border:0;background:none;cursor:pointer;font-weight:800;color:#0f3557}.edi .h button.x{color:#c92a2a}
+.edi small{color:var(--muted)}
+#edSaved{font-size:11px;color:#2b8a3e;margin-top:4px}
 </style></head>
 <body>
 <div id="app">
@@ -110,7 +129,7 @@ h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy
     <div class="seg"><button id="v3" class="on">3D</button><button id="v2">Planta</button></div>
     <select id="basemap" aria-label="Mapa base"><option value="clara">Base clara</option><option value="sat">Satélite</option></select>
     <button id="refit">Polígono completo</button>
-    <button id="tUrb" class="on" title="Prender o apagar las propuestas de proyectos urbanos">Propuestas urbanas</button><button id="tProp" class="on" title="Prender o apagar los prototipos de vivienda">Prototipos de vivienda</button><button id="tTags">Nombres de vivienda</button><button id="pdfBtn" style="background:#b5532b;border-color:#b5532b;color:#fff">Descargar PDF</button>
+    <button id="tUrb" class="on" title="Prender o apagar las propuestas de proyectos urbanos">Propuestas urbanas</button><button id="tProp" class="on" title="Prender o apagar los prototipos de vivienda">Prototipos de vivienda</button><button id="tTags">Nombres de vivienda</button><button id="edBtn" title="Dibujar nuevos trazos sobre el masterplan">✎ Editar</button><button id="pdfBtn" style="background:#b5532b;border-color:#b5532b;color:#fff">Descargar PDF</button>
   </div>
   
 </div>
@@ -119,6 +138,25 @@ h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy
   <div class="kicker" style="margin-top:8px">05 Estrategias · Masterplan</div>
   <h1>Masterplan del centro de Saltillo</h1>
   <p class="lead">Las propuestas de proyectos urbanos y los prototipos de vivienda del Grupo 601 sobre un mismo plano. Cada número señala una propuesta; toca el número o cualquiera de sus líneas, áreas o puntos para abrir su ficha y entrar al proyecto a detalle.</p>
+<div id="edPanel">
+  <h2>Editar el masterplan</h2>
+  <p class="note" style="margin:0">Dibuja puntos, líneas, polígonos o lotes con los tipos de intervención del plano. Cada cambio se guarda solo en este navegador. Para entregarlo descarga el mapa con tus trazos.</p>
+  <div class="edrow"><select id="edProj"></select><input id="edAl" placeholder="Tu nombre completo"></div>
+  <div class="edb"><button data-em="pt">● Punto</button><button data-em="line">╱ Línea</button><button data-em="poly">▱ Polígono</button><button data-em="lots">▦ Lotes</button></div>
+  <div id="edRun" class="edb" style="display:none"><button id="edEnd" class="pri">Terminar</button><button id="edUndo">Quitar último vértice</button><button id="edCancel">Cancelar</button></div>
+  <div id="edHint">Elige tu propuesta, escribe tu nombre y elige qué vas a dibujar.</div>
+  <div class="edf" id="edForm">
+    <label>Tipo de intervención</label><select id="edCat"></select>
+    <label>Nombre</label><input id="edNom" placeholder="Corto, por ejemplo Tramo peatonal Aldama, primera cuadra">
+    <label>Descripción</label><textarea id="edDesc" placeholder="Una o dos oraciones de lo que se hace ahí"></textarea>
+    <div id="edHRow"><label>Altura en metros (opcional, para levantarlo en 3D)</label><input id="edH" type="number" min="0" step="0.5" placeholder="0"></div>
+    <div class="edb"><button id="edSave" class="pri">Guardar trazo</button><button id="edDiscard">Descartar</button></div>
+  </div>
+  <div id="edList"></div>
+  <div class="edb" style="margin-top:12px"><button id="edDlHtml" class="pri">Descargar mapa con mis trazos (HTML)</button><button id="edDlGeo">Descargar GeoJSON</button>
+   <label for="edFile">Cargar trazos (HTML o GeoJSON)</label><input id="edFile" type="file" accept=".html,.htm,.geojson,.json" multiple style="display:none"><button id="edClear">Borrar todo</button></div>
+  <div id="edSaved"></div>
+</div>
   <div class="ukpi"><div><b id="uk1">0</b><span>propuestas urbanas</span></div><div><b id="uk3">0</b><span>prototipos de vivienda</span></div></div>
   <div class="kpis" style="display:none"><div><b id="kL">0</b></div><div><b id="kA">0</b></div><div><b id="kC">0</b></div></div>
   <div id="alerts"></div>
@@ -230,7 +268,7 @@ let _init=false;const init=()=>{if(_init)return;_init=true;
   map.addLayer({id:'schools',type:'circle',source:'schools',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2.5,17,6],'circle-color':['coalesce',['get','color'],'#1c64d8'],'circle-stroke-color':'#fff','circle-stroke-width':1}});
   map.addLayer({id:'stops',type:'circle',source:'stops',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,3,17,7],'circle-color':'#e03131','circle-stroke-color':'#fff','circle-stroke-width':1.2}});
   map.addLayer({id:'heritage',type:'circle',source:'heritage',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2,17,5],'circle-color':'#d39b1d','circle-stroke-color':'#fff','circle-stroke-width':.8}});
-  buildLayerButtons(); legendView(); if(V) masterSetup(); MINE.init(); URB.init(); URB.apply(); if(V) applyVis(); $('tUrb').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);URB.show=on;if(!on){const c=document.getElementById('ucard');if(c)c.classList.remove('on');}URB.apply();};
+  buildLayerButtons(); legendView(); if(V) masterSetup(); MINE.init(); URB.init(); URB.apply(); ED.init(); if(V) applyVis(); $('tUrb').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);URB.show=on;document.querySelectorAll('#uproj input,#ucats input').forEach(c=>c.checked=on);if(on){URB.offN.clear();URB.off.clear();}if(!on){const c=document.getElementById('ucard');if(c)c.classList.remove('on');}URB.apply();};document.querySelectorAll('#uproj input').forEach(cb=>cb.addEventListener('change',()=>{const ins=[...document.querySelectorAll('#uproj input')];URB.offN=new Set(ins.filter(c=>!c.checked).map(c=>+c.closest('.upr').dataset.n));const any=ins.some(c=>c.checked);if(any&&URB.show===false){document.querySelectorAll('#ucats input').forEach(c=>c.checked=true);URB.off.clear();}URB.show=any;$('tUrb').classList.toggle('on',any);URB.apply();}));$('tProp').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);document.querySelectorAll('.st input').forEach(c=>c.checked=on);applyVis();};document.querySelectorAll('.st input').forEach(cb=>cb.addEventListener('change',()=>{const any=[...document.querySelectorAll('.st input')].some(c=>c.checked);$('tProp').classList.toggle('on',any);applyVis();}));
   const hk=decodeURIComponent(location.hash.slice(1)); if(/^p\d+$/.test(hk))setTimeout(()=>URB.open(+hk.slice(1),null,true),600); else if(V&&hk)setTimeout(()=>focusSt(hk),600);
 };
 map.on('style.load',()=>setTimeout(init,0));map.on('load',init);
@@ -258,7 +296,7 @@ map.on('mousemove','lots3d',e=>{const i=e.features[0].properties.i;tip.style.dis
 map.on('mouseleave','lots3d',()=>{tip.style.display='none';map.getCanvas().style.cursor='';});
 const popup=new maplibregl.Popup({maxWidth:'340px'});
 const XY=ll=>{const t='['+ll.lng.toFixed(6)+', '+ll.lat.toFixed(6)+']';return `<div class="xy">Coordenadas lon, lat <code>${t}</code> <button onclick="try{navigator.clipboard.writeText('${t}');this.textContent='Copiado'}catch(e){}">Copiar</button></div>`;};
-map.on('click',e=>{if(URB.click(e))return;const q=map.queryRenderedFeatures(e.point).filter(f=>!['clara','sat','claraRef','satRef','bg'].includes(f.layer.id));if(!q.length){popup.setLngLat(e.lngLat).setHTML('<div class="pop">'+XY(e.lngLat)+'</div>').addTo(map);return;}const f=q[0];tip.style.display='none';
+map.on('click',e=>{if(ED.active)return;{const qe=map.queryRenderedFeatures(e.point,{layers:['ed_pt','ed_ln','ed_fill','ed_x','ed_fo'].filter(l=>map.getLayer(l))});if(qe.length){popup.setLngLat(e.lngLat).setHTML(ED.pop(qe[0].properties)).addTo(map);return;}}if(URB.click(e))return;const q=map.queryRenderedFeatures(e.point).filter(f=>!['clara','sat','claraRef','satRef','bg'].includes(f.layer.id));if(!q.length){popup.setLngLat(e.lngLat).setHTML('<div class="pop">'+XY(e.lngLat)+'</div>').addTo(map);return;}const f=q[0];tip.style.display='none';
   if(f.layer.id.startsWith('mp_')){popup.setLngLat(e.lngLat).setHTML(MINE.pop(f.properties)+XY(e.lngLat)).addTo(map);return;}
   if(f.layer.id==='vbld'){const p=f.properties,s=V.meta.find(m=>m.key===p.k);popup.setLngLat(e.lngLat).setHTML(`<div class="pop"><h4>${s.full}</h4><div class="sub">${s.title}</div><table><tr><td>Elemento</td><td>${p.t||'—'}</td></tr><tr><td>Altura</td><td>${fmt(p.b,1)} a ${fmt(p.h,1)} m</td></tr><tr><td>Lotes</td><td>${s.ids.join(' + ')}${s.nsf?' + '+s.nsf+' sin ficha':''}</td></tr></table>${s.page.startsWith('05_masterplan')?'':`<p style="margin:8px 0 0"><a href="${s.page}">Ver propuesta completa →</a></p>`}${XY(e.lngLat)}</div>`).addTo(map);return;}
   if(f.layer.id==='lots3d'){popup.setLngLat(e.lngLat).setHTML(ficha(f.properties.i)+XY(e.lngLat)).addTo(map);return;}
@@ -272,7 +310,8 @@ const URB={M:window.MPU,off:new Set(),offN:new Set(),mode:'cc',marks:{},ids:[],
   const wexp=['match',['get','cat'],...Object.entries(W).flat(),4];
   const L=[
    ['u_fill',{type:'fill',paint:{'fill-color':col,'fill-opacity':.45}},['all',['==',['get','kind'],'fill'],['==',['get','h'],0]]],
-   ['u_x',{type:'fill-extrusion',paint:{'fill-extrusion-color':col,'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':.95}},['all',['==',['get','kind'],'fill'],['>',['get','h'],0]]],
+   ['u_x',{type:'fill-extrusion',paint:{'fill-extrusion-color':col,'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':.95}},['all',['==',['get','kind'],'fill'],['>',['get','h'],0],['!=',['coalesce',['get','ov'],0],1]]],
+   ['u_xo',{type:'fill-extrusion',paint:{'fill-extrusion-color':col,'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':.95}},['all',['==',['get','kind'],'fill'],['>',['get','h'],0],['==',['coalesce',['get','ov'],0],1]]],
    ['u_zone',{type:'fill',paint:{'fill-color':col,'fill-opacity':['coalesce',['get','fo'],.12]}},['==',['get','kind'],'zone']],
    ['u_hatchF',{type:'fill',paint:{'fill-color':'#1e3a8a','fill-opacity':.32}},['==',['get','kind'],'hatch']],
    ['u_hatch',{type:'fill',paint:{'fill-pattern':'uHatch','fill-opacity':.9}},['==',['get','kind'],'hatch']],
@@ -308,11 +347,12 @@ const URB={M:window.MPU,off:new Set(),offN:new Set(),mode:'cc',marks:{},ids:[],
   $('uk1').textContent=M.projects.filter(p=>p.count).length;$('uk3').textContent=V?V.meta.length:0;
   this.CC=CC;},
  P(n){return this.M.projects.find(p=>p.n===+n);},
- setMode(m){this.mode=m;const col=['get',m];map.setPaintProperty('u_fill','fill-color',col);map.setPaintProperty('u_x','fill-extrusion-color',col);map.setPaintProperty('u_fillL','line-color',col);map.setPaintProperty('u_zone','fill-color',col);map.setPaintProperty('u_zoneL','line-color',col);map.setPaintProperty('u_dash','line-color',col);map.setPaintProperty('u_ln','line-color',col);
+ setMode(m){this.mode=m;const col=['get',m];map.setPaintProperty('u_fill','fill-color',col);map.setPaintProperty('u_x','fill-extrusion-color',col);map.setPaintProperty('u_xo','fill-extrusion-color',col);map.setPaintProperty('u_fillL','line-color',col);map.setPaintProperty('u_zone','fill-color',col);map.setPaintProperty('u_zoneL','line-color',col);map.setPaintProperty('u_dash','line-color',col);map.setPaintProperty('u_ln','line-color',col);
   map.setPaintProperty('u_pt','circle-color',['case',['==',['get','cat'],'cruce'],'rgba(255,255,255,.9)',col]);map.setPaintProperty('u_pt','circle-stroke-color',['case',['==',['get','cat'],'cruce'],col,'#ffffff']);
   },
  apply(){const on=this.show!==false,num=true;const vis=['all',['!',['in',['get','cat'],['literal',[...this.off]]]],['!',['in',['get','n'],['literal',[...this.offN]]]]];
   this.ids.forEach(id=>{map.setFilter(id,['all',this.base[id],vis]);map.setLayoutProperty(id,'visibility',on?'visible':'none');});
+  if(this.ids.includes('u_xo'))map.setLayoutProperty('u_xo','visibility',(on&&!$('tProp').classList.contains('on'))?'visible':'none');
   for(const n in this.marks)this.marks[n].forEach(m=>m.getElement().style.display=(on&&num&&!this.offN.has(+n))?'':'none');},
  click(e){if(!this.ids.length||this.show===false)return false;const q=map.queryRenderedFeatures(e.point,{layers:this.ids});if(!q.length)return false;
   const pts=q.filter(f=>f.layer.id==='u_pt'||f.layer.id==='u_cruce'),lns=q.filter(f=>f.layer.id==='u_ln'||f.layer.id==='u_dash');const f=(pts[0]||lns[0]||q[0]);this.open(f.properties.n,f.properties,false);return true;},
@@ -324,6 +364,113 @@ const URB={M:window.MPU,off:new Set(),offN:new Set(),mode:'cc',marks:{},ids:[],
    `<div class="uact"><a class="btn" href="${P.page}">Ver proyecto a detalle →</a><button class="btn ghost" id="ufocus">Alejar</button></div></div>`;
   $('ucard').classList.add('on');$('ucard').querySelector('.uh button').onclick=()=>$('ucard').classList.remove('on');$('ufocus').onclick=()=>map.fitBounds([[bb[0],bb[1]],[bb[2],bb[3]]],{padding:30,pitch:is3d?50:0,bearing:is3d?-18:0,duration:1200});if(fly)this.focus(n);},
  focus(n){const b=this.P(n).bbox;map.fitBounds([[b[0],b[1]],[b[2],b[3]]],{padding:{top:80,bottom:60,left:60,right:420},maxZoom:17.6,pitch:is3d?55:0,bearing:is3d?-18:0,duration:1200});}
+};
+
+
+// ---------- EDITOR de trazos ----------
+const ED={active:null,pts:[],lots:new Set(),feats:[],edit:null,pending:null,meta:{p:'',a:''},
+ SITE:'https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/',KEY:'mp_trazos_v1',A:'<script id="mp-'+'trazos">window.MP_'+'TRAZOS=',Z:';/*fin-'+'trazos*/<\/script>',
+ cat(k){return (MPU.cats.find(c=>c.k===k))||{k:'otro',t:'Otro',c:'#757575'};},
+ init(){
+  const P=MPU.projects;$('edProj').innerHTML='<option value="">Elige tu propuesta urbana</option>'+P.map(p=>`<option value="${p.n}">${p.n} · ${p.title}</option>`).join('')+'<option value="0">Otra · trazo libre</option>';
+  $('edCat').innerHTML=MPU.cats.map(c=>`<option value="${c.k}">${c.t}</option>`).join('');
+  this.load();
+  map.addSource('ed',{type:'geojson',data:this.fc([])});map.addSource('edtmp',{type:'geojson',data:this.fc([])});map.addSource('edsel',{type:'geojson',data:this.fc([])});
+  const col=['get','_c'];
+  map.addLayer({id:'ed_fill',type:'fill',source:'ed',filter:['all',['==',['geometry-type'],'Polygon'],['==',['get','h'],0]],paint:{'fill-color':col,'fill-opacity':.45}});
+  map.addLayer({id:'ed_x',type:'fill-extrusion',source:'ed',filter:['all',['==',['geometry-type'],'Polygon'],['>',['get','h'],0]],paint:{'fill-extrusion-color':col,'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':.9}});
+  map.addLayer({id:'ed_fo',type:'line',source:'ed',filter:['==',['geometry-type'],'Polygon'],paint:{'line-color':col,'line-width':2.4,'line-dasharray':[2,1]}});
+  map.addLayer({id:'ed_glow',type:'line',source:'ed',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ffe066','line-width':12,'line-blur':4,'line-opacity':.8}});
+  map.addLayer({id:'ed_ln',type:'line',source:'ed',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':col,'line-width':6}});
+  map.addLayer({id:'ed_pt',type:'circle',source:'ed',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,5,17,10],'circle-color':col,'circle-stroke-color':'#fff','circle-stroke-width':2}});
+  map.addLayer({id:'edselF',type:'fill',source:'edsel',paint:{'fill-color':'#ff6f00','fill-opacity':.55}});
+  map.addLayer({id:'edtmpL',type:'line',source:'edtmp',paint:{'line-color':'#ff6f00','line-width':3,'line-dasharray':[1.5,1]}});
+  map.addLayer({id:'edtmpP',type:'circle',source:'edtmp',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':5,'circle-color':'#ff6f00','circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+  $('edBtn').onclick=()=>this.mode(!document.body.classList.contains('editing'));
+  ['edProj','edAl'].forEach(id=>$(id).onchange=()=>{this.meta={p:$('edProj').value,a:$('edAl').value.trim()};this.save();});
+  document.querySelectorAll('[data-em]').forEach(b=>b.onclick=()=>this.start(b.dataset.em));
+  $('edEnd').onclick=()=>this.finish();$('edCancel').onclick=()=>this.stop();$('edUndo').onclick=()=>{this.pts.pop();this.tmp();};
+  $('edSave').onclick=()=>this.commit();$('edDiscard').onclick=()=>{$('edForm').style.display='none';this.pending=null;this.edit=null;this.tmp();};
+  $('edDlHtml').onclick=()=>this.dlHtml();$('edDlGeo').onclick=()=>this.dlGeo();
+  $('edFile').onchange=e=>{[...e.target.files].forEach(f=>this.importFile(f));e.target.value='';};
+  $('edClear').onclick=()=>{if(this.feats.length&&confirm('¿Borrar todos los trazos de este mapa?')){this.feats=[];this.save();this.render();this.list();}};
+  map.on('click',e=>this.click(e));map.on('dblclick',e=>{if(this.active==='line'||this.active==='poly'){e.preventDefault();this.finish();}});
+  document.addEventListener('keydown',e=>{if(!this.active)return;if(e.key==='Escape')this.stop();if(e.key==='Enter')this.finish();if(e.key==='Backspace'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();this.pts.pop();this.tmp();}});
+  this.render();this.list();
+  const hk=decodeURIComponent(location.hash.slice(1));const m=hk.match(/^editar(?:-p(\d+))?$/);
+  if(m){if(m[1]&&!$('edProj').value){$('edProj').value=m[1];this.meta.p=m[1];}setTimeout(()=>this.mode(true),700);}
+ },
+ mode(on){document.body.classList.toggle('editing',on);$('edBtn').classList.toggle('on',on);$('edBtn').textContent=on?'✓ Terminar edición':'✎ Editar';
+  if(on){$('sidebar').scrollTop=0;const n=+$('edProj').value;if(n&&URB.P(n))URB.open(n,null,true);const c=$('ucard');if(c)c.classList.remove('on');}else this.stop();},
+ fc(f){return{type:'FeatureCollection',features:f}},
+ hint(t){$('edHint').innerHTML=t;},
+ start(m){if($('edProj').value===''||!$('edAl').value.trim()){this.hint('<b>Primero elige tu propuesta y escribe tu nombre completo.</b>');return;}
+  this.stop(true);this.active=m;this.pts=[];this.lots.clear();map.doubleClickZoom.disable();map.getCanvas().style.cursor='crosshair';popup.remove();
+  document.querySelectorAll('[data-em]').forEach(b=>b.classList.toggle('on',b.dataset.em===m));$('edRun').style.display='flex';$('edUndo').style.display=(m==='line'||m==='poly')?'':'none';
+  this.hint({pt:'Haz clic donde va el punto.',line:'Haz clic en cada vértice, sobre el eje de la calle. Doble clic o Terminar para cerrar.',poly:'Haz clic en cada vértice del perímetro. Doble clic o Terminar para cerrar.',lots:'Haz clic en los lotes; otro clic lo quita. Terminar cuando acabes. Funciona mejor en vista Planta.'}[m]);},
+ stop(keep){this.active=null;this.pts=[];this.lots.clear();map.doubleClickZoom.enable();map.getCanvas().style.cursor='';
+  document.querySelectorAll('[data-em]').forEach(b=>b.classList.remove('on'));$('edRun').style.display='none';this.tmp();if(!keep)this.hint('Elige qué vas a dibujar.');},
+ tmp(){const f=[];if(this.pts.length){this.pts.forEach(p=>f.push({type:'Feature',properties:{},geometry:{type:'Point',coordinates:p}}));
+   if(this.pts.length>1)f.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:this.active==='poly'&&this.pts.length>2?[...this.pts,this.pts[0]]:this.pts}});}
+  map.getSource('edtmp').setData(this.fc(f));map.getSource('edsel').setData(this.fc([...this.lots].map(i=>({type:'Feature',properties:{},geometry:LF[i].geometry}))));},
+ click(e){if(!this.active)return false;const ll=[+e.lngLat.lng.toFixed(6),+e.lngLat.lat.toFixed(6)];
+  if(this.active==='pt'){this.pts=[ll];this.finish();return true;}
+  if(this.active==='lots'){const q=map.queryRenderedFeatures(e.point,{layers:['lots3d']});if(!q.length)return true;const i=q[0].properties.i;this.lots.has(i)?this.lots.delete(i):this.lots.add(i);this.tmp();this.hint(`${this.lots.size} lote(s) seleccionados. Terminar cuando acabes.`);return true;}
+  this.pts.push(ll);this.tmp();return true;},
+ finish(){const m=this.active;let g=null,extra={};
+  if(m==='pt'&&this.pts.length)g={type:'Point',coordinates:this.pts[0]};
+  if(m==='line'){if(this.pts.length<2){this.hint('Una línea necesita al menos dos clics.');return;}g={type:'LineString',coordinates:this.pts};}
+  if(m==='poly'){if(this.pts.length<3){this.hint('Un polígono necesita al menos tres clics.');return;}g={type:'Polygon',coordinates:[[...this.pts,this.pts[0]]]};}
+  if(m==='lots'){if(!this.lots.size){this.hint('Selecciona al menos un lote.');return;}const ids=[...this.lots];const polys=[];ids.forEach(i=>LF[i].geometry.coordinates.forEach(p=>polys.push(p)));
+    g=polys.length===1?{type:'Polygon',coordinates:polys[0]}:{type:'MultiPolygon',coordinates:polys};extra.lotes=ids.map(i=>C.id[i]||'sin ID').join(' + ');}
+  if(!g)return;this.pending={g,extra,m};this.stop(true);this.form(m);},
+ form(m,f){const p=f?f.properties:{};$('edForm').style.display='block';
+  $('edCat').value=p.cat||({pt:'equipamiento',line:'peatonal',poly:'activacion',lots:'densificacion'}[m]||MPU.cats[0].k);
+  $('edNom').value=p.nombre||'';$('edDesc').value=p.descripcion||'';$('edH').value=p.h||'';
+  const gt=f?f.geometry.type:{pt:'Point',line:'LineString',poly:'Polygon',lots:'Polygon'}[m];$('edHRow').style.display=/Polygon/.test(gt)?'':'none';
+  this.hint('Elige el tipo de intervención, ponle nombre y descripción, y guarda.');$('edNom').focus();},
+ commit(){const nom=$('edNom').value.trim(),desc=$('edDesc').value.trim();if(!nom||!desc){this.hint('<b>Falta el nombre o la descripción.</b>');return;}
+  const n=+$('edProj').value||0,P=URB.P(n);
+  const props={n,proyecto:P?P.n+'. '+P.title:'Trazo libre',alumno:$('edAl').value.trim(),cat:$('edCat').value,nombre:nom,descripcion:desc,h:Math.max(0,+$('edH').value||0),t:new Date().toISOString()};
+  if(this.edit!=null){Object.assign(this.feats[this.edit].properties,props);this.edit=null;}
+  else{Object.assign(props,this.pending.extra);this.feats.push({type:'Feature',id:Date.now(),properties:props,geometry:this.pending.g});}
+  this.pending=null;$('edForm').style.display='none';this.save();this.render();this.list();this.hint('Guardado. Sigue dibujando o descarga tu mapa.');},
+ render(){const f=[];this.feats.forEach(x=>{const c=this.cat(x.properties.cat).c,pr={...x.properties,_c:c,h:+x.properties.h||0};
+   if(x.geometry.type==='MultiPolygon')x.geometry.coordinates.forEach(pc=>f.push({type:'Feature',properties:pr,geometry:{type:'Polygon',coordinates:pc}}));else f.push({type:'Feature',properties:pr,geometry:x.geometry});});
+  if(map.getSource('ed'))map.getSource('ed').setData(this.fc(f));},
+ list(){const box=$('edList');$('edDlGeo').disabled=$('edDlHtml').disabled=!this.feats.length;
+  if(!this.feats.length){box.innerHTML='<p class="note">Aún no hay trazos en este mapa.</p>';return;}
+  box.innerHTML='<h2 style="margin:12px 0 2px">Trazos de este mapa · '+this.feats.length+'</h2>'+this.feats.map((f,i)=>{const p=f.properties,c=this.cat(p.cat);const gt={Point:'punto',LineString:'línea',Polygon:'polígono',MultiPolygon:'lotes'}[f.geometry.type];
+   return `<div class="edi" style="--c:${c.c}"><div class="h"><i style="width:10px;height:10px;border-radius:2px;background:${c.c}"></i><b>${p.nombre}</b><button data-z="${i}" title="Ir">Ver</button><button data-e="${i}">Editar</button><button class="x" data-d="${i}" title="Borrar">✕</button></div><small>${c.t} · ${gt}${p.lotes?' · lotes '+p.lotes:''}${p.h?' · '+p.h+' m':''}<br>${p.proyecto} · ${p.alumno}</small></div>`;}).join('');
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(!confirm('¿Borrar este trazo?'))return;this.feats.splice(+b.dataset.d,1);this.save();this.render();this.list();});
+  box.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{this.edit=+b.dataset.e;this.form(null,this.feats[this.edit]);});
+  box.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const f=this.feats[+b.dataset.z],bb=new maplibregl.LngLatBounds();const walk=c=>typeof c[0]==='number'?bb.extend(c):c.forEach(walk);walk(f.geometry.coordinates);map.fitBounds(bb,{padding:120,maxZoom:18.5,duration:900});});},
+ pop(p){const c=this.cat(p.cat);return `<div class="pop"><h4>${p.nombre}</h4><div class="sub" style="color:${c.c}">${c.t} · trazo nuevo</div><p style="margin:6px 0">${p.descripcion||''}</p><table><tr><td>Propuesta</td><td>${p.proyecto||'—'}</td></tr><tr><td>Autor</td><td>${p.alumno||'—'}</td></tr>${p.lotes?`<tr><td>Lotes</td><td>${p.lotes}</td></tr>`:''}${+p.h?`<tr><td>Altura</td><td>${p.h} m</td></tr>`:''}</table></div>`;},
+ // guardado: en el navegador y en el archivo descargado
+ data(){return{p:$('edProj').value,a:$('edAl').value.trim(),t:new Date().toISOString(),f:this.feats};},
+ save(){const d=this.data();try{localStorage.setItem(this.KEY,JSON.stringify(d));$('edSaved').textContent='Guardado en este navegador · '+new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});}catch(e){$('edSaved').textContent='Este navegador no permite guardar; descarga tu mapa para no perder los trazos.';}},
+ load(){let emb=window.MP_TRAZOS||null,loc=null;try{loc=JSON.parse(localStorage.getItem(this.KEY)||'null');}catch(e){}
+  const d=(emb&&loc)?(loc.t>emb.t?loc:emb):(loc||emb);if(!d)return;this.feats=d.f||[];$('edProj').value=d.p||'';$('edAl').value=d.a||'';this.meta={p:d.p,a:d.a};},
+ fname(ext){const n=+$('edProj').value||0,a=$('edAl').value.trim().split(/\s+/);const ap=(a.length>2?a[a.length-2]:a[a.length-1]||'alumno');
+  const cl=x=>x.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]/g,'');return `Masterplan_trazos_P${String(n).padStart(2,'0')}_${cl(ap)}.${ext}`;},
+ dl(name,blob){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);},
+ dlGeo(){this.dl(this.fname('geojson'),new Blob([JSON.stringify({type:'FeatureCollection',name:'trazos_masterplan',features:this.feats},null,1)],{type:'application/geo+json'}));},
+ async dlHtml(){const b=$('edDlHtml'),t0=b.textContent;b.textContent='Preparando…';b.disabled=true;
+  try{const base=location.protocol.startsWith('http')?new URL('.',location.href).href:this.SITE;
+   if(!window.MP_SRC)await new Promise((ok,ko)=>{const sc=document.createElement('script');sc.src=new URL('data/masterplan_fuente.js',document.baseURI).href+'?v='+Date.now();sc.onload=ok;sc.onerror=ko;document.head.appendChild(sc);});
+   let src=window.MP_SRC;if(!src||src.indexOf('const ED=')<0)throw new Error('sin fuente');
+   const A=this.A,Z=this.Z,i0=src.indexOf(A);if(i0>=0){const j0=src.indexOf(Z,i0);if(j0>0)src=src.slice(0,i0)+src.slice(j0+Z.length);}
+   const B='<'+'base data-mp="1" href="',i1=src.indexOf(B);if(i1>=0)src=src.slice(0,i1)+src.slice(src.indexOf('>',i1)+1);
+   const inj=B+base+'">'+A+JSON.stringify(this.data()).replace(/</g,'\\u003c')+Z;
+   const h=src.search(/<head>/i);src=src.slice(0,h+6)+inj+src.slice(h+6);this.dl(this.fname('html'),new Blob([src],{type:'text/html'}));
+   this.hint('Listo. Ese archivo abre el masterplan con tus trazos; se ve con doble clic y conexión a internet.');}
+  catch(e){this.hint('<b>No se pudo armar el HTML.</b> Falta el archivo data/masterplan_fuente.js junto al masterplan. Mientras, descarga el GeoJSON.');}
+  b.textContent=t0;b.disabled=!this.feats.length;},
+ importFile(file){const r=new FileReader();r.onload=()=>{let fs=[];const tx=String(r.result);
+   try{if(/^\s*</.test(tx)){const i=tx.indexOf(this.A);if(i>=0)fs=JSON.parse(tx.slice(i+this.A.length,tx.indexOf(this.Z,i))).f||[];}else{const g=JSON.parse(tx);fs=g.features||(g.f)||[];}}catch(e){}
+   if(!fs.length){this.hint('<b>'+file.name+'</b> no trae trazos del masterplan.');return;}
+   const have=new Set(this.feats.map(f=>f.id+'|'+f.properties.nombre));let k=0;fs.forEach(f=>{if(!f.id)f.id=Date.now()+Math.random();if(have.has(f.id+'|'+f.properties.nombre))return;this.feats.push(f);k++;});
+   this.save();this.render();this.list();this.hint(`Se agregaron ${k} trazo(s) de ${file.name}.`);};r.readAsText(file);}
 };
 
 // ---------- prototipos de vivienda ----------
@@ -359,7 +506,7 @@ function applyVis(){const off=[...document.querySelectorAll('.st')].filter(r=>!r
   ['vbld','vopen','vlotsF','vlotsL'].forEach(id=>{map.setFilter(id,f);map.setLayoutProperty(id,'visibility',showP?'visible':'none');});
   const LFH=showP?['==',['get','hide'],0]:['==',['get','hu'],0];map.setFilter('lots3d',LFH);map.setFilter('lotsLine',LFH);
   ['vconfF','vconfL'].forEach(id=>map.setLayoutProperty(id,'visibility',showP?'visible':'none'));
-  for(const k in tags)tags[k].getElement().style.display=(showT&&showP&&!off.includes(k))?'':'none';for(const k in pmarks)pmarks[k].getElement().style.display=(showP&&!off.includes(k))?'':'none';stackTags();}
+  for(const k in tags)tags[k].getElement().style.display=(showT&&showP&&!off.includes(k))?'':'none';for(const k in pmarks)pmarks[k].getElement().style.display=(showP&&!off.includes(k))?'':'none';if(typeof URB!=='undefined'&&URB.ids.length)URB.apply();stackTags();}
 // ---------- capas de proyectos urbanos ----------
 // ---------- MI PROYECTO: dibuja lo que el alumno escribe en window.MI_PROYECTO ----------
 const MINE={feats:[],init(){const P=window.MI_PROYECTO;if(!P||!$('mpLeg'))return;

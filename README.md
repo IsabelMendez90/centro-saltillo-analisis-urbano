@@ -27,6 +27,7 @@ Gestión y administración de proyectos territoriales de inversión · Grupo 601
 | `sintesis_final.html` | Síntesis final. Coincidencias entre las cinco síntesis de los equipos, con suelo vacante y predios subutilizados por lote; reporte en `assets/reporte_sintesis_final.pdf` |
 
 
+
 ## Área de estudio
 
 Todas las capas por manzana usan las mismas 343 manzanas. La capa original del Equipo 1 tenía 346 unidades, que correspondían a 343 manzanas, 2 unidades fuera del polígono (ID 715 y 7588) y una manzana partida en dos fragmentos (ID 1574 y 2668). Se depuró a las 343 manzanas oficiales; la manzana partida conserva los atributos de su fragmento mayor.
