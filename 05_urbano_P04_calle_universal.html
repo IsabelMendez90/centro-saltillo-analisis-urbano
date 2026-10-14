@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calle Universal · Proyecto 04 · Centro de Saltillo</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+:root{--navy:#0f3557;--blue:#2f6690;--ink:#17212b;--muted:#5b6b7b;--line:#e1e7ed;--red:#b3261e}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;color:var(--ink);background:#f5f7f9}
+#app{height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 440px;overflow:hidden}
+#mapwrap{position:relative;min-width:0}#map{position:absolute;inset:0;background:#e9ecef}
+#sidebar{height:100vh;overflow-y:auto;background:#fff;border-left:1px solid var(--line);padding:18px 20px 40px}
+.tools{position:absolute;z-index:5;top:12px;left:12px;right:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.tools>*{pointer-events:auto}
+.tools a,.tools button,.tools select{font:700 12px Arial,sans-serif;padding:8px 11px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;color:var(--ink);cursor:pointer;text-decoration:none;box-shadow:0 1px 4px #0002}
+.tools a.home{background:#b5532b;border-color:#b5532b;color:#fff}
+.tools .seg{display:flex;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px #0002}
+.tools .seg button{border-radius:0;box-shadow:none;border-right-width:0}.tools .seg button:last-child{border-right-width:1px}
+.tools button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.lyr{position:absolute;z-index:5;left:12px;bottom:28px;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 24px)}
+.lyr button{font:700 11.5px Arial,sans-serif;padding:7px 10px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;cursor:pointer;color:var(--muted);box-shadow:0 1px 4px #0002}
+.lyr button i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--c);opacity:.35}
+.lyr button.on{color:var(--ink);border-color:#9fb0bf}.lyr button.on i{opacity:1}
+.kicker{font-size:10px;letter-spacing:.12em;color:var(--blue);font-weight:800;text-transform:uppercase}
+.kicker a{color:var(--blue);text-decoration:none}
+h1{font-size:23px;margin:4px 0 8px;color:var(--navy)}
+.lead{font-size:12.5px;line-height:1.55;color:#34495e;margin:0 0 10px}
+h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy);margin:22px 0 8px}
+.note{font-size:11.5px;line-height:1.5;color:var(--muted);margin:6px 0}
+.ctl{font-size:12px;line-height:1.5}.ctl label{display:flex;align-items:center;gap:7px;margin:4px 0;cursor:pointer}
+.ctl select{width:100%;font:600 12px Arial,sans-serif;padding:7px 8px;border:1px solid #cfd8e0;border-radius:8px;background:#fff}
+.btn{font:800 12px Arial,sans-serif;padding:8px 12px;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.ghost{background:#fff;color:var(--navy)}
+.leg{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:11px;margin-top:6px}
+.leg div{display:flex;align-items:center;gap:6px;line-height:1.25}.leg i{flex:0 0 auto;width:13px;height:10px;border-radius:2px;border:1px solid #0002;background:var(--c)}
+.leg i.ln{height:4px;border:0;border-radius:2px}.leg i.ln.d{background:repeating-linear-gradient(90deg,var(--c) 0 5px,transparent 5px 8px)}
+.leg i.pt{width:10px;height:10px;border-radius:50%}.leg i.ring{width:10px;height:10px;border-radius:50%;background:none;border:2.5px solid var(--c)}
+.leg i.num{width:14px;height:14px;border-radius:50%;background:#111;color:#fff;font:700 8px Arial;display:grid;place-items:center;border:0}
+.leg i.pd{background:transparent;border:1.5px dashed var(--c)}
+.leg code{font-size:10px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--ink);margin-top:10px}
+.kpis div{padding:8px 6px 6px 0}.kpis b{font:800 21px Arial,sans-serif;display:block}.kpis span{font-size:10.5px;color:var(--muted)}
+.alert{background:#fbe9e7;border-left:4px solid var(--red);padding:8px 10px;font-size:12px;line-height:1.5;margin:10px 0;border-radius:4px}.alert b{color:var(--red)}
+.st{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:10px 4px;border-top:1px solid var(--line);cursor:pointer;font-size:12px}
+.st:hover,.st.sel{background:#f3f6f9}
+.st .nm{font-weight:800;font-size:13px}.st .tt{color:var(--muted)}.st .ids{font:11px ui-monospace,monospace;color:var(--muted);margin:2px 0 4px}
+.st .lg span{display:block;font-size:11px;color:#34495e}.st .lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.st .mt{font:11px ui-monospace,monospace;text-align:right;color:var(--muted);white-space:nowrap}
+.st a{font-size:11px;font-weight:800;color:var(--c);text-decoration:none}
+.st input{accent-color:var(--c)}
+.drop{display:block;margin-top:8px;border:2px dashed #b9c6d2;border-radius:10px;padding:16px;text-align:center;font-size:12px;color:var(--muted);cursor:pointer;background:#fafcfd}
+.drop.over{border-color:var(--navy);background:#eef4fa}
+.file{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px}
+.file .h{display:flex;align-items:center;gap:8px}.file .h b{flex:1;word-break:break-all}.file .h button{border:0;background:none;color:var(--red);cursor:pointer;font-weight:800}
+.file .ok{color:#2b8a3e}.file .bad{color:var(--red)}.file ul{margin:4px 0 0;padding-left:16px;color:var(--muted)}
+.tag{transform:translateY(-6px);cursor:pointer}
+.tag .box{background:#fff;border-left:4px solid var(--c);padding:4px 7px;box-shadow:0 2px 8px #0003;white-space:nowrap;font:700 11px Arial,sans-serif}
+.tag .box small{display:block;font:10px ui-monospace,monospace;color:var(--muted)}
+.far .tag .box small{display:none}.far .tag .box{font-size:10.5px;padding:3px 6px}
+.tag .stem{width:2px;height:22px;background:var(--c);margin-left:6px}
+.pnum{width:24px;height:24px;border-radius:50%;background:#111;color:#fff;font:800 12px Arial;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 5px #0006;cursor:pointer}
+.maplibregl-popup-content{font-size:12px;max-height:60vh;overflow:auto;padding:12px 14px}
+.pop h4{margin:0 0 2px;font-size:13px;color:var(--navy)}
+.pop .sub{color:var(--muted);font-size:11px;margin-bottom:6px}
+.pop table{border-collapse:collapse;width:100%}
+.pop td{padding:2px 3px;border-bottom:1px solid #eef2f5;vertical-align:top}
+.pop td:first-child{color:var(--muted);width:48%}
+.pop .sec{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--blue);text-transform:uppercase;padding-top:7px}
+.pop .flag{background:#f3f0ff;border-left:3px solid #7048e8;padding:4px 6px;margin-top:6px;font-size:11px}
+.dbtn{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.dbtn button{font:700 12px Arial,sans-serif;padding:7px 10px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;cursor:pointer}.dbtn button.on{background:#ff6f00;border-color:#ff6f00;color:#fff}
+.dform{display:none;border:1px solid #ffcc80;background:#fff8ef;border-radius:8px;padding:10px;margin-top:8px}.dform label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin:6px 0 2px}
+.dform input,.dform select,.dform textarea,.dw input,.dw select{width:100%;font:13px Arial,sans-serif;padding:6px 8px;border:1px solid #cfd8e0;border-radius:6px}.dform textarea{height:54px;resize:vertical}
+#dwHint{font-size:12px;color:#7a3b00;margin:4px 0}
+.xy{margin-top:8px;padding-top:6px;border-top:1px solid #e1e7ed;font-size:11px;color:var(--muted)}.xy code{font-size:11px;color:var(--ink)}.xy button{font:700 11px Arial;border:1px solid #cfd8e0;border-radius:5px;background:#fff;padding:2px 7px;cursor:pointer;margin-left:4px}
+.mpc{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px}.mpc .h{display:flex;gap:8px;align-items:center}.mpc i{width:14px;height:10px;border-radius:2px;display:inline-block}
+#tip{position:absolute;z-index:6;pointer-events:none;background:#fff;border:1px solid #cfd8e0;border-radius:6px;padding:5px 8px;font-size:11px;box-shadow:0 2px 8px #0002;display:none;max-width:260px}
+#tip b{color:var(--navy)}
+@media (max-width:860px){#app{grid-template-columns:1fr;grid-template-rows:62vh auto;height:auto;overflow:visible}#mapwrap{height:62vh}#sidebar{height:auto;border-left:0;border-top:1px solid var(--line)}}
+
+/* Ficha de Calle Universal: panel de detalle, sin tocar catastro ni geometrías */
+#projectDetail[hidden],#overviewPanel[hidden]{display:none!important}
+#projectDetail{font-size:12.5px;line-height:1.55;color:#243d46}
+#projectDetail .detail-return{background:none;border:0;color:#28666a;font-weight:750;font-size:12px;cursor:pointer;padding:0 0 16px;display:inline-flex;align-items:center;gap:6px}
+#projectDetail .detail-head{background:#17363b;color:#fff;border-radius:12px;overflow:hidden;padding:23px 21px 20px;position:relative}
+#projectDetail .detail-head:after{content:'';position:absolute;bottom:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#388A84 55%,#799B73 55%)}
+#projectDetail .detail-eyebrow{font-size:10px;letter-spacing:.13em;color:#b4dad2;font-weight:850;text-transform:uppercase}
+#projectDetail .detail-head h1{margin:10px 0 5px;font-size:32px;line-height:1.02;letter-spacing:-.035em;color:#fff;font-weight:900;text-transform:uppercase}
+#projectDetail .detail-head p{font-size:12px;color:#d3e5e5;line-height:1.5;margin:10px 0 0}
+#projectDetail .detail-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:13px 0 15px}
+#projectDetail .detail-stat{background:#edf4f2;border:1px solid #d8e5e1;border-radius:9px;padding:10px 8px}
+#projectDetail .detail-stat strong{font-size:20px;line-height:1.1;color:#17363b;display:block}
+#projectDetail .detail-stat span{font-size:10px;color:#5b7276;display:block;margin-top:3px}
+#projectDetail .detail-section-title{display:flex;align-items:center;gap:7px;margin:20px 0 9px;color:#17363b;letter-spacing:.035em;text-transform:uppercase;font-size:12px;font-weight:850}
+#projectDetail .detail-section-title::before{content:'';height:14px;width:4px;background:#388A84;border-radius:2px}
+#projectDetail .detail-table{width:100%;border-collapse:collapse;border-top:1px solid #dae5e6;font-size:12px;line-height:1.4}
+#projectDetail .detail-table td{border-bottom:1px solid #e7ecec;padding:7px 5px;vertical-align:top}
+#projectDetail .detail-table td:first-child{width:37%;color:#60767c;font-weight:650}
+#projectDetail .detail-summary{background:#f4f8f7;border-left:3px solid #388A84;padding:11px 12px;margin:10px 0;border-radius:3px;font-size:12px}
+#projectDetail .detail-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+#projectDetail .detail-pill{background:#e6f0ee;color:#2d6c66;font-size:10px;border:1px solid #caddd8;border-radius:99px;padding:4px 8px}
+#projectDetail .detail-warn{margin:11px 0 0;border:1px solid #e4dfcf;background:#fcfaf2;color:#746344;border-radius:8px;padding:10px 11px;font-size:11px}
+#projectDetail .detail-visual{margin:10px 0 15px;border:1px solid #dbe5e7;border-radius:10px;overflow:hidden;background:#fff}
+#projectDetail .detail-visual .visual-caption{padding:9px 11px;display:flex;justify-content:space-between;gap:8px;align-items:center;background:#f5f8f8}
+#projectDetail .detail-visual .visual-caption b{font-size:11px;color:#17363b}
+#projectDetail .detail-visual .visual-caption small{font-size:10px;color:#5c7174}
+#projectDetail .detail-visual a.preview-image{display:block;cursor:zoom-in}
+#projectDetail .detail-visual img{display:block;width:100%;height:auto;object-fit:contain}
+#projectDetail .detail-visual .detail-actions{padding:10px;display:flex;gap:7px;flex-wrap:wrap;border-top:1px solid #e7ecee}
+#projectDetail .detail-action{display:inline-block;border-radius:7px;background:#173b41;color:#fff;text-decoration:none;font-weight:800;font-size:11px;padding:8px 11px}
+#projectDetail .detail-action.alt{background:#f8fbfb;color:#173b41;border:1px solid #c9d8d9}
+#projectDetail .detail-foot{font-size:10.5px;color:#738386;border-top:1px solid #e1e7ed;padding:12px 0 8px;margin-top:17px}
+#projectDetail .reference-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:10px 0 14px}
+#projectDetail .reference-card{border:1px solid #dbe5e7;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+#projectDetail .reference-card img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:#eef3f3}
+#projectDetail .reference-body{padding:12px 12px 13px}
+#projectDetail .reference-topline{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6c7f84;font-weight:800;margin-bottom:4px}
+#projectDetail .reference-body h3{margin:0 0 5px;font-size:17px;line-height:1.15;color:#17363b}
+#projectDetail .reference-meta{font-size:11px;color:#7f5f3e;font-weight:700;margin-bottom:7px}
+#projectDetail .reference-body p{margin:0 0 9px;font-size:11.5px;color:#486064;line-height:1.5}
+#projectDetail .reference-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+#projectDetail .reference-tags span{background:#eef5f4;border:1px solid #d9e5e4;color:#24504c;border-radius:999px;font-size:10px;padding:4px 8px}
+#projectDetail .reference-link{display:inline-block;text-decoration:none;border-radius:7px;background:#173b41;color:#fff;font-weight:800;font-size:11px;padding:8px 11px}
+
+#openTechnicalSheet{width:100%;margin:9px 0 2px;background:#eaf3f0;color:#20544f;border:1px solid #b9d4cd}
+#mapwrap.project-view #map{cursor:crosshair}
+@media(max-width:860px){#projectDetail .detail-head h1{font-size:27px}}
+
+</style>
+<style>.lyr{position:static!important;max-width:none!important;display:flex;flex-wrap:wrap;gap:7px;padding:12px 0}.layer-panel{margin:16px 0;padding:14px;background:#f5f7fa;border:1px solid #dce3ea;border-radius:10px}.layer-panel>summary{cursor:pointer;font-weight:700}.lyr-leg{width:100%;font-size:11px;margin-top:8px}.lyr-leg div{display:flex;align-items:center;gap:7px;margin:4px 0}.lyr-leg span{display:inline-block;width:10px;height:10px;border-radius:50%}</style></head>
+<body>
+<div id="app">
+<div id="mapwrap"><div id="map"></div><div id="tip"></div>
+  <div class="tools">
+    <a class="home" href="05_propuestas_urbanas.html">← Propuestas urbanas</a>
+    <div class="seg"><button id="v3" class="on">3D</button><button id="v2">Planta</button></div>
+    <select id="basemap" aria-label="Mapa base"><option value="clara">Base clara</option><option value="sat">Satélite</option></select>
+    <button id="refit">Polígono completo</button>
+    
+  </div>
+</div>
+<aside id="sidebar"><details class="layer-panel" open><summary>Capas y leyendas</summary><div class="lyr" id="lyr"></div></details>
+<section id="projectDetail" hidden aria-live="polite">
+  <button id="projectBack" class="detail-return" type="button">← Volver al mapa general</button>
+  <header class="detail-head"><div class="detail-eyebrow">Plan maestro · Centro de Saltillo · Proyecto 04</div><h1>Calle<br>Universal</h1><p>Juan Aldama · De Cuauhtémoc a General Victoriano Cepeda</p></header>
+  <div class="detail-stats"><div class="detail-stat"><strong>1,284 m</strong><span>Longitud aproximada</span></div><div class="detail-stat"><strong>13</strong><span>Vértices del eje</span></div><div class="detail-stat"><strong>02</strong><span>Nodos de revisión</span></div></div>
+  <h2 class="detail-section-title">Plano de Calle Universal</h2>
+  <figure class="detail-visual"><div class="visual-caption"><b>Plano de ubicación georreferenciado</b><small>Vista general del corredor</small></div><a class="preview-image" href="assets/p04/P04_Plano_Calle_Universal.pdf" target="_blank" rel="noopener" title="Abrir plano a tamaño completo"><img loading="lazy" src="assets/p04/plano_calle_universal.png" alt="Plano de Calle Universal sobre catastro de Saltillo, desde Cuauhtémoc a General Victoriano Cepeda"></a><div class="detail-actions"><a class="detail-action" href="assets/p04/P04_Plano_Calle_Universal.pdf" target="_blank" rel="noopener">Ver plano completo ↗</a></div></figure>
+  <h2 class="detail-section-title">Ficha técnica del proyecto</h2>
+  <table class="detail-table"><tbody>
+    <tr><td>Nombre conceptual</td><td><strong>Calle Universal</strong></td></tr>
+    <tr><td>Nombre oficial</td><td>04. Calle Peatonal Aldama</td></tr>
+    <tr><td>Responsable</td><td>Diane Valeria de León González</td></tr>
+    <tr><td>Ubicación</td><td>Juan Aldama, Centro Histórico de Saltillo, Coahuila</td></tr>
+    <tr><td>Delimitación</td><td>Cuauhtémoc a General Victoriano Cepeda</td></tr>
+    <tr><td>Longitud del eje</td><td>Aprox. 1,284 metros lineales, calculados con 13 coordenadas del proyecto</td></tr>
+    <tr><td>Intervención</td><td>Regeneración vial y espacio público con prioridad peatonal</td></tr>
+    <tr><td>Coordinación</td><td>09 Movilidad, 13 Seguridad peatonal, 14 Infraestructura verde, 12 Imagen urbana</td></tr>
+    <tr><td>Vivienda vinculada</td><td>Patio Entre Calles · Lote 32453 (según kit)</td></tr>
+    <tr><td>Estado</td><td>Anteproyecto territorial en desarrollo</td></tr>
+  </tbody></table>
+  <div class="detail-summary"><b>Objetivo del proyecto.</b> Transformar Juan Aldama en un corredor accesible, seguro y confortable, conectado con comercio, vivienda y espacio público, conservando los accesos necesarios para carga, servicios y emergencias.</div>
+  <h2 class="detail-section-title">Intervenciones consideradas</h2>
+  <div class="detail-pills"><span class="detail-pill">Banquetas accesibles</span><span class="detail-pill">Rampas y pavimento podotáctil</span><span class="detail-pill">Cruces seguros</span><span class="detail-pill">Luminarias</span><span class="detail-pill">Bancas</span><span class="detail-pill">Papeleras</span><span class="detail-pill">Vegetación y sombra</span><span class="detail-pill">Bicicleteros</span><span class="detail-pill">Contactos protegidos</span><span class="detail-pill">Estancias vinculadas con comercios</span></div>
+  <div class="detail-warn"><b>Alcance verificado:</b> eje y extremos georreferenciados. Los cruces, dimensiones y ubicaciones de mobiliario son propuestas pendientes de levantamiento. La ficha requiere dos indicadores del atlas con sus páginas.</div>
+  <h2 class="detail-section-title">Ficha técnica · PDF</h2>
+  <figure class="detail-visual"><div class="visual-caption"><b>Ficha de proyecto urbano</b><small>Una cuartilla · preliminar</small></div><a class="preview-image" href="assets/p04/P04_Ficha_Tecnica_Calle_Universal.pdf" target="_blank" rel="noopener" title="Abrir ficha técnica"><img loading="lazy" src="assets/p04/ficha_calle_universal.png" alt="Ficha técnica de Calle Universal con datos generales, justificación y objetivos"></a><div class="detail-actions"><a class="detail-action" href="assets/p04/P04_Ficha_Tecnica_Calle_Universal.pdf" target="_blank" rel="noopener">Abrir ficha PDF ↗</a><a class="detail-action alt" href="assets/p04/P04_Plano_Calle_Universal.pdf" target="_blank" rel="noopener">Plano PDF ↗</a></div></figure>
+
+  <h2 class="detail-section-title">Proyectos similares / referencias</h2>
+  <div class="reference-grid">
+    <article class="reference-card">
+      <img loading="lazy" src="https://distritoarmida.com/wp-content/uploads/2019/10/proyecto-distrito-armida-vista-banner-1.jpg" alt="Distrito Armida, referencia oficial de desarrollo urbano de usos mixtos en San Pedro">
+      <div class="reference-body">
+        <div class="reference-topline">Referencia oficial</div>
+        <h3>Distrito Armida</h3>
+        <div class="reference-meta">San Pedro Garza García, NL · usos mixtos</div>
+        <p>Referencia para mezcla de usos, recorridos peatonales cortos, centralidad urbana y una experiencia de barrio compacto con comercio, oficinas, hotel y vivienda.</p>
+        <div class="reference-tags"><span>Ciudad compacta</span><span>Usos mixtos</span><span>Conectividad</span></div>
+        <a class="reference-link" href="https://distritoarmida.com/proyecto/" target="_blank" rel="noopener">Ver referencia oficial ↗</a>
+      </div>
+    </article>
+    <article class="reference-card">
+      <img loading="lazy" src="assets/p04/ref_parque_centro_card.png" alt="Ficha visual de referencia del proyecto Parque Centro de Arista Design">
+      <div class="reference-body">
+        <div class="reference-topline">Referencia oficial</div>
+        <h3>Parque Centro</h3>
+        <div class="reference-meta">Saltillo, Coahuila · ARISTA Design</div>
+        <p>Referencia local para articular espacio público, vialidades y mezcla de actividades en un plan maestro urbano que fortalece la imagen urbana y la caminabilidad.</p>
+        <div class="reference-tags"><span>Saltillo</span><span>Plan maestro</span><span>Espacio público</span></div>
+        <a class="reference-link" href="https://aristadesign.com/portfolio/parque-centro/" target="_blank" rel="noopener">Abrir caso oficial ↗</a>
+      </div>
+    </article>
+    <article class="reference-card">
+      <img loading="lazy" src="assets/p04/ref_distrito_tec_card.png" alt="Ficha visual de referencia del proyecto Distrito Tec en Monterrey">
+      <div class="reference-body">
+        <div class="reference-topline">Referencia institucional</div>
+        <h3>Distrito Tec</h3>
+        <div class="reference-meta">Monterrey, NL · regeneración urbana</div>
+        <p>Referencia por su enfoque en seguridad peatonal, proximidad, movilidad activa y fortalecimiento de la vida cotidiana entre equipamientos, vivienda y servicios.</p>
+        <div class="reference-tags"><span>Movilidad activa</span><span>Entorno universitario</span><span>Vida de barrio</span></div>
+        <a class="reference-link" href="https://implancmty.org/" target="_blank" rel="noopener">Ver referencia institucional ↗</a>
+      </div>
+    </article>
+  </div>
+  <p class="detail-foot">Fuente del plano: kit cartográfico del Grupo 601 y coordenadas proporcionadas por la responsable. Representación conceptual, no proyecto ejecutivo. El catastro y los prototipos originales del mapa se conservan.</p>
+</section>
+<section id="overviewPanel">
+  <div class="kicker"><a href="https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/index.html" target="_blank">← Plataforma de Análisis Urbano</a></div>
+  <div class="kicker" style="margin-top:8px">05 Estrategias · Propuestas de proyectos urbanos</div>
+  <h1>04 · Calle Universal</h1>
+  <p class="lead">Diane Valeria de León González</p>
+  
+  
+  <div style="display:none"><h2>Color de los lotes</h2>
+  <div class="ctl"><select id="view"><option value="neu">Neutro</option><option value="ua">Uso actual según catastro</option><option value="zon">Zonificación PDDU 2020</option><option value="apr">Aprovechamiento del CUS permitido</option></select>
+  <div class="leg" id="vleg"></div>
+  <label style="margin-top:8px">Opacidad de los volúmenes <input type="range" id="op" min="15" max="100" value="100" style="flex:1"></label></div>
+  <p class="note">Toca un lote para ver su ficha catastral y normativa. Para filtrar, sumar lotes o comparar con cortina usa <a href="https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/08_catastro_lotes.html" target="_blank">Catastro y normativa por lote</a>.</p></div>
+  <h2>Capas de la propuesta</h2>
+  <div id="mpLeg"></div>
+  <button type="button" id="openTechnicalSheet" class="btn">Ver ficha técnica y plano →</button>
+  <p style="margin:10px 0 0"><button class="btn" id="mpDl">Descargar GeoJSON de mi proyecto</button></p>
+  <div id="list" style="display:none"></div>
+  <h2>Fuentes</h2>
+  <p class="note">Lotes, usos y normativa del visor catastral municipal y del PDDU Saltillo 2020, sin datos fiscales. Alturas del contexto estimadas con la superficie construida de la ficha, 3 m por nivel; lotes sin ficha a un nivel. Paradas y ruta troncal, ciclovías propuestas por el PDDU sobre arroyos, escuelas por nivel educativo del SHP actualizado, patrimonio del atlas. Mapa base Esri.</p>
+  <p class="note" style="margin-top:14px">Docencia y acompañamiento en análisis geoespacial y cartografía interactiva · Juana Isabel Méndez Garduño</p>
+</section>
+</aside>
+</div>
+<script src="data/area_estudio.js"></script>
+<script src="data/lotes_catastro.js"></script>
+<script src="data/capas_urbanas_base.js"></script>
+<script id="mi-proyecto">
+/* =====================================================================
+   MI PROYECTO
+   Aquí, y solo aquí, se agrega tu proyecto urbano. El resto del archivo
+   dibuja la ciudad, el catastro y los prototipos de vivienda; no lo cambies.
+
+   Llena proyecto y alumno, y agrega una entrada en "capas" por cada tipo
+   de elemento de tu propuesta. Cada capa lleva
+     nombre       texto que aparece en la leyenda del panel
+     color        color en hexadecimal, por ejemplo '#e4572e'
+     descripcion  qué representa la capa
+     ancho        (opcional) grosor de las líneas, en píxeles
+     altura       (opcional) metros para levantar en 3D polígonos o lotes
+     elementos    lista; cada elemento es UNO de estos cuatro tipos
+       { nombre:'...', descripcion:'...', punto:[lon, lat] }
+       { nombre:'...', descripcion:'...', linea:[[lon, lat], [lon, lat], ...] }
+       { nombre:'...', descripcion:'...', poligono:[[lon, lat], [lon, lat], [lon, lat], ...] }
+       { nombre:'...', descripcion:'...', lotes:[8125, 8130] }   // ID Carto del catastro
+
+   Las coordenadas salen del mapa. Al tocar cualquier punto aparece
+   [lon, lat] con un botón para copiarlas. Al tocar un lote aparece su ID Carto.
+   Las coordenadas van en grados decimales, primero longitud (cerca de -101.0)
+   y luego latitud (cerca de 25.4).
+   ===================================================================== */
+window.MI_PROYECTO = {
+  proyecto: '04. Calle Universal',
+  alumno: 'Diane Valeria de León González',
+  capas: [
+    {
+      nombre: "Eje de intervención y movilidad",
+      color: '#388A84',
+      descripcion: "Recorrido completo de Juan Aldama entre Cuauhtémoc y General Victoriano Cepeda. Longitud calculada sobre 13 puntos: aproximadamente 1,284 m.",
+      elementos: [
+        {
+          nombre: "Calle Universal · eje de Juan Aldama",
+          descripcion: "Corredor Calle Universal, de acceso peatonal prioritario. Los 13 vértices fueron aportados por la responsable; representa una línea de intervención, no la sección construida.",
+          linea: [[-101.008562, 25.427005], [-101.006934, 25.426306], [-101.006044, 25.425907], [-101.004636, 25.425218], [-101.002972, 25.424454], [-101.002325, 25.424160], [-101.001500, 25.423772], [-101.000982, 25.423577], [-101.000245, 25.423290], [-100.999606, 25.422970], [-100.998898, 25.422540], [-100.998401, 25.422190], [-100.997362, 25.421515]]
+        }
+      ]
+    },
+    {
+      nombre: "Nodos de acceso y seguridad peatonal",
+      color: '#BC815D',
+      descripcion: "Puntos terminales aportados por la responsable para evaluar accesibilidad, rampas, pavimento podotáctil, cruces seguros y continuidad de banqueta; NO son ubicaciones ejecutivas de obra.",
+      elementos: [
+        {
+          nombre: "Acceso Aldama–Cuauhtémoc",
+          descripcion: "Intersección de inicio identificada por la responsable. Punto de revisión para cruces, rampas, guía podotáctil y gestión de accesos; geometría y solución pendientes.",
+          punto: [-101.008562, 25.427005]
+        },
+        {
+          nombre: "Acceso Aldama–General Victoriano Cepeda",
+          descripcion: "Intersección final identificada por la responsable. Punto de revisión para cruces, rampas y continuidad accesible; geometría y solución pendientes.",
+          punto: [-100.997362, 25.421515]
+        }
+      ]
+    },
+    {
+      nombre: "Mobiliario y servicios de calle",
+      color: '#63839D',
+      descripcion: "Bancas, luminarias peatonales, cestos, bicicleteros, contactos eléctricos protegidos y espacios de comida: pendiente de ubicar después del inventario.",
+      elementos: [
+      ]
+    },
+    {
+      nombre: "Infraestructura verde y confort",
+      color: '#799B73',
+      descripcion: "Arbolado, jardineras, drenaje sostenible y espacios permeables: sólo se ubicarán al verificar aceras, subsuelo, patrimonio y accesibilidad.",
+      elementos: [
+      ]
+    },
+    {
+      nombre: "Estancia y vinculación urbana",
+      color: '#AA7687',
+      descripcion: "Puntos de estancia, mesas donde exista actividad compatible y conexión con vivienda/comercio: pendientes de coordinación y ubicación.",
+      elementos: [
+      ]
+    }
+  ]
+};
+</script>
+<script>
+(function(){
+const MODE='base';
+const D=window.LOTES, C=D.cols, DIC=D.dic, N=D.n, [LON0,LAT0]=D.origen;
+const fmt=(v,d=0)=>v==null||v===''?'—':Number(v).toLocaleString('es-MX',{maximumFractionDigits:d,minimumFractionDigits:0});
+const dic=(f,i)=>DIC[f][i]||'';
+const UA_COL={'Habitación':'#f7d774','Comercio':'#e03131','Servicios y turismo':'#f06595','Equipamiento':'#1c7ed6','Áreas verdes y plazas':'#40c057','Industria, bodegas y talleres':'#9c36b5','Infraestructura':'#868e96','Estacionamiento':'#74c0fc','Baldío':'#0b7285','Sin construcción registrada':'#66d9e8','Sin información de uso':'#ced4da','Sin ficha catastral':'#e9ecef'};
+const ZN={'H0.5':['Habitacional campestre','#fff3b0'],'H1':['Habitacional densidad muy baja','#fff3b0'],'H2':['Habitacional densidad baja','#ffe066'],'H3':['Habitacional densidad media','#fcc419'],'H3.3':['Habitacional densidad media baja','#ffe066'],'H3.7':['Habitacional densidad intermedia','#fab005'],'H4':['Habitacional densidad media alta','#f59f00'],'H5':['Habitacional densidad alta','#e67700'],'CU1':['Corredor urbano habitacional y comercial','#f783ac'],'CU2':['Corredor urbano hab., comercial y servicios','#e64980'],'CU3':['Corredor urbano hab., comercial y servicios 3','#a61e4d'],'CU':['Centro urbano','#d6336c'],'SCU':['Subcentro urbano','#c2255c']};
+const E3_COL={"Habitacional Densidad Muy Baja": "#fff3b0", "Habitacional Densidad Baja": "#ffe066", "Habitacional Densidad Media": "#fcc419", "Habitacional Densidad Media Alta": "#f59f00", "Habitacional Densidad Alta": "#e67700", "Corredor Urbano (Hab/Com)": "#f783ac", "Corredor Urbano 2 (Hab/Com/Serv)": "#e64980", "Corredor Urbano 3 (Hab/Com/Serv)": "#a61e4d", "Comercio y Abasto": "#c92a2a", "Equipamiento": "#1971c2", "Recreativo y Áreas Verdes": "#37b24d", "Parque Lineal": "#8ce99a", "Industria Ligera": "#9c36b5", "Industria Extractiva": "#5f3dc4", "Bodegas y Talleres": "#b197fc", "Infraestructura": "#868e96", "Sin clasificación": "#dee2e6"};
+const APR_COL={'Sin construcción':'#08415c','Usa menos de 25% del CUS':'#0b7285','Usa 25 a 50% del CUS':'#3bc9db','Usa 50 a 100% del CUS':'#c5f6fa','Rebasa el CUS permitido':'#862e9c','Condominio revisar':'#ffd8a8','Norma sin CUS (CU, SCU u otro uso)':'#e9ecef','Sin dato de construcción':'#f8f9fa'};
+const VIEWS={
+ ua:{name:'Uso actual según catastro',cat:i=>dic('ua',C.ua[i]),col:k=>UA_COL[k]||'#ccc',order:Object.keys(UA_COL)},
+ zon:{name:'Zonificación PDDU 2020',cat:i=>{const z=dic('zn',C.zn[i]);return z?z:'E3 · '+dic('ze',C.ze[i]);},col:k=>ZN[k]?ZN[k][1]:(E3_COL[k.replace('E3 · ','')]||'#dee2e6'),label:k=>ZN[k]?k+' · '+ZN[k][0]:k.replace('E3 · ','')+' (sin tabla, mapa E3)',order:Object.keys(ZN)},
+ apr:{name:'Aprovechamiento del CUS permitido',cat:i=>dic('apr',C.apr[i]),col:k=>APR_COL[k]||'#e9ecef',order:Object.keys(APR_COL)}
+};
+function efect(i){const cos=C.cos[i],cav=C.cav[i],cus=C.cusm[i],a=C.a[i];if(cos==null&&cus==null)return null;
+ const cosE=cos!=null?(cav!=null?Math.min(cos,1-cav):cos):null;let cusE=cus,lim='';
+ if(C.alt[i]!=null&&cus!=null&&cosE!=null){const nv=Math.floor(C.alt[i]/3);const c2=+(cosE*nv).toFixed(2);if(c2<cus){cusE=c2;lim='altura '+fmt(C.alt[i],1)+' m, '+nv+' niveles';}}
+ return {cos,cus,cav,cosE,cusE,lim,desp:cosE!=null?a*cosE:null,cons:cusE!=null?a*cusE:null,libre:cosE!=null?a*(1-cosE):null};}
+function ficha(i){const id=C.id[i],zn=dic('zn',C.zn[i]),alt=C.alt[i]!=null?fmt(C.alt[i],1)+' m':(dic('alt_t',C.alt_t[i])||'—');
+ const rows=(t,arr)=>`<tr><td colspan="2" class="sec">${t}</td></tr>`+arr.filter(r=>r[1]!==undefined).map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+ let h=`<div class="pop"><h4>${id?'Lote '+id:'Lote sin ID Carto'}</h4><div class="sub">${C.ub[i]||'Sin ubicación en ficha'} · Manzana ${dic('mz',C.mz[i]).slice(-7)}</div><table>`;
+ h+=rows('Situación actual (catastro)',[['Uso actual',dic('ua',C.ua[i])],['Uso en la ficha',dic('uf',C.uf[i])||'—'],['Tipo de uso del predio',dic('tu',C.tu[i])||'—'],['Superficie del polígono',fmt(C.a[i],1)+' m²'],['Terreno según ficha',C.st[i]!=null?fmt(C.st[i],1)+' m²':'—'],['Construcción según ficha',C.sc[i]!=null?fmt(C.sc[i],1)+' m²':'—'],['CUS actual',C.cus[i]!=null?fmt(C.cus[i],2):'—'],['Niveles estimados',C.ne[i]!=null?fmt(C.ne[i]):'sin dato'],['Altura estimada',C.he[i]!=null?fmt(C.he[i],1)+' m':'sin dato'],['Confianza de la estimación',dic('conf',C.conf[i])||'—']]);
+ h+=rows('Normativa PDDU 2020',[['Zona',zn?zn+(ZN[zn]?' · '+ZN[zn][0]:''):'Sin tabla ('+dic('ze',C.ze[i])+')'],['Fuente de la zona',dic('fzn',C.fzn[i])||'—'],['COS máximo',fmt(C.cos[i],2)],['CUS máximo',fmt(C.cusm[i],2)+(C.cuse[i]!=null?' (efectivo por altura '+fmt(C.cuse[i],2)+')':'')],['CAS o CAV mínimo',fmt(C.cav[i],2)],['Densidad máxima',C.dens[i]!=null?fmt(C.dens[i])+' viv/ha':'—'],['COS efectivo respetando CAV',efect(i)&&efect(i).cosE!=null?fmt(efect(i).cosE,2)+' · desplante '+fmt(efect(i).desp)+' m²':'—'],['CUS efectivo',efect(i)&&efect(i).cusE!=null?fmt(efect(i).cusE,2)+' · '+fmt(efect(i).cons)+' m² construibles':'—'],['Niveles de referencia',fmt(C.niv[i])],['Altura máxima',alt],['Sección vial colindante',C.sv[i]!=null?fmt(C.sv[i],1)+' m':undefined],['Remetimientos',dic('rem',C.rem[i])||'—'],['Nota',dic('nn',C.nn[i])||undefined]]);
+ h+=rows('Potencial',[['Viviendas máximas en el lote',fmt(C.vmax[i])],['Potencial construible',C.pot[i]!=null?fmt(C.pot[i])+' m²':'—'],['Aprovechamiento del CUS',C.aprp[i]!=null?fmt(C.aprp[i])+'%':'—']]);
+ h+='</table>';
+ if(C.rp[i])h+=`<div class="flag"><b>Requiere revisión patrimonial.</b> ${C.ch[i]?'Sector catastral Centro Histórico. ':''}${C.pat[i]?'Elemento del atlas de patrimonio en el lote: '+C.pat[i]+'.':''}</div>`;
+ if(C.tp[i])h+='<div class="flag" style="border-color:#e8590c;background:#fff4e6">Condominio. La ficha puede registrar solo la parte privativa.</div>';
+ if(C.dif[i]!=null&&Math.abs(C.dif[i])>10)h+=`<div class="flag" style="border-color:#868e96;background:#f8f9fa">El polígono y la ficha difieren ${fmt(C.dif[i])}% en superficie.</div>`;
+ return h+'</div>';}
+const NEU='#d3d7db';
+VIEWS.neu={name:'Neutro',cat:i=>'Contexto construido',col:k=>NEU,order:['Contexto construido']};
+// ---------- lotes en lon/lat ----------
+const HIDE=new Set(window.VIVIENDA?VIVIENDA.hide:[]);
+function dec(r){const o=[];let x=0,y=0;for(let k=0;k<r.length;k+=2){x+=r[k];y+=r[k+1];o.push([+(LON0+x/1e6).toFixed(6),+(LAT0+y/1e6).toFixed(6)]);}if(o.length&&(o[0][0]!==o[o.length-1][0]||o[0][1]!==o[o.length-1][1]))o.push(o[0]);return o;}
+const LF=[];
+for(let i=0;i<N;i++){const ua=dic('ua',C.ua[i]);const flat=ua==='Áreas verdes y plazas'||C.a[i]>8000;
+  const h=flat?0.3:(C.he[i]!=null?C.he[i]:3);
+  LF.push({type:'Feature',id:i,properties:{i,h,hide:HIDE.has(i)?1:0,ua:VIEWS.ua.col(VIEWS.ua.cat(i)),zon:VIEWS.zon.col(VIEWS.zon.cat(i)),apr:VIEWS.apr.col(VIEWS.apr.cat(i))},geometry:{type:'MultiPolygon',coordinates:C.geom[i].map(p=>p.map(dec))}});}
+const LOTS={type:'FeatureCollection',features:LF};
+// ---------- mapa ----------
+const ESRI='https://server.arcgisonline.com/ArcGIS/rest/services/';
+const style={version:8,sources:{
+  clara:{type:'raster',tiles:[ESRI+'Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:16,attribution:'Tiles © Esri, HERE, Garmin, USGS, NGA, EPA, NPS'},
+  claraRef:{type:'raster',tiles:[ESRI+'Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:16},
+  sat:{type:'raster',tiles:[ESRI+'World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:19,attribution:'Tiles © Esri, Maxar, Earthstar Geographics'},
+  satRef:{type:'raster',tiles:[ESRI+'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:19}},
+ layers:[{id:'bg',type:'background',paint:{'background-color':'#e9ecef'}},
+  {id:'clara',type:'raster',source:'clara'},{id:'sat',type:'raster',source:'sat',layout:{visibility:'none'}},
+  {id:'claraRef',type:'raster',source:'claraRef'},{id:'satRef',type:'raster',source:'satRef',layout:{visibility:'none'},paint:{'raster-opacity':.85}}]};
+const AREA=window.ATLAS_COMUN.base.area;
+let bb=[180,90,-180,-90];const walk=a=>{if(typeof a[0]==='number'){bb=[Math.min(bb[0],a[0]),Math.min(bb[1],a[1]),Math.max(bb[2],a[0]),Math.max(bb[3],a[1])];}else a.forEach(walk);};AREA.features.forEach(f=>walk(f.geometry.coordinates));
+const map=new maplibregl.Map({container:'map',style,bounds:[[bb[0],bb[1]],[bb[2],bb[3]]],fitBoundsOptions:{padding:30},pitch:50,bearing:-18,maxPitch:75,attributionControl:{compact:true},preserveDrawingBuffer:true});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
+map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-right');
+window._map=map;
+const U=window.URBANO, V=window.VIVIENDA;
+let view='neu', is3d=true, OP=100/100;
+const colExpr=v=>v==='neu'?['case',['==',['get','ua'],'#40c057'],'#7cc576',NEU]:['get',v];
+const lotFilter=()=>window.VIVIENDA?['==',['get','hide'],0]:['all'];
+let _init=false;const init=()=>{if(_init)return;_init=true;
+  map.addSource('lots',{type:'geojson',data:LOTS});
+  map.addSource('area',{type:'geojson',data:AREA});
+  for(const k of ['green','stops','schools','heritage','cycle','aqv'])map.addSource(k,{type:'geojson',data:U[k]});
+  // suelo
+  map.addLayer({id:'green',type:'fill',source:'green',paint:{'fill-color':'#6fbf73','fill-opacity':.7}});
+  if(V){map.addSource('vopen',{type:'geojson',data:V.open});map.addSource('vlots',{type:'geojson',data:V.lots});map.addSource('vbld',{type:'geojson',data:V.bld});map.addSource('vconf',{type:'geojson',data:V.conf});
+    map.addLayer({id:'vlotsF',type:'fill',source:'vlots',paint:{'fill-color':['get','c'],'fill-opacity':.16}});
+    map.addLayer({id:'vopen',type:'fill',source:'vopen',paint:{'fill-color':['get','c'],'fill-opacity':.95}});}
+  map.addLayer({id:'aqv',type:'line',source:'aqv',paint:{'line-color':'#e03131','line-width':['interpolate',['linear'],['zoom'],13,2,17,6],'line-opacity':.55}});
+  map.addLayer({id:'cycle',type:'line',source:'cycle',paint:{'line-color':'#00b4d8','line-width':['interpolate',['linear'],['zoom'],13,2,17,5]}});
+  // volúmenes del contexto
+  map.addLayer({id:'lots3d',type:'fill-extrusion',source:'lots',filter:lotFilter(),paint:{'fill-extrusion-color':colExpr(view),'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':OP,'fill-extrusion-vertical-gradient':true}});
+  map.addLayer({id:'lotsLine',type:'line',source:'lots',filter:lotFilter(),minzoom:15,paint:{'line-color':'#5c6670','line-width':.4,'line-opacity':.45}});
+  map.addLayer({id:'area',type:'line',source:'area',paint:{'line-color':'#0f3557','line-width':1,'line-opacity':.6}});
+  if(V){map.addLayer({id:'vlotsL',type:'line',source:'vlots',paint:{'line-color':['get','c'],'line-width':2.2}});
+    map.addLayer({id:'vbld',type:'fill-extrusion',source:'vbld',paint:{'fill-extrusion-color':['get','c'],'fill-extrusion-height':['get','h'],'fill-extrusion-base':['get','b'],'fill-extrusion-opacity':1,'fill-extrusion-vertical-gradient':true}});
+    map.addLayer({id:'vconfF',type:'fill-extrusion',source:'vconf',paint:{'fill-extrusion-color':'#b3261e','fill-extrusion-height':22,'fill-extrusion-opacity':.18}});
+    map.addLayer({id:'vconfL',type:'line',source:'vconf',paint:{'line-color':'#b3261e','line-width':3,'line-dasharray':[2,1]}});}
+  map.addLayer({id:'schools',type:'circle',source:'schools',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2.5,17,6],'circle-color':['coalesce',['get','color'],'#1c64d8'],'circle-stroke-color':'#fff','circle-stroke-width':1}});
+  map.addLayer({id:'stops',type:'circle',source:'stops',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,3,17,7],'circle-color':'#e03131','circle-stroke-color':'#fff','circle-stroke-width':1.2}});
+  map.addLayer({id:'heritage',type:'circle',source:'heritage',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2,17,5],'circle-color':'#d39b1d','circle-stroke-color':'#fff','circle-stroke-width':.8}});
+  buildLayerButtons(); legendView(); if(V) masterSetup(); MINE.init();
+  const hk=decodeURIComponent(location.hash.slice(1)); if(V&&hk)setTimeout(()=>focusSt(hk),600);
+};
+map.on('style.load',()=>setTimeout(init,0));map.on('load',init);
+// ---------- vista ----------
+const $=id=>document.getElementById(id);
+function set3d(on){is3d=on;$('v3').classList.toggle('on',on);$('v2').classList.toggle('on',!on);
+  map.easeTo({pitch:on?55:0,bearing:on?-18:0,duration:700});
+  map.setPaintProperty('lots3d','fill-extrusion-height',on?['get','h']:0.1);}
+$('v3').onclick=()=>set3d(true);$('v2').onclick=()=>set3d(false);
+$('refit').onclick=()=>map.fitBounds([[bb[0],bb[1]],[bb[2],bb[3]]],{padding:30,pitch:is3d?50:0,bearing:is3d?-18:0});
+$('basemap').onchange=e=>{const s=e.target.value==='sat';map.setLayoutProperty('clara','visibility',s?'none':'visible');map.setLayoutProperty('claraRef','visibility',s?'none':'visible');map.setLayoutProperty('sat','visibility',s?'visible':'none');map.setLayoutProperty('satRef','visibility',s?'visible':'none');};
+$('view').value=view;
+$('view').onchange=e=>{view=e.target.value;map.setPaintProperty('lots3d','fill-extrusion-color',colExpr(view));legendView();};
+$('op').oninput=e=>{OP=e.target.value/100;map.setPaintProperty('lots3d','fill-extrusion-opacity',OP);};
+function legendView(){const V_=VIEWS[view];const cnt={};for(let i=0;i<N;i++){if(HIDE.has(i))continue;const k=V_.cat(i);cnt[k]=(cnt[k]||0)+1;}
+  const keys=Object.keys(cnt).sort((a,b)=>{const ia=V_.order.indexOf(a),ib=V_.order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||cnt[b]-cnt[a];});
+  $('vleg').innerHTML=keys.map(k=>`<div><i style="--c:${V_.col(k)}"></i>${V_.label?V_.label(k):k} <span style="color:var(--muted)">${fmt(cnt[k])}</span></div>`).join('');}
+const LYR=[['green','Áreas verdes','#6fbf73',['green']],['schools','Escuelas','#1c64d8',['schools']],['stops','Paradas y troncal','#e03131',['stops','aqv']],['cycle','Ciclovía propuesta','#00b4d8',['cycle']],['heritage','Patrimonio','#d39b1d',['heritage']],['area','Manzanas','#0f3557',['area']]];
+function buildLayerButtons(){const box=$('lyr');LYR.forEach(([k,t,c,ids])=>{const b=document.createElement('button');b.className='on';b.style.setProperty('--c',c);b.innerHTML=`<i></i>${t}`;
+  b.onclick=()=>{const on=!b.classList.contains('on');b.classList.toggle('on',on);ids.forEach(id=>map.setLayoutProperty(id,'visibility',on?'visible':'none'));};box.appendChild(b);});}
+// ---------- interacción ----------
+const tip=$('tip');
+map.on('mousemove','lots3d',e=>{const i=e.features[0].properties.i;tip.style.display='block';tip.style.left=(e.point.x+14)+'px';tip.style.top=(e.point.y+10)+'px';
+  tip.innerHTML=`<b>${C.id[i]?'Lote '+C.id[i]:'Lote sin ID'}</b><br>${C.ub[i]||''}<br>${dic('ua',C.ua[i])} · ${dic('zn',C.zn[i])||dic('ze',C.ze[i])} · ${fmt(C.a[i])} m² · ${C.ne[i]!=null?C.ne[i]+' niv. est.':'sin ficha'}`;map.getCanvas().style.cursor='pointer';});
+map.on('mouseleave','lots3d',()=>{tip.style.display='none';map.getCanvas().style.cursor='';});
+const popup=new maplibregl.Popup({maxWidth:'340px'});
+// El panel derecho se sustituye por la ficha sin alterar la base cartográfica.
+function showProjectDetail(feature){
+  popup.remove();
+  $('projectDetail').hidden=false;
+  $('overviewPanel').hidden=true;
+  $('sidebar').scrollTop=0;
+  $('mapwrap').classList.add('project-view');
+  if(map.getLayer('mp_0_l')) map.setPaintProperty('mp_0_l','line-width',['interpolate',['linear'],['zoom'],13,4,17,9]);
+}
+function closeProjectDetail(){
+  $('projectDetail').hidden=true;
+  $('overviewPanel').hidden=false;
+  $('sidebar').scrollTop=0;
+  $('mapwrap').classList.remove('project-view');
+  if(map.getLayer('mp_0_l')) map.setPaintProperty('mp_0_l','line-width',['interpolate',['linear'],['zoom'],13,2.25,17,6.5]);
+}
+$('projectBack').addEventListener('click',closeProjectDetail);
+$('openTechnicalSheet').addEventListener('click',()=>showProjectDetail());
+
+const XY=ll=>{const t='['+ll.lng.toFixed(6)+', '+ll.lat.toFixed(6)+']';return `<div class="xy">Coordenadas lon, lat <code>${t}</code> <button onclick="try{navigator.clipboard.writeText('${t}');this.textContent='Copiado'}catch(e){}">Copiar</button></div>`;};
+map.on('click',e=>{const q=map.queryRenderedFeatures(e.point).filter(f=>!['clara','sat','claraRef','satRef','bg'].includes(f.layer.id));if(!q.length){popup.setLngLat(e.lngLat).setHTML('<div class="pop">'+XY(e.lngLat)+'</div>').addTo(map);return;}const f=q[0];tip.style.display='none';
+  const mf=q.find(qf=>qf.layer.id.startsWith('mp_'));
+  if(mf){showProjectDetail(mf.properties);return;}
+  if(f.layer.id==='vbld'){const p=f.properties,s=V.meta.find(m=>m.key===p.k);popup.setLngLat(e.lngLat).setHTML(`<div class="pop"><h4>${s.full}</h4><div class="sub">${s.title}</div><table><tr><td>Elemento</td><td>${p.t||'—'}</td></tr><tr><td>Altura</td><td>${fmt(p.b,1)} a ${fmt(p.h,1)} m</td></tr><tr><td>Lotes</td><td>${s.ids.join(' + ')}${s.nsf?' + '+s.nsf+' sin ficha':''}</td></tr></table>${s.page.startsWith('05_masterplan')?'':`<p style="margin:8px 0 0"><a href="https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/${s.page}" target="_blank">Ver propuesta completa →</a></p>`}${XY(e.lngLat)}</div>`).addTo(map);return;}
+  if(f.layer.id==='lots3d'){popup.setLngLat(e.lngLat).setHTML(ficha(f.properties.i)+XY(e.lngLat)).addTo(map);return;}
+  const P=f.properties;const nm={schools:'Escuela',stops:'Parada de transporte',heritage:'Patrimonio',green:'Área verde',cycle:'Ciclovía propuesta (PDDU)',aqv:'Ruta troncal'}[f.layer.id];
+  if(nm)popup.setLngLat(e.lngLat).setHTML(`<div class="pop"><h4>${P.n||nm}</h4><div class="sub">${nm}${P.t?' · '+P.t:''}${P.r?' · '+P.r:''}</div>${XY(e.lngLat)}</div>`).addTo(map);});
+// ---------- prototipos de vivienda ----------
+const tags={};
+function focusSt(k){const s=V.meta.find(m=>m.key===k);if(!s)return;document.querySelectorAll('.st').forEach(r=>r.classList.toggle('sel',r.dataset.k===k));
+  map.flyTo({center:s.c,zoom:18.7,pitch:is3d?60:0,bearing:is3d?-25:0,duration:1400});}
+function masterSetup(){
+  let L=0,A=0,Cc=0;const list=$('list');
+  V.meta.forEach(s=>{L+=s.ids.length+s.nsf;A+=s.m.At;Cc+=s.m.Ac;
+    const el=document.createElement('div');el.className='tag';el.style.setProperty('--c',s.color);
+    el.innerHTML=`<div class="box">${s.name}<small>${s.ids.join(' + ')}${s.nsf?' + '+s.nsf+' s/f':''}</small></div><div class="stem"></div>`;
+    el.onclick=ev=>{ev.stopPropagation();focusSt(s.key);};
+    tags[s.key]=new maplibregl.Marker({element:el,anchor:'bottom-left'}).setLngLat(s.c).addTo(map);
+    const leg=s.legend.map(e=>`<span><i style="background:${e.c}"></i>${e.t}${e.m2==null?'':' · '+fmt(e.m2)+' m²'}</span>`).join('');
+    const r=document.createElement('div');r.className='st';r.dataset.k=s.key;r.style.setProperty('--c',s.color);
+    r.innerHTML=`<input type="checkbox" checked title="Mostrar u ocultar"><div><div class="nm">${s.full}</div><div class="tt">${s.title}</div><div class="ids">Lotes ${s.ids.join(' + ')}${s.nsf?' + '+s.nsf+' sin ficha':''}</div><div class="lg">${leg}</div>${s.page.startsWith('05_masterplan')?'':`<a href="https://isabelmendez90.github.io/centro-saltillo-analisis-urbano/${s.page}" target="_blank" onclick="event.stopPropagation()">Ver propuesta →</a>`}</div><div class="mt">${fmt(s.m.At)} m² terreno<br>${fmt(s.m.Ad)} m² desplante<br>${fmt(s.m.Ac)} m² constr.<br>${s.m.niv} niv · ${s.m.top} m</div>`;
+    r.querySelector('input').onclick=ev=>{ev.stopPropagation();applyVis();};
+    r.onclick=()=>focusSt(s.key);list.appendChild(r);});
+  map.on('moveend',stackTags);setTimeout(stackTags,300);
+  $('kL').textContent=L;$('kA').textContent=fmt(A);$('kC').textContent=fmt(Cc);
+  $('alerts').innerHTML=V.confTxt.map(c=>`<div class="alert"><b>Predio compartido.</b> ${c.names} propusieron sobre los mismos lotes ${c.ids.join(' y ')}. Se marcan en rojo; apaga una de las dos propuestas para ver la otra.</div>`).join('');
+  $('tTags').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);applyVis();};
+  $('tProp').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);applyVis();};}
+function stackTags(){const z=map.getZoom();document.getElementById('map').classList.toggle('far',z<16);
+  const items=V.meta.map(m=>({k:m.key,el:tags[m.key].getElement(),p:map.project(m.c)})).filter(o=>o.el.style.display!=='none').sort((a,b)=>b.p.y-a.p.y);const placed=[];
+  items.forEach(o=>{const w=o.el.querySelector('.box').offsetWidth+4,h=o.el.querySelector('.box').offsetHeight+4;let st=18;
+    for(let t=0;t<14;t++){const r={x:o.p.x,y:o.p.y-st-h,w,h};if(!placed.some(q=>r.x<q.x+q.w&&q.x<r.x+r.w&&r.y<q.y+q.h&&q.y<r.y+r.h))break;st+=h;}
+    o.el.querySelector('.stem').style.height=st+'px';placed.push({x:o.p.x,y:o.p.y-st-h,w,h});});}
+function applyVis(){const off=[...document.querySelectorAll('.st')].filter(r=>!r.querySelector('input').checked).map(r=>r.dataset.k);
+  const showP=$('tProp').classList.contains('on'), showT=$('tTags').classList.contains('on');
+  const f=['!',['in',['get','k'],['literal',off]]];
+  ['vbld','vopen','vlotsF','vlotsL'].forEach(id=>{map.setFilter(id,f);map.setLayoutProperty(id,'visibility',showP?'visible':'none');});
+  map.setFilter('lots3d',showP?['==',['get','hide'],0]:['all']);map.setFilter('lotsLine',showP?['==',['get','hide'],0]:['all']);
+  ['vconfF','vconfL'].forEach(id=>map.setLayoutProperty(id,'visibility',showP?'visible':'none'));
+  for(const k in tags)tags[k].getElement().style.display=(showT&&showP&&!off.includes(k))?'':'none';stackTags();}
+// ---------- capas de proyectos urbanos ----------
+// ---------- MI PROYECTO: dibuja lo que el alumno escribe en window.MI_PROYECTO ----------
+const MINE={feats:[],init(){const P=window.MI_PROYECTO;if(!P||!$('mpLeg'))return;
+  const byId=new Map();for(let i=0;i<N;i++)if(C.id[i])byId.set(+C.id[i],i);
+  const okLL=p=>Array.isArray(p)&&p.length>=2&&isFinite(p[0])&&isFinite(p[1])&&p[0]>-101.2&&p[0]<-100.85&&p[1]>25.3&&p[1]<25.55;
+  const caps=(P.capas||[]);const leg=[];
+  caps.forEach((cp,ci)=>{const col=cp.color||'#e4572e',fs=[],bad=[];
+    (cp.elementos||[]).forEach((el,ei)=>{let g=null;const nm=el.nombre||('Elemento '+(ei+1));
+      if(el.punto){if(okLL(el.punto))g={type:'Point',coordinates:el.punto};}
+      else if(el.linea){if(el.linea.length>1&&el.linea.every(okLL))g={type:'LineString',coordinates:el.linea};}
+      else if(el.poligono){const r=el.poligono.slice();if(r.length>2&&r.every(okLL)){if(r[0][0]!==r[r.length-1][0]||r[0][1]!==r[r.length-1][1])r.push(r[0]);g={type:'Polygon',coordinates:[r]};}}
+      else if(el.lotes){const polys=[],miss=[];el.lotes.forEach(id=>{const i=byId.get(+id);if(i==null)miss.push(id);else LF[i].geometry.coordinates.forEach(p=>polys.push(p));});
+        if(miss.length)bad.push(`${nm}, lotes no encontrados ${miss.join(', ')}`);if(polys.length)g={type:'MultiPolygon',coordinates:polys};}
+      if(!g){if(!el.lotes)bad.push(`${nm}, coordenadas vacías o fuera del centro de Saltillo`);return;}
+      const pr={proyecto:P.proyecto||'',alumno:P.alumno||'',capa:cp.nombre||('Capa '+(ci+1)),nombre:nm,descripcion:el.descripcion||''};if(el.lotes)pr.lotes=el.lotes.join(' + ');
+      fs.push({type:'Feature',properties:pr,geometry:g});});
+    this.feats.push(...fs);
+    const id='mp_'+ci,src={type:'FeatureCollection',features:fs.map(f=>({...f,properties:{...f.properties,_c:col}}))};
+    map.addSource(id,{type:'geojson',data:src});
+    const isPol=['any',['==',['geometry-type'],'Polygon'],['==',['geometry-type'],'MultiPolygon']];
+    if(cp.altura)map.addLayer({id:id+'_x',type:'fill-extrusion',source:id,filter:isPol,paint:{'fill-extrusion-color':col,'fill-extrusion-height':+cp.altura,'fill-extrusion-opacity':.9}});
+    else map.addLayer({id:id+'_f',type:'fill',source:id,filter:isPol,paint:{'fill-color':col,'fill-opacity':.55}});
+    map.addLayer({id:id+'_o',type:'line',source:id,filter:isPol,paint:{'line-color':col,'line-width':2}});
+    map.addLayer({id:id+'_l',type:'line',source:id,filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':col,'line-width':['interpolate',['linear'],['zoom'],13,(cp.ancho||5)*.45,17,(cp.ancho||5)*1.3]}});
+    map.addLayer({id:id+'_p',type:'circle',source:id,filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,4,17,9],'circle-color':col,'circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+    for(const suffix of ['_l','_p','_f']){
+      map.on('mouseenter',id+suffix,()=>{map.getCanvas().style.cursor='pointer';});
+      map.on('mouseleave',id+suffix,()=>{map.getCanvas().style.cursor='';});
+    }
+    leg.push({id,col,cp,n:fs.length,bad});});
+  const box=$('mpLeg');
+  if(!caps.length){box.innerHTML='<p class="note">Todavía no hay capas en el bloque MI PROYECTO del archivo.</p>';$('mpDl').disabled=true;return;}
+  box.innerHTML=`<p class="note"><b>${P.proyecto||'Proyecto sin nombre'}</b>${P.alumno?' · '+P.alumno:''}</p>`+leg.map(l=>`<div class="mpc"><div class="h"><input type="checkbox" checked data-l="${l.id}"><i style="background:${l.col}"></i><b>${l.cp.nombre||'Capa'}</b><span style="margin-left:auto;color:var(--muted)">${l.n}</span></div>${l.cp.descripcion?`<div style="color:var(--muted)">${l.cp.descripcion}</div>`:''}${l.bad.length?`<div style="color:var(--red)">${l.bad.join('<br>')}</div>`:''}</div>`).join('');
+  box.querySelectorAll('[data-l]').forEach(cb=>cb.onchange=()=>['_x','_f','_o','_l','_p'].forEach(s=>{if(map.getLayer(cb.dataset.l+s))map.setLayoutProperty(cb.dataset.l+s,'visibility',cb.checked?'visible':'none');}));
+  $('mpDl').onclick=()=>{const n=((P.proyecto||'').match(/^\d+/)||['00'])[0].padStart(2,'0');const w=((P.proyecto||'').replace(/^\d+\.\s*/,'').split(/\s+/).filter(x=>x.length>3)[0]||'proyecto').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]/g,'');
+    const gj={type:'FeatureCollection',name:`P${n}_${w}`,features:this.feats};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(gj,null,1)],{type:'application/geo+json'}));a.download='P04_Calle_Universal.geojson';document.body.appendChild(a);a.click();a.remove();};
+  if(this.feats.length){let b=[180,90,-180,-90];JSON.stringify(this.feats.map(f=>f.geometry.coordinates)).match(/-?\d+\.\d+,-?\d+\.\d+/g).forEach(s=>{const[x,y]=s.split(',').map(Number);b=[Math.min(b[0],x),Math.min(b[1],y),Math.max(b[2],x),Math.max(b[3],y)];});
+    setTimeout(()=>map.fitBounds([[b[0],b[1]],[b[2],b[3]]],{padding:80,maxZoom:17.5,pitch:is3d?50:0}),500);}},
+ pop(p){return `<div class="pop"><h4>${p.nombre}</h4><div class="sub" style="color:${p._c};font-weight:700">${p.capa}</div><table><tr><td>Proyecto</td><td>${p.proyecto||'—'}</td></tr><tr><td>Alumno</td><td>${p.alumno||'—'}</td></tr><tr><td>Descripción</td><td>${p.descripcion||'—'}</td></tr>${p.lotes?`<tr><td>Lotes</td><td>${p.lotes}</td></tr>`:''}</table></div>`;}
+};
+
+})();
+</script>
+<script>
+/* leyenda de escuelas por nivel educativo */
+(function(){const C=[["Inicial / preescolar", "#e67700"], ["Primaria", "#2b8a3e"], ["Secundaria", "#1971c2"], ["Media superior / preparatoria", "#c2255c"], ["Superior", "#6741d9"], ["Técnica / especial", "#087f8c"], ["Multinivel", "#8d5524"]];let n=0;const t=setInterval(()=>{const box=document.getElementById('lyr')||document.querySelector('.lyrs');if(!box||!box.children.length){if(++n>100)clearInterval(t);return;}clearInterval(t);
+ const d=document.createElement('div');d.className='lyr-leg';d.innerHTML='<b>Escuelas · nivel educativo</b>'+C.map(([k,c])=>`<div><span style="background:${c}"></span>${k}</div>`).join('');box.appendChild(d);},100);})();
+</script>
+</body>
+</html>

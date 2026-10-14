@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Distrito Catedral · Centro de Saltillo</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<style>
+:root{--navy:#0f3557;--blue:#2f6690;--ink:#17212b;--muted:#5b6b7b;--line:#e1e7ed;--red:#b3261e;
+  --lim:#d62828;--dev:#f2a900;--act:#7b2cbf;--peat:#2b9348;--pac:#1f6feb}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;color:var(--ink);background:#f5f7f9}
+#app{height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 440px;overflow:hidden}
+#mapwrap{position:relative;min-width:0}#map{position:absolute;inset:0;background:#e9ecef}
+#sidebar{height:100vh;overflow-y:auto;background:#fff;border-left:1px solid var(--line);padding:18px 20px 40px}
+.tools{position:absolute;z-index:5;top:12px;left:12px;right:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.tools>*{pointer-events:auto}
+.tools a,.tools button,.tools select{font:700 12px Arial,sans-serif;padding:8px 11px;border:1px solid #cfd8e0;border-radius:8px;background:#fff;color:var(--ink);cursor:pointer;text-decoration:none;box-shadow:0 1px 4px #0002}
+.tools .seg{display:flex;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px #0002}
+.tools .seg button{border-radius:0;box-shadow:none;border-right-width:0}.tools .seg button:last-child{border-right-width:1px}
+.tools button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.tools button.pdf{background:var(--lim);border-color:var(--lim);color:#fff;margin-left:auto}
+.tools button.pdf:disabled{opacity:.6;cursor:wait}
+.kicker{font-size:10px;letter-spacing:.12em;color:var(--blue);font-weight:800;text-transform:uppercase}
+h1{font-size:25px;margin:4px 0 8px;color:var(--navy)}
+.lead{font-size:12.5px;line-height:1.55;color:#34495e;margin:0 0 10px}
+h2{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--navy);margin:22px 0 8px}
+.note{font-size:11.5px;line-height:1.5;color:var(--muted);margin:6px 0}
+.ctl{font-size:12px;line-height:1.5}.ctl label{display:flex;align-items:center;gap:7px;margin:4px 0;cursor:pointer}
+.ctl select{width:100%;font:600 12px Arial,sans-serif;padding:7px 8px;border:1px solid #cfd8e0;border-radius:8px;background:#fff}
+.btn{font:800 12px Arial,sans-serif;padding:8px 12px;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.ghost{background:#fff;color:var(--navy)}.btn.red{background:var(--lim);border-color:var(--lim)}
+.leg{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:11px;margin-top:6px}
+.leg div{display:flex;align-items:center;gap:6px;line-height:1.25}.leg i{flex:0 0 auto;width:13px;height:10px;border-radius:2px;border:1px solid #0002;background:var(--c)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--ink);margin-top:10px}
+.kpis div{padding:8px 6px 6px 0}.kpis b{font:800 20px Arial,sans-serif;display:block}.kpis span{font-size:10.5px;color:var(--muted);line-height:1.3;display:block}
+.kpis.census{border-top-color:#8a6d3b}.kpis.census b{color:#8a5a00}
+/* capas */
+.lyrs{border-top:1px solid var(--line)}
+.lyrs label{display:grid;grid-template-columns:auto 28px 1fr auto;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:12px;cursor:pointer}
+.lyrs label small{color:var(--muted);font-size:11px;white-space:nowrap}
+.sw{height:12px;border-radius:2px;background:var(--c)}
+.sw.ln{height:5px;border-radius:3px}.sw.dash{height:0;border-top:3px dashed var(--c);background:none}
+.sw.pt{width:11px;height:11px;border-radius:50%;justify-self:center}
+.sw.grad{background:linear-gradient(90deg,#fff3e0,#fdae6b,#e6550d,#7f2704)}
+.lyrs .sub{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--blue);text-transform:uppercase;padding:10px 2px 4px;border-bottom:1px solid var(--line)}
+/* listas */
+.st{display:grid;grid-template-columns:30px 1fr auto;gap:8px;padding:9px 4px;border-top:1px solid var(--line);cursor:pointer;font-size:12px;align-items:start}
+.st:hover,.st.sel{background:#f3f6f9}
+.st .nm{font-weight:800;font-size:12.5px}.st .tt{color:var(--muted);font-size:11px;line-height:1.4}
+.st .mt{font:11px ui-monospace,monospace;text-align:right;color:var(--muted);white-space:nowrap}
+.badge{width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font:800 11px Arial;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 4px #0005}
+.badge.dev{color:#3d2a00}
+/* marcadores */
+.pin{cursor:pointer}.pin .badge{width:24px;height:24px;font-size:10.5px}
+.slbl{font:700 10.5px Arial,sans-serif;background:#ffffffe6;padding:2px 6px;border-radius:10px;border:1.5px solid var(--c);color:#17212b;white-space:nowrap;pointer-events:none}
+.rlbl{font:italic 700 11px Georgia,serif;color:#5a3b12;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap;pointer-events:none}
+.far .slbl{display:none}
+.maplibregl-popup-content{font-size:12px;max-height:60vh;overflow:auto;padding:12px 14px}
+.pop h4{margin:0 0 2px;font-size:13px;color:var(--navy)}
+.pop .sub{color:var(--muted);font-size:11px;margin-bottom:6px}
+.pop table{border-collapse:collapse;width:100%}
+.pop td{padding:2px 3px;border-bottom:1px solid #eef2f5;vertical-align:top}
+.pop td:first-child{color:var(--muted);width:44%}
+.pop .sec{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--blue);text-transform:uppercase;padding-top:7px}
+.pop .flag{background:#f3f0ff;border-left:3px solid #7048e8;padding:4px 6px;margin-top:6px;font-size:11px}
+.pop .prog{background:#fafafa;border-left:4px solid var(--c);padding:6px 8px;margin:6px 0;font-size:11.5px;line-height:1.45}
+.pop details{margin-top:8px}.pop summary{cursor:pointer;font-weight:700;color:var(--blue);font-size:11px}
+.xy{margin-top:8px;padding-top:6px;border-top:1px solid #e1e7ed;font-size:11px;color:var(--muted)}.xy code{font-size:11px;color:var(--ink)}.xy button{font:700 11px Arial;border:1px solid #cfd8e0;border-radius:5px;background:#fff;padding:2px 7px;cursor:pointer;margin-left:4px}
+#tip{position:absolute;z-index:6;pointer-events:none;background:#fff;border:1px solid #cfd8e0;border-radius:6px;padding:5px 8px;font-size:11px;box-shadow:0 2px 8px #0002;display:none;max-width:260px}
+#tip b{color:var(--navy)}
+.ref figure{margin:0;cursor:zoom-in;border-radius:8px;overflow:hidden;border:1px solid var(--line)}.ref img{display:block;width:100%;height:auto}
+.ref figcaption{font-size:10.5px;color:var(--muted);padding:5px 8px;background:#fafbfc}
+.ref h3{margin:10px 0 2px;font-size:14px;color:var(--navy)}.ref .sub{font-size:11px;color:#8a5a00;font-weight:700;margin-bottom:6px}
+.ref .lec{background:#f3f8f1;border-left:4px solid var(--peat);padding:7px 9px;font-size:12px;line-height:1.5;margin:8px 0;border-radius:4px}
+#lb{position:fixed;inset:0;z-index:50;background:#0b1620e6;display:none;place-items:center;padding:24px;cursor:zoom-out}#lb img{max-width:100%;max-height:100%;border-radius:6px;box-shadow:0 8px 40px #0008}
+#busy{position:absolute;inset:0;z-index:20;background:#ffffffb0;display:none;place-items:center;font:800 14px Arial;color:var(--navy)}
+@media (max-width:860px){#app{grid-template-columns:1fr;grid-template-rows:62vh auto;height:auto;overflow:visible}#mapwrap{height:62vh}#sidebar{height:auto;border-left:0;border-top:1px solid var(--line)}.tools button.pdf{margin-left:0}}
+</style>
+<style>.lyr{position:static!important;max-width:none!important;display:flex;flex-wrap:wrap;gap:7px;padding:12px 0}.layer-panel{margin:16px 0;padding:14px;background:#f5f7fa;border:1px solid #dce3ea;border-radius:10px}.layer-panel>summary{cursor:pointer;font-weight:700}.lyr-leg{width:100%;font-size:11px;margin-top:8px}.lyr-leg div{display:flex;align-items:center;gap:7px;margin:4px 0}.lyr-leg span{display:inline-block;width:10px;height:10px;border-radius:50%}</style></head>
+<body>
+<div id="app">
+<div id="mapwrap"><div id="map"></div><div id="tip"></div><div id="busy">Generando PDF…</div>
+  <div class="tools">
+    <div class="seg"><button id="v3" class="on">3D</button><button id="v2">Planta</button></div>
+    <select id="basemap" aria-label="Mapa base"><option value="clara">Base clara</option><option value="sat">Satélite</option></select>
+    <button id="refit">Distrito completo</button>
+    <button id="tMask" class="on">Resaltar distrito</button>
+    <button id="tTags" class="on">Etiquetas</button>
+    <button id="pdf" class="pdf">Descargar PDF</button>
+  </div>
+</div>
+<aside id="sidebar">
+  <div class="kicker">05 Estrategias · Propuestas de proyectos urbanos</div>
+  <div class="kicker" style="margin-top:6px;color:#8a5a00">Revitalización del Centro Histórico de Saltillo</div>
+  <h1>Distrito Catedral</h1>
+  <p class="lead">Las cuadras al sur y alrededor de la Catedral de Santiago se intervienen como un solo distrito. La idea es extender a todo el distrito la vida peatonal, vibrante y activa que hoy tiene el entorno de la Catedral, con calles peatonales, calles pacificadas y predios que se reactivan con vivienda, comercio y actividad social.</p>
+  <div class="kpis" id="kpis"></div>
+  <p class="note" style="margin-top:2px">Censo de Población y Vivienda 2020, en las manzanas del distrito:</p>
+  <div class="kpis census" id="kpisC"></div>
+  <p class="note" id="censoNote"></p>
+
+  <h2>Capas</h2>
+  <div class="lyrs" id="lyrs"></div>
+
+  <h2>Color de los lotes</h2>
+  <div class="ctl"><select id="view"><option value="dc">Programa del Distrito Catedral</option><option value="ua">Uso actual según catastro</option><option value="zon">Zonificación PDDU 2020</option><option value="apr">Aprovechamiento del CUS permitido</option><option value="neu">Neutro</option></select>
+  <div class="leg" id="vleg"></div>
+  <label style="margin-top:8px">Opacidad de los volúmenes <input type="range" id="op" min="15" max="100" value="100" style="flex:1"></label></div>
+  <p class="note">Toca un predio numerado para ver su programa, o cualquier lote para leer su ficha catastral y normativa.</p>
+
+  <h2>Predios de desarrollo</h2>
+  <p class="note">Vivienda, comercio, estacionamiento y zonas de carga y descarga.</p>
+  <div id="listD"></div>
+  <h2>Predios de activación social</h2>
+  <p class="note">Comercio, equipamientos, recreación y canchas.</p>
+  <div id="listA"></div>
+  <h2>Calles intervenidas</h2>
+  <div id="listC"></div>
+
+  <h2>Caso de referencia</h2>
+  <div class="ref" id="ref"></div>
+
+  <h2>Descargas</h2>
+  <p class="note">El PDF guarda exactamente lo que ves en el mapa: encuadre, vista 3D o planta, capas prendidas y colores, con título, simbología, escala, norte, fuentes y el caso de referencia.</p>
+  <div class="ctl"><label><input type="checkbox" id="refPdf" checked> Incluir el caso de referencia en el PDF</label></div>
+  <p style="margin:8px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button class="btn red" id="pdf2">Descargar PDF de la vista</button><button class="btn ghost" id="gjDl">Descargar GeoJSON del proyecto</button></p>
+
+  <h2>Fuentes y notas</h2>
+  <p class="note">Trazo del distrito, calles y predios a partir del sketch del proyecto, ajustado a los lotes del visor catastral municipal y a los ejes viales del Marco Geoestadístico INEGI 2025. Lotes, usos, alturas y normativa del kit del mapa base (catastro municipal y PDDU Saltillo 2020, sin datos fiscales); alturas estimadas a 3 m por nivel. Población y vivienda del Inventario Nacional de Vivienda y Censo 2020 de INEGI por manzana; los datos protegidos (*) no se cuentan como cero. Áreas verdes, paradas, ruta troncal, ciclovía PDDU, escuelas DENUE y patrimonio del atlas del grupo. Mapa base Esri.</p>
+</aside>
+</div>
+<div id="lb"></div>
+<script src="data/area_estudio.js"></script>
+<script src="data/lotes_catastro.js"></script>
+<script src="data/capas_urbanas_base.js"></script>
+<script src="data/p01_distrito_catedral.js"></script>
+<script src="data/p01_referencia.js"></script>
+<script>
+(function(){
+const D=window.LOTES, C=D.cols, DIC=D.dic, N=D.n, [LON0,LAT0]=D.origen, DC=window.DISTRITO, U=window.URBANO;
+const $=id=>document.getElementById(id);
+const fmt=(v,d=0)=>v==null||v===''||Number.isNaN(v)?'—':Number(v).toLocaleString('es-MX',{maximumFractionDigits:d,minimumFractionDigits:0});
+const dic=(f,i)=>DIC[f][i]||'';
+const COL={lim:'#d62828',dev:'#f2a900',act:'#7b2cbf',peat:'#2b9348',pac:'#1f6feb',inD:'#e8dcc8',outD:'#d3d7db'};
+const PROG={desarrollo:'Desarrollo de vivienda y comercio, con estacionamiento y zona de carga y descarga para dar servicio al distrito.',
+            activacion:'Activación social: comercio, equipamientos, zonas de recreación y canchas abiertas al barrio.'};
+const TRAT={peatonal:['Calle 100% peatonal','Se cierra al tránsito de automóviles; la sección completa se vuelve espacio para caminar, estar y comerciar.'],
+            pacificada:['Calle pacificada con prioridad peatonal y ciclista','Sigue el paso de automóviles con tránsito calmado, banquetas ampliadas y prioridad para peatones y ciclistas.']};
+// ---------- catastro (motor del kit) ----------
+const UA_COL={'Habitación':'#f7d774','Comercio':'#e03131','Servicios y turismo':'#f06595','Equipamiento':'#1c7ed6','Áreas verdes y plazas':'#40c057','Industria, bodegas y talleres':'#9c36b5','Infraestructura':'#868e96','Estacionamiento':'#74c0fc','Baldío':'#0b7285','Sin construcción registrada':'#66d9e8','Sin información de uso':'#ced4da','Sin ficha catastral':'#e9ecef'};
+const ZN={'H0.5':['Habitacional campestre','#fff3b0'],'H1':['Habitacional densidad muy baja','#fff3b0'],'H2':['Habitacional densidad baja','#ffe066'],'H3':['Habitacional densidad media','#fcc419'],'H3.3':['Habitacional densidad media baja','#ffe066'],'H3.7':['Habitacional densidad intermedia','#fab005'],'H4':['Habitacional densidad media alta','#f59f00'],'H5':['Habitacional densidad alta','#e67700'],'CU1':['Corredor urbano habitacional y comercial','#f783ac'],'CU2':['Corredor urbano hab., comercial y servicios','#e64980'],'CU3':['Corredor urbano hab., comercial y servicios 3','#a61e4d'],'CU':['Centro urbano','#d6336c'],'SCU':['Subcentro urbano','#c2255c']};
+const E3_COL={"Habitacional Densidad Muy Baja":"#fff3b0","Habitacional Densidad Baja":"#ffe066","Habitacional Densidad Media":"#fcc419","Habitacional Densidad Media Alta":"#f59f00","Habitacional Densidad Alta":"#e67700","Corredor Urbano (Hab/Com)":"#f783ac","Corredor Urbano 2 (Hab/Com/Serv)":"#e64980","Corredor Urbano 3 (Hab/Com/Serv)":"#a61e4d","Comercio y Abasto":"#c92a2a","Equipamiento":"#1971c2","Recreativo y Áreas Verdes":"#37b24d","Parque Lineal":"#8ce99a","Industria Ligera":"#9c36b5","Industria Extractiva":"#5f3dc4","Bodegas y Talleres":"#b197fc","Infraestructura":"#868e96","Sin clasificación":"#dee2e6"};
+const APR_COL={'Sin construcción':'#08415c','Usa menos de 25% del CUS':'#0b7285','Usa 25 a 50% del CUS':'#3bc9db','Usa 50 a 100% del CUS':'#c5f6fa','Rebasa el CUS permitido':'#862e9c','Condominio revisar':'#ffd8a8','Norma sin CUS (CU, SCU u otro uso)':'#e9ecef','Sin dato de construcción':'#f8f9fa'};
+// pertenencia de cada lote al proyecto
+const ROLE=new Map(), PRED_OF=new Map(), IN_D=new Set(DC.lotesDistrito);
+DC.predios.features.forEach(f=>f.properties.idx.forEach(i=>{ROLE.set(i,f.properties.tipo);PRED_OF.set(i,f.properties.clave);}));
+const DC_CAT={desarrollo:'Predio de desarrollo',activacion:'Predio de activación social',in:'Otros lotes del distrito',out:'Fuera del distrito'};
+const DC_COL={'Predio de desarrollo':COL.dev,'Predio de activación social':COL.act,'Otros lotes del distrito':COL.inD,'Fuera del distrito':COL.outD};
+const VIEWS={
+ dc:{name:'Programa del Distrito Catedral',cat:i=>DC_CAT[ROLE.get(i)||(IN_D.has(i)?'in':'out')],col:k=>DC_COL[k],order:Object.keys(DC_COL)},
+ ua:{name:'Uso actual según catastro',cat:i=>dic('ua',C.ua[i]),col:k=>UA_COL[k]||'#ccc',order:Object.keys(UA_COL)},
+ zon:{name:'Zonificación PDDU 2020',cat:i=>{const z=dic('zn',C.zn[i]);return z?z:'E3 · '+dic('ze',C.ze[i]);},col:k=>ZN[k]?ZN[k][1]:(E3_COL[k.replace('E3 · ','')]||'#dee2e6'),label:k=>ZN[k]?k+' · '+ZN[k][0]:k.replace('E3 · ','')+' (sin tabla, mapa E3)',order:Object.keys(ZN)},
+ apr:{name:'Aprovechamiento del CUS permitido',cat:i=>dic('apr',C.apr[i]),col:k=>APR_COL[k]||'#e9ecef',order:Object.keys(APR_COL)},
+ neu:{name:'Neutro',cat:i=>'Contexto construido',col:k=>'#d8d3ca',order:['Contexto construido']}};
+function efect(i){const cos=C.cos[i],cav=C.cav[i],cus=C.cusm[i],a=C.a[i];if(cos==null&&cus==null)return null;
+ const cosE=cos!=null?(cav!=null?Math.min(cos,1-cav):cos):null;let cusE=cus;
+ if(C.alt[i]!=null&&cus!=null&&cosE!=null){const nv=Math.floor(C.alt[i]/3);const c2=+(cosE*nv).toFixed(2);if(c2<cus)cusE=c2;}
+ return {cosE,cusE,desp:cosE!=null?a*cosE:null,cons:cusE!=null?a*cusE:null};}
+function ficha(i,inner){const id=C.id[i],zn=dic('zn',C.zn[i]),alt=C.alt[i]!=null?fmt(C.alt[i],1)+' m':(dic('alt_t',C.alt_t[i])||'—');
+ const rows=(t,arr)=>`<tr><td colspan="2" class="sec">${t}</td></tr>`+arr.filter(r=>r[1]!==undefined).map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+ const E=efect(i);
+ let h=(inner?'':'<div class="pop">')+`<h4>${id?'Lote '+id:'Lote sin ID Carto'}</h4><div class="sub">${C.ub[i]||'Sin ubicación en ficha'} · Manzana ${dic('mz',C.mz[i]).slice(-7)}</div><table>`;
+ h+=rows('Situación actual (catastro)',[['Uso actual',dic('ua',C.ua[i])],['Uso en la ficha',dic('uf',C.uf[i])||'—'],['Superficie del polígono',fmt(C.a[i],1)+' m²'],['Construcción según ficha',C.sc[i]!=null?fmt(C.sc[i],1)+' m²':'—'],['Niveles estimados',C.ne[i]!=null?fmt(C.ne[i]):'sin dato'],['Altura estimada',C.he[i]!=null?fmt(C.he[i],1)+' m':'sin dato']]);
+ h+=rows('Normativa PDDU 2020',[['Zona',zn?zn+(ZN[zn]?' · '+ZN[zn][0]:''):'Sin tabla ('+dic('ze',C.ze[i])+')'],['COS máximo',fmt(C.cos[i],2)],['CUS máximo',fmt(C.cusm[i],2)],['CAS o CAV mínimo',fmt(C.cav[i],2)],['Densidad máxima',C.dens[i]!=null?fmt(C.dens[i])+' viv/ha':'—'],['CUS efectivo',E&&E.cusE!=null?fmt(E.cusE,2)+' · '+fmt(E.cons)+' m² construibles':'—'],['Altura máxima',alt],['Viviendas máximas en el lote',fmt(C.vmax[i])]]);
+ h+='</table>';
+ if(C.rp[i])h+=`<div class="flag"><b>Requiere revisión patrimonial.</b> ${C.ch[i]?'Sector catastral Centro Histórico. ':''}${C.pat[i]?'Elemento del atlas de patrimonio en el lote: '+C.pat[i]+'.':''}</div>`;
+ return h+(inner?'':'</div>');}
+function dec(r){const o=[];let x=0,y=0;for(let k=0;k<r.length;k+=2){x+=r[k];y+=r[k+1];o.push([+(LON0+x/1e6).toFixed(6),+(LAT0+y/1e6).toFixed(6)]);}if(o.length&&(o[0][0]!==o[o.length-1][0]||o[0][1]!==o[o.length-1][1]))o.push(o[0]);return o;}
+const LF=[];
+for(let i=0;i<N;i++){const ua=dic('ua',C.ua[i]);const flat=ua==='Áreas verdes y plazas'||C.a[i]>8000;
+  const h=flat?0.3:(C.he[i]!=null?C.he[i]:3);const pr={i,h};for(const v in VIEWS)if(v!=='neu')pr[v]=VIEWS[v].col(VIEWS[v].cat(i));
+  LF.push({type:'Feature',id:i,properties:pr,geometry:{type:'MultiPolygon',coordinates:C.geom[i].map(p=>p.map(dec))}});}
+const LOTS={type:'FeatureCollection',features:LF};
+// ---------- mapa ----------
+const ESRI='https://server.arcgisonline.com/ArcGIS/rest/services/';
+const style={version:8,sources:{
+  clara:{type:'raster',tiles:[ESRI+'Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:16,attribution:'Tiles © Esri, HERE, Garmin, USGS, NGA, EPA, NPS'},
+  claraRef:{type:'raster',tiles:[ESRI+'Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:16},
+  sat:{type:'raster',tiles:[ESRI+'World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:19,attribution:'Tiles © Esri, Maxar, Earthstar Geographics'},
+  satRef:{type:'raster',tiles:[ESRI+'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'],tileSize:256,maxzoom:19}},
+ layers:[{id:'bg',type:'background',paint:{'background-color':'#e9ecef'}},
+  {id:'clara',type:'raster',source:'clara'},{id:'sat',type:'raster',source:'sat',layout:{visibility:'none'}},
+  {id:'claraRef',type:'raster',source:'claraRef'},{id:'satRef',type:'raster',source:'satRef',layout:{visibility:'none'},paint:{'raster-opacity':.85}}]};
+let bb=[180,90,-180,-90];const walk=a=>{if(typeof a[0]==='number'){bb=[Math.min(bb[0],a[0]),Math.min(bb[1],a[1]),Math.max(bb[2],a[0]),Math.max(bb[3],a[1])];}else a.forEach(walk);};
+DC.distrito.features.forEach(f=>walk(f.geometry.coordinates));
+const BEAR3=13, PITCH3=52;
+const map=new maplibregl.Map({container:'map',style,center:[(bb[0]+bb[2])/2,(bb[1]+bb[3])/2],zoom:16,pitch:PITCH3,bearing:BEAR3,maxPitch:75,attributionControl:{compact:true},preserveDrawingBuffer:true});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
+map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-right');
+window._map=map;
+function frame(anim){const cam=map.cameraForBounds([[bb[0],bb[1]],[bb[2],bb[3]]],{padding:{top:70,bottom:40,left:40,right:40},bearing:BEAR3});if(!cam)return;
+  const o={center:cam.center,zoom:cam.zoom+(is3d?0.3:0),bearing:BEAR3,pitch:is3d?PITCH3:0};anim?map.easeTo({...o,duration:800}):map.jumpTo(o);}
+map.once('load',()=>frame(false));
+let view='dc', is3d=true, OP=1;
+const colExpr=v=>v==='neu'?'#d8d3ca':['get',v];
+// máscara fuera del distrito
+const ring=DC.distrito.features[0].geometry.coordinates[0];
+const MASK={type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[[-101.3,25.2],[-100.7,25.2],[-100.7,25.7],[-101.3,25.7],[-101.3,25.2]],ring.slice().reverse()]}};
+// definición de capas de la leyenda: [clave, nombre, tipo de muestra, color, ids de capa, encendida, nota]
+const LYR=[
+ ['sub','Distrito Catedral'],
+ ['lim','Límite del Distrito Catedral','dash',COL.lim,['limL','limF'],true,fmt(DC.kpi.ha,1)+' ha'],
+ ['peat','Calles 100% peatonales','ln',COL.peat,['peatC','peat'],true,fmt(DC.kpi.peat)+' m'],
+ ['pac','Calles pacificadas, prioridad peatonal y ciclista','ln',COL.pac,['pacC','pac'],true,fmt(DC.kpi.pac)+' m'],
+ ['dev','Predios de desarrollo','box',COL.dev,['devF','devL'],true,fmt(DC.kpi.m2d)+' m²'],
+ ['act','Predios de activación social','box',COL.act,['actF','actL'],true,fmt(DC.kpi.m2a)+' m²'],
+ ['sub','Diagnóstico'],
+ ['vnh','Vivienda no habitada 2020 por manzana (mejor en planta)','grad',null,['vnhF','vnhL'],false,'%'],
+ ['sub','Contexto del atlas'],
+ ['green','Áreas verdes','box','#6fbf73',['green'],true,''],
+ ['stops','Paradas y ruta troncal','pt','#e03131',['stops','aqv'],true,''],
+ ['cycle','Ciclovía propuesta PDDU','ln','#00b4d8',['cycle'],true,''],
+ ['heritage','Patrimonio','pt','#d39b1d',['heritage'],true,''],
+ ['schools','Escuelas','pt','#1c64d8',['schools'],false,''],
+ ['area','Manzanas del polígono de estudio','ln','#0f3557',['area'],false,'']];
+const VIS={};LYR.forEach(l=>{if(l[0]!=='sub')VIS[l[0]]=l[5];});
+// vivienda no habitada por manzana
+const VNH_BR=[[20,'#fdd0a2'],[35,'#fdae6b'],[50,'#e6550d'],[101,'#7f2704']];
+DC.manzanas.features.forEach(f=>{const p=f.properties;p.pct=(p.vpar&&p.vnh!=null)?Math.round(100*p.vnh/p.vpar):null;
+  p.vc=p.pct==null?'#e9ecef':(VNH_BR.find(b=>p.pct<b[0])||VNH_BR[3])[1];});
+let _init=false;const init=()=>{if(_init)return;_init=true;
+  map.addSource('lots',{type:'geojson',data:LOTS});
+  map.addSource('area',{type:'geojson',data:window.ATLAS_COMUN.base.area});
+  for(const k of ['green','stops','schools','heritage','cycle','aqv'])map.addSource(k,{type:'geojson',data:U[k]});
+  map.addSource('dist',{type:'geojson',data:DC.distrito});map.addSource('mask',{type:'geojson',data:MASK});
+  map.addSource('calles',{type:'geojson',data:DC.calles});map.addSource('pred',{type:'geojson',data:DC.predios});
+  map.addSource('mz',{type:'geojson',data:DC.manzanas});
+  // suelo
+  map.addLayer({id:'green',type:'fill',source:'green',paint:{'fill-color':'#6fbf73','fill-opacity':.7}});
+  map.addLayer({id:'vnhF',type:'fill',source:'mz',layout:{visibility:'none'},paint:{'fill-color':['get','vc'],'fill-opacity':.85}});
+  map.addLayer({id:'vnhL',type:'line',source:'mz',layout:{visibility:'none'},paint:{'line-color':'#7f2704','line-width':.8}});
+  map.addLayer({id:'limF',type:'fill',source:'dist',paint:{'fill-color':COL.lim,'fill-opacity':.05}});
+  map.addLayer({id:'aqv',type:'line',source:'aqv',paint:{'line-color':'#e03131','line-width':['interpolate',['linear'],['zoom'],13,2,17,6],'line-opacity':.55}});
+  map.addLayer({id:'cycle',type:'line',source:'cycle',paint:{'line-color':'#00b4d8','line-width':['interpolate',['linear'],['zoom'],13,2,17,5]}});
+  const W=(a,b)=>['interpolate',['exponential',1.6],['zoom'],14,a*1.6,18,b];
+  map.addLayer({id:'pacC',type:'line',source:'calles',filter:['==',['get','trat'],'pacificada'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#fff','line-width':W(6,30)}});
+  map.addLayer({id:'pac',type:'line',source:'calles',filter:['==',['get','trat'],'pacificada'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':COL.pac,'line-width':W(3.5,22),'line-opacity':.9}});
+  map.addLayer({id:'peatC',type:'line',source:'calles',filter:['==',['get','trat'],'peatonal'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#fff','line-width':W(6,30)}});
+  map.addLayer({id:'peat',type:'line',source:'calles',filter:['==',['get','trat'],'peatonal'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':COL.peat,'line-width':W(3.5,22),'line-opacity':.92}});
+  map.addLayer({id:'devF',type:'fill',source:'pred',filter:['==',['get','tipo'],'desarrollo'],paint:{'fill-color':COL.dev,'fill-opacity':.55}});
+  map.addLayer({id:'actF',type:'fill',source:'pred',filter:['==',['get','tipo'],'activacion'],paint:{'fill-color':COL.act,'fill-opacity':.45}});
+  map.addLayer({id:'mask',type:'fill',source:'mask',paint:{'fill-color':'#ffffff','fill-opacity':.38}});
+  // volúmenes
+  map.addLayer({id:'lots3d',type:'fill-extrusion',source:'lots',paint:{'fill-extrusion-color':colExpr(view),'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':OP,'fill-extrusion-vertical-gradient':true}});
+  map.addLayer({id:'lotsLine',type:'line',source:'lots',minzoom:15,paint:{'line-color':'#5c6670','line-width':.4,'line-opacity':.45}});
+  map.addLayer({id:'area',type:'line',source:'area',layout:{visibility:'none'},paint:{'line-color':'#0f3557','line-width':1,'line-opacity':.6}});
+  map.addLayer({id:'devL',type:'line',source:'pred',filter:['==',['get','tipo'],'desarrollo'],paint:{'line-color':'#b07800','line-width':2.4}});
+  map.addLayer({id:'actL',type:'line',source:'pred',filter:['==',['get','tipo'],'activacion'],paint:{'line-color':COL.act,'line-width':2.4}});
+  map.addLayer({id:'limL',type:'line',source:'dist',layout:{'line-join':'round'},paint:{'line-color':COL.lim,'line-width':['interpolate',['linear'],['zoom'],14,2.5,18,5],'line-dasharray':[3,1.6]}});
+  map.addLayer({id:'schools',type:'circle',source:'schools',layout:{visibility:'none'},paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2.5,17,6],'circle-color':['coalesce',['get','color'],'#1c64d8'],'circle-stroke-color':'#fff','circle-stroke-width':1}});
+  map.addLayer({id:'stops',type:'circle',source:'stops',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,3,17,7],'circle-color':'#e03131','circle-stroke-color':'#fff','circle-stroke-width':1.2}});
+  map.addLayer({id:'heritage',type:'circle',source:'heritage',paint:{'circle-radius':['interpolate',['linear'],['zoom'],13,2,17,5],'circle-color':'#d39b1d','circle-stroke-color':'#fff','circle-stroke-width':.8}});
+  map.moveLayer('vnhF','devL');map.moveLayer('vnhL','devL');map.setPaintProperty('vnhF','fill-opacity',.8);
+  buildLayers(); legendView(); buildLists(); buildMarkers(); kpis(); applyVis();
+};
+map.on('style.load',()=>setTimeout(init,0));map.on('load',init);
+// ---------- controles ----------
+function set3d(on){is3d=on;$('v3').classList.toggle('on',on);$('v2').classList.toggle('on',!on);
+  map.easeTo({pitch:on?PITCH3:0,bearing:BEAR3,duration:700});
+  map.setPaintProperty('lots3d','fill-extrusion-height',on?['get','h']:0.1);}
+$('v3').onclick=()=>set3d(true);$('v2').onclick=()=>set3d(false);
+$('refit').onclick=()=>frame(true);
+$('basemap').onchange=e=>{const s=e.target.value==='sat';map.setLayoutProperty('clara','visibility',s?'none':'visible');map.setLayoutProperty('claraRef','visibility',s?'none':'visible');map.setLayoutProperty('sat','visibility',s?'visible':'none');map.setLayoutProperty('satRef','visibility',s?'visible':'none');};
+$('view').value=view;
+$('view').onchange=e=>{view=e.target.value;map.setPaintProperty('lots3d','fill-extrusion-color',colExpr(view));legendView();};
+$('op').oninput=e=>{OP=e.target.value/100;map.setPaintProperty('lots3d','fill-extrusion-opacity',OP);};
+$('tMask').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);map.setLayoutProperty('mask','visibility',on?'visible':'none');};
+$('tTags').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);applyVis();};
+function viewCounts(){const V_=VIEWS[view];const cnt={};for(let i=0;i<N;i++){if(view==='dc'&&!IN_D.has(i)&&!ROLE.has(i))continue;const k=V_.cat(i);cnt[k]=(cnt[k]||0)+1;}
+  if(view==='dc')cnt['Fuera del distrito']=N-Object.values(cnt).reduce((a,b)=>a+b,0);
+  const keys=Object.keys(cnt).sort((a,b)=>{const ia=V_.order.indexOf(a),ib=V_.order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||cnt[b]-cnt[a];});
+  return keys.map(k=>({k,t:V_.label?V_.label(k):k,c:V_.col(k),n:cnt[k]}));}
+function legendView(){$('vleg').innerHTML=viewCounts().map(o=>`<div><i style="--c:${o.c}"></i>${o.t} <span style="color:var(--muted)">${fmt(o.n)}</span></div>`).join('');}
+function buildLayers(){const box=$('lyrs');
+  LYR.forEach(l=>{if(l[0]==='sub'){const d=document.createElement('div');d.className='sub';d.textContent=l[1];box.appendChild(d);return;}
+    const [k,t,sw,c,ids,on,nt]=l;const lb=document.createElement('label');
+    const cls=sw==='ln'?'sw ln':sw==='dash'?'sw dash':sw==='pt'?'sw pt':sw==='grad'?'sw grad':'sw';
+    lb.innerHTML=`<input type="checkbox" ${on?'checked':''}><i class="${cls}" style="--c:${c}"></i><span>${t}</span><small>${nt}</small>`;
+    lb.querySelector('input').onchange=ev=>{VIS[k]=ev.target.checked;applyVis();};box.appendChild(lb);});}
+function applyVis(){LYR.forEach(l=>{if(l[0]==='sub')return;l[4].forEach(id=>{if(map.getLayer(id))map.setLayoutProperty(id,'visibility',VIS[l[0]]?'visible':'none');});});
+  const tags=$('tTags').classList.contains('on');
+  MK.forEach(m=>{m.on=tags&&VIS[m.k];m.el.style.display=m.on?'':'none';});declutter();}
+// oculta etiquetas que se enciman; prioridad: predios, referencias, calles
+function declutter(){const placed=[];const far=map.getZoom()<15.6;
+  MK.forEach(m=>{m.hid=false;if(!m.on)return;if(m.kind==='street'&&far){m.hid=true;return;}m.el.style.visibility='';const r=m.el.getBoundingClientRect();if(!r.width)return;
+    const R={x:r.left-2,y:r.top-2,w:r.width+4,h:r.height+4};if(placed.some(q=>R.x<q.x+q.w&&q.x<R.x+R.w&&R.y<q.y+q.h&&q.y<R.y+R.h)){m.hid=true;m.el.style.visibility='hidden';}else placed.push(R);});}
+map.on('moveend',declutter);
+// ---------- marcadores ----------
+const MK=[];
+function mid(g){const ls=g.type==='MultiLineString'?g.coordinates.reduce((a,b)=>a.length>b.length?a:b):g.coordinates;return ls[Math.floor(ls.length/2)];}
+function buildMarkers(){
+  DC.predios.features.forEach(f=>{const p=f.properties;const el=document.createElement('div');el.className='pin';
+    el.innerHTML=`<div class="badge ${p.tipo==='desarrollo'?'dev':''}" style="--c:${p.tipo==='desarrollo'?COL.dev:COL.act}">${p.clave}</div>`;
+    el.onclick=ev=>{ev.stopPropagation();focusPred(p.clave);};
+    MK.push({k:p.tipo==='desarrollo'?'dev':'act',el,ll:p.c,txt:p.clave,kind:'pin',c:p.tipo==='desarrollo'?COL.dev:COL.act,m:new maplibregl.Marker({element:el}).setLngLat(p.c).addTo(map)});});
+  DC.calles.features.forEach(f=>{const p=f.properties;const el=document.createElement('div');el.className='slbl';el.style.setProperty('--c',p.trat==='peatonal'?COL.peat:COL.pac);
+    el.textContent=short(p.nombre);const ll=mid(f.geometry);
+    MK.push({k:p.trat==='peatonal'?'peat':'pac',el,ll,txt:short(p.nombre),kind:'street',c:p.trat==='peatonal'?COL.peat:COL.pac,m:new maplibregl.Marker({element:el}).setLngLat(ll).addTo(map)});});
+  DC.refs.features.forEach(f=>{const el=document.createElement('div');el.className='rlbl';el.textContent=f.properties.n;
+    MK.push({k:'lim',el,ll:f.geometry.coordinates,txt:f.properties.n,kind:'ref',m:new maplibregl.Marker({element:el}).setLngLat(f.geometry.coordinates).addTo(map)});});
+  MK.sort((a,b)=>({pin:0,ref:1,street:2}[a.kind])-({pin:0,ref:1,street:2}[b.kind]));
+  const far=()=>$('map').classList.toggle('far',map.getZoom()<15.6);map.on('zoom',far);far();}
+function short(n){return n.replace('Licenciado ','').replace('General ','Gral. ');}
+// ---------- listas y cifras ----------
+function kpis(){const k=DC.kpi;
+  $('kpis').innerHTML=`<div><b>${fmt(k.ha,1)}</b><span>hectáreas en el distrito</span></div><div><b>${fmt(k.peat)}</b><span>m de calles 100% peatonales</span></div><div><b>${fmt(k.pac)}</b><span>m de calles pacificadas</span></div>`+
+   `<div><b>${DC.predios.features.filter(f=>f.properties.tipo==='desarrollo').length}</b><span>predios de desarrollo · ${fmt(k.m2d)} m²</span></div><div><b>${DC.predios.features.filter(f=>f.properties.tipo==='activacion').length}</b><span>predios de activación · ${fmt(k.m2a)} m²</span></div><div><b>${fmt(k.lotes)}</b><span>lotes catastrales en ${k.mz} manzanas</span></div>`;
+  const pct=Math.round(100*k.vnohab/k.vpar);
+  $('kpisC').innerHTML=`<div><b>${fmt(k.pob)}</b><span>habitantes</span></div><div><b>${fmt(k.vpar)}</b><span>viviendas particulares</span></div><div><b>${pct}%</b><span>no habitadas (${k.vnohab})</span></div>`;
+  $('censoNote').textContent=`${k.mzsd} de las ${k.mz} manzanas tienen datos de vivienda protegidos por confidencialidad y no se suman. Prende la capa Vivienda no habitada 2020 para ver el dato por manzana.`;}
+function buildLists(){
+  const row=(p)=>{const r=document.createElement('div');r.className='st';r.dataset.k=p.clave;const c=p.tipo==='desarrollo'?COL.dev:COL.act;
+    r.innerHTML=`<div class="badge ${p.tipo==='desarrollo'?'dev':''}" style="--c:${c}">${p.clave}</div><div><div class="nm">${cap(p.ub)||'Predio '+p.clave}</div><div class="tt">Hoy: ${p.usos}</div><div class="tt">Zonificación ${p.zon||'—'} · ${p.ids.filter(x=>x).length?'Lotes '+p.ids.filter(x=>x).join(', '):''}${p.ids.includes(0)?' + lote sin ID':''}</div></div><div class="mt">${fmt(p.area)} m²</div>`;
+    r.onclick=()=>focusPred(p.clave);return r;};
+  DC.predios.features.forEach(f=>$(f.properties.tipo==='desarrollo'?'listD':'listA').appendChild(row(f.properties)));
+  DC.calles.features.slice().sort((a,b)=>a.properties.trat.localeCompare(b.properties.trat)||b.properties.long-a.properties.long).forEach(f=>{const p=f.properties;const r=document.createElement('div');r.className='st';
+    r.innerHTML=`<i class="sw ln" style="--c:${p.trat==='peatonal'?COL.peat:COL.pac};margin-top:8px"></i><div><div class="nm">${p.nombre}</div><div class="tt">${TRAT[p.trat][0]}</div></div><div class="mt">${fmt(p.long)} m</div>`;
+    r.onclick=()=>{const b=bounds(f.geometry);map.fitBounds(b,{padding:120,maxZoom:18,pitch:is3d?PITCH3:0,bearing:BEAR3});setTimeout(()=>popup.setLngLat(mid(f.geometry)).setHTML(callePop(p)).addTo(map),900);};
+    $('listC').appendChild(r);});}
+const cap=s=>s?s.toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase()).replace(/\bS\/n\b/,'s/n'):'';
+function bounds(g){let b=[180,90,-180,-90];const w=a=>{if(typeof a[0]==='number')b=[Math.min(b[0],a[0]),Math.min(b[1],a[1]),Math.max(b[2],a[0]),Math.max(b[3],a[1])];else a.forEach(w);};w(g.coordinates);return [[b[0],b[1]],[b[2],b[3]]];}
+function predPop(p,lotI){const c=p.tipo==='desarrollo'?COL.dev:COL.act;
+  let h=`<div class="pop"><h4>${p.clave} · ${p.tipo==='desarrollo'?'Predio de desarrollo':'Predio de activación social'}</h4><div class="sub">${cap(p.ub)}</div>`+
+  `<div class="prog" style="--c:${c}">${PROG[p.tipo]}</div><table><tr><td>Superficie de terreno</td><td>${fmt(p.area)} m²</td></tr><tr><td>Lotes (ID Carto)</td><td>${p.ids.map(x=>x||'sin ID').join(' + ')}</td></tr><tr><td>Uso actual (catastro)</td><td>${p.usos}</td></tr><tr><td>Zonificación PDDU 2020</td><td>${p.zon||'—'}</td></tr></table>`;
+  if(lotI!=null)h+=`<details><summary>Ficha catastral del lote tocado</summary>${ficha(lotI,true)}</details>`;
+  return h+'</div>';}
+function callePop(p){return `<div class="pop"><h4>${p.nombre}</h4><div class="sub" style="color:${p.trat==='peatonal'?COL.peat:COL.pac};font-weight:700">${TRAT[p.trat][0]}</div><div class="prog" style="--c:${p.trat==='peatonal'?COL.peat:COL.pac}">${TRAT[p.trat][1]}</div><table><tr><td>Longitud intervenida</td><td>${fmt(p.long)} m</td></tr></table></div>`;}
+function focusPred(k){const f=DC.predios.features.find(x=>x.properties.clave===k);if(!f)return;
+  document.querySelectorAll('.st').forEach(r=>r.classList.toggle('sel',r.dataset.k===k));
+  map.flyTo({center:f.properties.c,zoom:18.2,pitch:is3d?60:0,bearing:BEAR3,duration:1300});
+  setTimeout(()=>popup.setLngLat(f.properties.c).setHTML(predPop(f.properties)).addTo(map),1350);}
+// ---------- interacción ----------
+const tip=$('tip');
+map.on('mousemove','lots3d',e=>{const i=e.features[0].properties.i;tip.style.display='block';tip.style.left=(e.point.x+14)+'px';tip.style.top=(e.point.y+10)+'px';
+  tip.innerHTML=(PRED_OF.has(i)?`<b style="color:${ROLE.get(i)==='desarrollo'?'#9a6a00':COL.act}">${PRED_OF.get(i)}</b> · `:'')+`<b>${C.id[i]?'Lote '+C.id[i]:'Lote sin ID'}</b><br>${C.ub[i]||''}<br>${dic('ua',C.ua[i])} · ${dic('zn',C.zn[i])||dic('ze',C.ze[i])} · ${fmt(C.a[i])} m²`;map.getCanvas().style.cursor='pointer';});
+map.on('mouseleave','lots3d',()=>{tip.style.display='none';map.getCanvas().style.cursor='';});
+const popup=new maplibregl.Popup({maxWidth:'340px'});
+const XY=ll=>{const t='['+ll.lng.toFixed(6)+', '+ll.lat.toFixed(6)+']';return `<div class="xy">Coordenadas lon, lat <code>${t}</code> <button onclick="try{navigator.clipboard.writeText('${t}');this.textContent='Copiado'}catch(e){}">Copiar</button></div>`;};
+map.on('click',e=>{tip.style.display='none';
+  const box=[[e.point.x-6,e.point.y-6],[e.point.x+6,e.point.y+6]];
+  const q=map.queryRenderedFeatures(box).filter(f=>!['clara','sat','claraRef','satRef','bg','mask','limF'].includes(f.layer.id));
+  const lot=q.find(f=>f.layer.id==='lots3d');const li=lot?lot.properties.i:null;
+  const pr=li!=null&&PRED_OF.has(li)?DC.predios.features.find(f=>f.properties.clave===PRED_OF.get(li)).properties:null;
+  const pf=pr||(q.find(f=>['devF','actF'].includes(f.layer.id))||{}).properties;
+  if(pf){const p=pr||DC.predios.features.find(f=>f.properties.clave===pf.clave).properties;popup.setLngLat(e.lngLat).setHTML(predPop(p,li).replace(/<\/div>$/,XY(e.lngLat)+'</div>')).addTo(map);return;}
+  const cl=q.find(f=>['peat','pac'].includes(f.layer.id));
+  if(cl&&(!lot||!is3d)){popup.setLngLat(e.lngLat).setHTML(callePop(cl.properties).replace(/<\/div>$/,XY(e.lngLat)+'</div>')).addTo(map);return;}
+  const mz=q.find(f=>f.layer.id==='vnhF');
+  if(mz){const p=mz.properties;popup.setLngLat(e.lngLat).setHTML(`<div class="pop"><h4>Manzana ${p.cvegeo.slice(-7)}</h4><div class="sub">Censo 2020 · CVEGEO ${p.cvegeo}</div><table><tr><td>Habitantes</td><td>${fmt(p.pob)}</td></tr><tr><td>Viviendas particulares</td><td>${p.vpar==null?'dato protegido':fmt(p.vpar)}</td></tr><tr><td>No habitadas</td><td>${p.vnh==null?'dato protegido':fmt(p.vnh)+(p.pct!=null?' · '+p.pct+'%':'')}</td></tr></table>${XY(e.lngLat)}</div>`).addTo(map);return;}
+  if(lot){popup.setLngLat(e.lngLat).setHTML(ficha(li).replace(/<\/div>$/,XY(e.lngLat)+'</div>')).addTo(map);return;}
+  if(cl){popup.setLngLat(e.lngLat).setHTML(callePop(cl.properties)).addTo(map);return;}
+  const f=q[0];if(!f){popup.setLngLat(e.lngLat).setHTML('<div class="pop">'+XY(e.lngLat)+'</div>').addTo(map);return;}
+  const P=f.properties;const nm={schools:'Escuela',stops:'Parada de transporte',heritage:'Patrimonio',green:'Área verde',cycle:'Ciclovía propuesta (PDDU)',aqv:'Ruta troncal'}[f.layer.id];
+  popup.setLngLat(e.lngLat).setHTML(`<div class="pop">${nm?`<h4>${P.n||nm}</h4><div class="sub">${nm}${P.t?' · '+P.t:''}${P.r?' · '+P.r:''}</div>`:''}${XY(e.lngLat)}</div>`).addTo(map);});
+// ---------- GeoJSON en el formato del curso ----------
+$('gjDl').onclick=()=>{const feats=[];const base={proyecto:'Distrito Catedral',alumno:''};
+  DC.distrito.features.forEach(f=>feats.push({type:'Feature',properties:{...base,capa:'Límite del Distrito Catedral',nombre:'Distrito Catedral',descripcion:'Polígono de intervención',superficie_ha:DC.kpi.ha},geometry:f.geometry}));
+  DC.calles.features.forEach(f=>feats.push({type:'Feature',properties:{...base,capa:TRAT[f.properties.trat][0],nombre:f.properties.nombre,descripcion:TRAT[f.properties.trat][1],longitud_m:f.properties.long},geometry:f.geometry}));
+  DC.predios.features.forEach(f=>{const p=f.properties;feats.push({type:'Feature',properties:{...base,capa:p.tipo==='desarrollo'?'Predios de desarrollo':'Predios de activación social',nombre:p.clave+' · '+cap(p.ub),descripcion:PROG[p.tipo],lotes:p.ids.map(x=>x||'sin ID').join(' + '),superficie_m2:p.area,uso_actual:p.usos,zonificacion:p.zon},geometry:f.geometry});});
+  save(new Blob([JSON.stringify({type:'FeatureCollection',name:'Distrito_Catedral',features:feats},null,1)],{type:'application/geo+json'}),'Distrito_Catedral.geojson');};
+function save(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+// ---------- PDF de la vista actual ----------
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+async function exportPDF(){
+  if(!window.jspdf){alert('No se pudo cargar la librería de PDF. Revisa tu conexión a internet y vuelve a intentar.');return;}
+  const btns=[$('pdf'),$('pdf2')];btns.forEach(b=>b.disabled=true);$('busy').style.display='grid';popup.remove();
+  const prevPR=map.getPixelRatio();
+  try{
+    map.setPixelRatio(Math.max(2,prevPR));
+    await new Promise(r=>{map.once('idle',r);map.triggerRepaint();setTimeout(r,8000);});
+    const cv=map.getCanvas();const img=cv.toDataURL('image/jpeg',0.92);
+    const cssW=cv.clientWidth||cv.width/map.getPixelRatio(), cssH=cv.clientHeight||cv.height/map.getPixelRatio();
+    const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'letter'});
+    const _t=pdf.text.bind(pdf);pdf.text=(t,...a)=>_t(Array.isArray(t)?t.map(x=>String(x).replace(/²/g,'2')):String(t).replace(/²/g,'2'),...a);
+    const _s=pdf.splitTextToSize.bind(pdf);pdf.splitTextToSize=(t,...a)=>_s(String(t).replace(/²/g,'2'),...a);
+    const _w=pdf.getTextWidth.bind(pdf);pdf.getTextWidth=t=>_w(String(t).replace(/²/g,'2'));
+    const PW=279.4,PH=215.9,M=10,RW=66;
+    const mapX=M,mapY=26,maxW=PW-2*M-RW-6,maxH=PH-mapY-16;
+    let w=maxW,h=w*cssH/cssW;if(h>maxH){h=maxH;w=h*cssW/cssH;}
+    const k=w/cssW;
+    // encabezado
+    pdf.setFillColor(...hex(COL.lim));pdf.rect(M,M,4,12,'F');
+    pdf.setFont('helvetica','bold');pdf.setFontSize(17);pdf.setTextColor(15,53,87);pdf.text('Distrito Catedral',M+7,M+6);
+    pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.setTextColor(91,107,123);
+    const vista=(map.getPitch()>5?'Vista 3D':'Planta')+' · Lotes: '+VIEWS[view].name+' · Mapa base: '+($('basemap').value==='sat'?'satélite':'claro');
+    pdf.text('Revitalización del Centro Histórico de Saltillo · Grupo 601 · Proyectos urbanos',M+7,M+11);
+    pdf.text(vista,PW-M,M+11,{align:'right'});
+    // mapa
+    pdf.addImage(img,'JPEG',mapX,mapY,w,h,undefined,'FAST');
+    // etiquetas (los marcadores HTML no están en el lienzo)
+    const tags=$('tTags').classList.contains('on');
+    if(tags)MK.forEach(m=>{if(!VIS[m.k]||m.hid)return;const p=map.project(m.ll);if(p.x<8||p.y<8||p.x>cssW-8||p.y>cssH-8)return;
+      const x=mapX+p.x*k,y=mapY+p.y*k;
+      if(m.kind==='pin'){pdf.setFillColor(...hex(m.c));pdf.setDrawColor(255,255,255);pdf.setLineWidth(.5);pdf.circle(x,y,2.6,'FD');pdf.setFont('helvetica','bold');pdf.setFontSize(6.5);pdf.setTextColor(...(m.k==='dev'?[61,42,0]:[255,255,255]));pdf.text(m.txt,x,y+.9,{align:'center'});}
+      else if(m.kind==='street'&&map.getZoom()>=15.6){pdf.setFont('helvetica','bold');pdf.setFontSize(5.8);const tw=pdf.getTextWidth(m.txt)+3;pdf.setFillColor(255,255,255);pdf.setDrawColor(...hex(m.c));pdf.setLineWidth(.35);pdf.roundedRect(x-tw/2,y-1.9,tw,3.6,1.6,1.6,'FD');pdf.setTextColor(23,33,43);pdf.text(m.txt,x,y+.65,{align:'center'});}
+      else if(m.kind==='ref'){pdf.setFont('times','bolditalic');pdf.setFontSize(7);pdf.setTextColor(90,59,18);pdf.text(m.txt,x,y,{align:'center'});}});
+    pdf.setDrawColor(150,160,170);pdf.setLineWidth(.3);pdf.rect(mapX,mapY,w,h);
+    // norte
+    const nb=map.getBearing()*Math.PI/180,nx=mapX+w-11,ny=mapY+12;
+    pdf.setFillColor(255,255,255);pdf.setDrawColor(150,160,170);pdf.circle(nx,ny,7,'FD');
+    const rot=(dx,dy)=>[nx+dx*Math.cos(-nb)-dy*Math.sin(-nb),ny+dx*Math.sin(-nb)+dy*Math.cos(-nb)];
+    const [ax,ay]=rot(0,-5.2),[lx,ly]=rot(-2.3,3.2),[rx,ry]=rot(2.3,3.2),[cx2,cy2]=rot(0,1.4);
+    pdf.setFillColor(23,33,43);pdf.triangle(ax,ay,lx,ly,cx2,cy2,'F');pdf.setFillColor(160,170,180);pdf.triangle(ax,ay,rx,ry,cx2,cy2,'F');
+    const [tx,ty]=rot(0,-8.6);pdf.setFont('helvetica','bold');pdf.setFontSize(7);pdf.setTextColor(23,33,43);pdf.text('N',tx,ty+1.2,{align:'center'});
+    // escala al centro de la vista
+    const lat=map.getCenter().lat,mpp=40075016.686*Math.cos(lat*Math.PI/180)/(512*Math.pow(2,map.getZoom()));
+    const mmPerM=k/mpp;let sm=[5,10,20,25,50,100,200,250,500,1000].find(v=>v*mmPerM>=22)||1000;const sl=sm*mmPerM;
+    const sx=mapX+5,sy=mapY+h-7,p3=map.getPitch()>5;pdf.setFillColor(255,255,255);pdf.rect(sx-2,sy-5.5,sl+(p3?58:16),9,'F');
+    pdf.setFillColor(23,33,43);pdf.rect(sx,sy,sl/2,1.4,'F');pdf.setDrawColor(23,33,43);pdf.setLineWidth(.3);pdf.rect(sx,sy,sl,1.4);
+    pdf.setFont('helvetica','normal');pdf.setFontSize(6.5);pdf.text('0',sx,sy-1,{align:'center'});pdf.text(sm+' m',sx+sl,sy-1,{align:'center'});
+    if(map.getPitch()>5){pdf.setFontSize(5.5);pdf.setTextColor(91,107,123);pdf.text('Escala aproximada al centro de la vista 3D',sx+sl+3,sy+1.3);}
+    // columna derecha: simbología, caso de referencia y cifras
+    let ry2=mapY+2;const RX=PW-M-RW;const withRef=!!(REF&&$('refPdf').checked);
+    const cifTop=PH-40;
+    const head=t=>{pdf.setFont('helvetica','bold');pdf.setFontSize(7.5);pdf.setTextColor(15,53,87);pdf.text(t.toUpperCase(),RX,ry2);pdf.setDrawColor(23,33,43);pdf.setLineWidth(.5);pdf.line(RX,ry2+1.3,RX+RW,ry2+1.3);ry2+=5.5;};
+    const sw_=(sw,c,x,y)=>{pdf.setLineWidth(.3);
+      if(sw==='dash'){pdf.setDrawColor(...hex(c));pdf.setLineWidth(.9);pdf.setLineDashPattern([1.6,.9],0);pdf.line(x,y-1,x+7,y-1);pdf.setLineDashPattern([],0);}
+      else if(sw==='ln'){pdf.setDrawColor(...hex(c));pdf.setLineWidth(1.6);pdf.line(x,y-1,x+7,y-1);}
+      else if(sw==='pt'){pdf.setFillColor(...hex(c));pdf.circle(x+3.5,y-1,1.3,'F');}
+      else{pdf.setFillColor(...hex(c));pdf.setDrawColor(0,0,0);pdf.setLineWidth(.1);pdf.rect(x,y-2.6,7,3.2,'FD');}};
+    // secciones de la simbología
+    const C2=withRef?2:1, SEC=[];
+    SEC.push({t:'Distrito Catedral',cols:1,it:LYR.filter(l=>l[0]!=='sub'&&VIS[l[0]]&&['lim','peat','pac','dev','act'].includes(l[0])).map(l=>({sw:l[2]==='box'?'box':l[2],c:l[3],t:l[1]+(l[6]?' · '+l[6]:'')}))});
+    if(VIS.vnh)SEC.push({t:'Vivienda no habitada 2020',cols:2,it:[['#fdd0a2','Menos de 20%'],['#fdae6b','20 a 35%'],['#e6550d','35 a 50%'],['#7f2704','50% o más'],['#e9ecef','Dato protegido']].map(([c,t])=>({sw:'box',c,t}))});
+    const ctx=LYR.filter(l=>l[0]!=='sub'&&VIS[l[0]]&&!['lim','peat','pac','dev','act','vnh'].includes(l[0]));
+    if(ctx.length)SEC.push({t:'Contexto',cols:2,it:ctx.map(l=>({sw:l[2],c:l[3],t:l[1]}))});
+    SEC.push({t:'Lotes · '+VIEWS[view].name,cols:C2,it:viewCounts().map(o=>({sw:'box',c:o.c,t:o.t}))});
+    const fs=c=>c>1?6.4:7, lines=(it,c)=>{pdf.setFontSize(fs(c));return pdf.splitTextToSize(it.t,RW/c-10).slice(0,c>1?2:3);};
+    const secH=sec=>{let h=6.7,row=0;sec.it.forEach((it,k)=>{row=Math.max(row,3.1*lines(it,sec.cols).length+1.5);if((k+1)%sec.cols===0||k===sec.it.length-1){h+=row;row=0;}});return h;};
+    const legH=SEC.reduce((a,b)=>a+secH(b),0);
+    // tamaño de la imagen según el espacio libre (entre 26 y 42 mm de alto)
+    pdf.setFont('helvetica','normal');pdf.setFontSize(6.2);
+    const refLines=withRef?pdf.splitTextToSize(REF.leccion,RW):[];
+    const refFixed=withRef?5.5+2.5+3+3.4+refLines.length*2.7+3:0;
+    const free=cifTop-3-(mapY+2)-legH-refFixed;
+    const imgH=withRef?Math.max(26,Math.min(42,RW*REF.h/REF.w,free)):0;
+    const refTop=cifTop-3-refFixed-imgH;
+    const limit=withRef?refTop-2:cifTop-3;
+    const items=(list,cols)=>{const cw=RW/cols;let col=0,rowH=0,shown=0;
+      for(const it of list){const ls=lines(it,cols);const hh=3.1*ls.length+1.5;
+        if(col===0&&ry2+hh-2>limit-(list.length>shown+cols?4:0))break;
+        const x=RX+col*cw;sw_(it.sw,it.c,x,ry2);pdf.setFont('helvetica','normal');pdf.setFontSize(fs(cols));pdf.setTextColor(23,33,43);pdf.text(ls,x+9,ry2);
+        rowH=Math.max(rowH,hh);shown++;col++;if(col===cols){col=0;ry2+=rowH;rowH=0;}}
+      if(col!==0)ry2+=rowH;
+      if(shown<list.length){pdf.setFont('helvetica','italic');pdf.setFontSize(6);pdf.setTextColor(91,107,123);pdf.text('y '+(list.length-shown)+' categorías más',RX+9,ry2);ry2+=3.5;}};
+    SEC.forEach((sec,k)=>{if(k&&ry2+9>limit)return;if(k)ry2+=1.2;head(sec.t);items(sec.it,sec.cols);});
+    // caso de referencia
+    if(withRef){ry2=refTop;head('Caso de referencia');
+      let iw=RW,ih=RW*REF.h/REF.w,sy=0;               // recorte centrado si hace falta menos alto
+      const y0=ry2-2;
+      if(ih>imgH){const cv2=document.createElement('canvas');const im=await new Promise(r=>{const x=new Image();x.onload=()=>r(x);x.src=REF.img;});
+        const ch=Math.round(im.naturalWidth*imgH/RW);cv2.width=im.naturalWidth;cv2.height=ch;cv2.getContext('2d').drawImage(im,0,Math.round((im.naturalHeight-ch)/2),im.naturalWidth,ch,0,0,im.naturalWidth,ch);
+        pdf.addImage(cv2.toDataURL('image/jpeg',.9),'JPEG',RX,y0,RW,imgH,undefined,'FAST');}
+      else pdf.addImage(REF.img,'JPEG',RX,y0,RW,ih,'ref','FAST');
+      pdf.setDrawColor(200,205,210);pdf.setLineWidth(.2);pdf.rect(RX,y0,RW,imgH);
+      ry2=y0+imgH+2.5;pdf.setFont('helvetica','normal');pdf.setFontSize(5.4);pdf.setTextColor(120,130,140);pdf.text(REF.fuente,RX+RW,ry2,{align:'right'});
+      ry2+=3;pdf.setFont('helvetica','bold');pdf.setFontSize(7.5);pdf.setTextColor(23,33,43);pdf.text(REF.titulo,RX,ry2);
+      ry2+=3.4;pdf.setFont('helvetica','normal');pdf.setFontSize(6.2);pdf.setTextColor(52,73,94);pdf.text(refLines,RX,ry2);}
+    // cifras
+    const K_=DC.kpi;ry2=cifTop;head('Cifras del distrito');
+    pdf.setFontSize(6.8);pdf.setTextColor(23,33,43);
+    [[fmt(K_.ha,1)+' ha','superficie del distrito'],[fmt(K_.peat)+' m','de calles 100% peatonales'],[fmt(K_.pac)+' m','de calles pacificadas'],[fmt(K_.m2d+K_.m2a)+' m²','en '+DC.predios.features.length+' predios a intervenir'],[fmt(K_.pob)+' hab. · '+Math.round(100*K_.vnohab/K_.vpar)+'%','de vivienda no habitada (Censo 2020)']].forEach(([a,b])=>{pdf.setFont('helvetica','bold');pdf.text(a,RX,ry2);const aw=pdf.getTextWidth(a);pdf.setFont('helvetica','normal');pdf.text(' '+b,RX+aw,ry2);ry2+=3.4;});
+    // pie
+    pdf.setFont('helvetica','normal');pdf.setFontSize(6);pdf.setTextColor(91,107,123);
+    const fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+    const src=(withRef?'Caso de referencia: supermanzanas (superilles), Ajuntament de Barcelona. ':'')+'Fuentes: catastro municipal y PDDU Saltillo 2020 (kit del mapa base, alturas estimadas a 3 m por nivel); ejes viales INEGI, Marco Geoestadístico 2025; Inventario Nacional de Vivienda y Censo 2020, INEGI; atlas del Grupo 601. Mapa base © Esri. Elaboración propia · '+fecha+'.';
+    pdf.text(pdf.splitTextToSize(src,PW-2*M),M,PH-8);
+    const d=new Date(),stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0');
+    pdf.save('Distrito_Catedral_'+stamp+'.pdf');
+  }catch(err){console.error(err);alert('No se pudo generar el PDF: '+err.message);}
+  finally{map.setPixelRatio(prevPR);$('busy').style.display='none';btns.forEach(b=>b.disabled=false);}
+}
+// ---------- caso de referencia ----------
+const REF=window.REFERENCIA;
+if(REF){$('ref').innerHTML=`<figure id="refFig"><img src="${REF.img}" alt="${REF.titulo}"><figcaption>${REF.fuente} · toca para ampliar</figcaption></figure><h3>${REF.titulo}</h3><div class="sub">${REF.subtitulo}</div><p class="note" style="color:#34495e;font-size:12px">${REF.texto}</p><div class="lec">${REF.leccion}</div>`;
+  $('refFig').onclick=()=>{$('lb').innerHTML=`<img src="${REF.img}" alt="${REF.titulo}">`;$('lb').style.display='grid';};$('lb').onclick=()=>{$('lb').style.display='none';};}
+else{$('ref').innerHTML='<p class="note">Falta el archivo data/referencia.js.</p>';$('refPdf').checked=false;$('refPdf').disabled=true;}
+$('pdf').onclick=exportPDF;$('pdf2').onclick=exportPDF;window._exportPDF=exportPDF;
+})();
+</script>
+<script>
+/* leyenda de escuelas por nivel educativo */
+(function(){const C=[["Inicial / preescolar", "#e67700"], ["Primaria", "#2b8a3e"], ["Secundaria", "#1971c2"], ["Media superior / preparatoria", "#c2255c"], ["Superior", "#6741d9"], ["Técnica / especial", "#087f8c"], ["Multinivel", "#8d5524"]];let n=0;const t=setInterval(()=>{const box=document.getElementById('lyr')||document.querySelector('.lyrs');if(!box||!box.children.length){if(++n>100)clearInterval(t);return;}clearInterval(t);
+ const d=document.createElement('div');d.className='lyr-leg';d.innerHTML='<b>Escuelas · nivel educativo</b>'+C.map(([k,c])=>`<div><span style="background:${c}"></span>${k}</div>`).join('');box.appendChild(d);},100);})();
+</script>
+<!--atlasnav--><style>#atlasnav{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;gap:6px;font:600 12px/1 "IBM Plex Mono",ui-monospace,monospace}#atlasnav a{background:#1c1c1c;color:#fff;text-decoration:none;padding:8px 12px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap}#atlasnav a.m{background:#b5532b}#atlasnav a:hover{filter:brightness(1.2)}.site-home{display:none!important}@media print{#atlasnav{display:none}}</style><nav id="atlasnav"><a class="m" href="05_propuestas_urbanas.html">&larr; Propuestas urbanas</a><a href="index.html">Men&uacute;</a><a href="05_propuestas_urbanas.html">Propuestas urbanas</a></nav><!--/atlasnav--></body>
+</html>
