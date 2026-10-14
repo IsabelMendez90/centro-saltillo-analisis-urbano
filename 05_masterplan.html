@@ -434,11 +434,8 @@ document.getElementById('pdfBtn').onclick=async()=>{const btn=document.getElemen
  Y+=4;sub('Autores');small('Alumnos del Grupo 601',X,Y,7,[30,30,30],true);Y+=3.4;
  alumnos().forEach(a=>{small(a,X,Y,6.4);Y+=2.8;});Y+=1.8;
  PROFS.forEach(([t,ns])=>{pdf.splitTextToSize(t,60).forEach(l=>{small(l,X,Y,6.6,[30,30,30],true);Y+=2.9;});pdf.setFontSize(6.4);pdf.splitTextToSize(ns.join(', '),62).forEach(l=>{small(l,X,Y,6.4);Y+=2.8;});Y+=1.6;});
- // leyendas propias en segunda columna
- let X2=372,Y2=Y-4.4*MPU.cats.length-7;
- X=X2;Y=14+6;sub('Simbología de autor');
- Object.entries(MPU.own||{}).forEach(([n,L])=>{const P=MPU.projects.find(p=>p.n==n);circ(X+2.4,Y-1.1,P.n,2.2);small(P.title,X+6,Y,7.2,[30,30,30],true);Y+=4.4;L.forEach(x=>{sw(X+1,Y,x.c,{ln:'ln',dash:'dash',pt:'pt'}[x.kind]);pdf.setFontSize(6.6);const tl=pdf.splitTextToSize(x.t,48);tl.forEach((l,j)=>small(l,X+9,Y+j*2.7,6.6));Y+=3.8+(tl.length-1)*2.7;});Y+=2;});
- Y+=2;sub('Prototipos de vivienda');
+ // prototipos en segunda columna
+ X=372;Y=14+6;sub('Prototipos de vivienda');
  (window.VIVIENDA?VIVIENDA.meta:[]).forEach(m=>{pdf.setFillColor(...hex(m.color));pdf.rect(X,Y-2.4,3.2,3,'F');small(m.title.slice(0,30),X+5,Y,6.8,[30,30,30],true);small(m.full,X+5,Y+2.8,6,[100,100,100]);Y+=6.4;});
  // fuentes
  small('Fuentes: catastro municipal de Saltillo y PDDU 2020; capas del atlas Centro de Saltillo; propuestas de cada alumno. Mapa base Esri. Alturas del contexto estimadas a partir de la superficie construida.',MX,PH-6,6.4,[110,110,110]);

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edificio DOT Zócalo + Torre · Lote 32184 · Saltillo</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#14263a;--mut:#5d6f82;--line:#d9e0e7;--acc:#0f3557;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10181f;--card:#18232d;--ink:#e6edf3;--mut:#9fb0c0;--line:#2b3a47;--acc:#7fb4e6}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Arial,sans-serif}
+header{padding:16px 18px 6px}header small{color:var(--mut);letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+h1{font-size:21px;margin:2px 0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--acc);margin:16px 0 6px}
+main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:14px;padding:8px 18px 24px}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center}
+button,label.t{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px;cursor:pointer}
+button.on{background:var(--acc);color:var(--card);border-color:var(--acc)}
+label.t{display:inline-flex;gap:5px;align-items:center}
+#cv{width:100%;height:min(62vh,560px);display:block;border-radius:8px;background:linear-gradient(#dfe9f2,#f3f6f9);touch-action:none;cursor:grab}
+@media(prefers-color-scheme:dark){#cv{background:linear-gradient(#1c2a37,#101920)}}
+#plan{width:100%;height:auto;display:none;background:#fff;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--mut);font-weight:600}
+td:last-child,th:last-child{text-align:right}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid #0003}
+.note{font-size:11.5px;color:var(--mut);margin-top:8px}
+</style></head><body>
+<header><small>Proyecto 2 · DOT Estación de Tren · Modelo volumétrico</small>
+<h1>Edificio "Zócalo + Torre" · Lote 32184</h1>
+<div style="color:var(--mut)">Francisco Murguía S/N, Centro Histórico, Saltillo · 7 niveles · 16 viviendas</div></header>
+<main>
+<section class="card">
+ <div class="bar">
+  <button id="bm" class="on">Modelo 3D</button><button id="bp">Planta</button><span style="flex:1"></span>
+  <span id="vb"><button data-v="p">Perspectiva</button><button data-v="t">Cenital</button><button data-v="f">Alzado</button></span>
+ </div>
+ <div class="bar" id="lay">
+  <label class="t"><input type="checkbox" data-l="lot" checked> Lote</label>
+  <label class="t"><input type="checkbox" data-l="ces" checked> Cesión 15%</label>
+  <label class="t"><input type="checkbox" data-l="ver" checked> Verde y absorción</label>
+  <label class="t"><input type="checkbox" data-l="bld" checked> Edificio</label>
+ </div>
+ <canvas id="cv"></canvas>
+ <svg id="plan" viewBox="-6 -9 56 52" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,Arial" font-size="1.35"></svg>
+ <div class="note" id="hint">Arrastra para girar, rueda o pellizco para acercar. Solo el edificio es volumétrico; cesión y áreas verdes se dibujan en el suelo. Alturas supuestas: PB 4.0 m y 3.0 m por nivel residencial.</div>
+</section>
+<aside>
+ <div class="card"><h2 style="margin-top:0">Coeficientes (propuesta)</h2>
+ <table><tr><th>Concepto</th><th>Valor</th></tr>
+ <tr><td>Superficie del lote</td><td>1,195 m²</td></tr>
+ <tr><td>COS (desplante máx.)</td><td>0.70 · 837.5 m²</td></tr>
+ <tr><td>CAS / CAV (espacio libre)</td><td>0.30 · 357.5 m²</td></tr>
+ <tr><td>CUS (construcción total)</td><td>2.14 · 2,557.5 m²</td></tr>
+ <tr><td>Área de cesión (15 %)</td><td>179.25 m²</td></tr>
+ <tr><td>Densidad</td><td>133.89 viv/ha · 16 viv</td></tr>
+ <tr><td>Población estimada</td><td>64 hab</td></tr></table>
+ <h2>Programa por niveles</h2>
+ <table><tr><th>Nivel</th><th>Planta</th><th>m²</th></tr>
+ <tr><td><span class="sw" style="background:#c0504d"></span>1 · Zócalo comercial</td><td>33.5 × 25</td><td>837.5</td></tr>
+ <tr><td><span class="sw" style="background:#e8a15a"></span>2–5 · Torre (3 viv/piso)</td><td>20 × 16</td><td>4 × 320</td></tr>
+ <tr><td><span class="sw" style="background:#f3cf8f"></span>6–7 · Remate (2 viv/piso)</td><td>20 × 11</td><td>2 × 220</td></tr>
+ <tr><td colspan="2"><b>Total construido</b></td><td><b>2,557.5</b></td></tr></table>
+ <h2>Zonas en suelo</h2>
+ <table>
+ <tr><td><span class="sw" style="background:#8e44ad"></span>Cesión (espacio público, palapa)</td><td>179.25 m²</td></tr>
+ <tr><td><span class="sw" style="background:#00aa19"></span>Verde y absorción</td><td>178.25 m²</td></tr>
+ <tr><td><span class="sw" style="background:#c0504d"></span>Huella del edificio</td><td>837.5 m²</td></tr></table>
+ <div class="note">El "cuadrito" de la L (17.5 × 15 m aprox.) queda como parque/palapa; la cesión ocupa su frente a calle. Torre al poniente (vías), remate escalonado hacia el oriente. Dibujo esquemático, ±1 %.</div>
+ </div>
+</aside></main>
+<script>
+// Geometría local (u,v) en metros: u hacia el ESE, v hacia el SSO; origen en la esquina NO del lote
+const LOT=[[0,0],[44.08,.31],[44.01,15.29],[26.53,15.05],[26.51,35.44],[.24,35.1]];
+const CES=[[26.52,.2],[44.05,.2],[44.05,10.43],[26.52,10.43]];
+const GA=[[26.52,10.43],[44.05,10.43],[44.01,15.2],[26.53,15.1]];
+const COL=[[0,0],[26.52,.2],[26.52,35.3],[.24,35.1]], POD=[[.5,1],[25.5,1],[25.5,34.5],[.5,34.5]];
+const th=-23.5*Math.PI/180,cu=Math.cos(th),su=Math.sin(th);
+// mundo: X este, Z sur, Y arriba. u=(cos,−sin)→(E,N); v apunta a (−.392,−.92)
+const W=(u,v,y=0)=>[0.917*u-0.392*v-22,y,0.399*u+0.92*v-17];
+const bx=(u0,u1,v0,v1,y0,y1,c)=>({u0,u1,v0,v1,y0,y1,c});
+const B=[bx(.5,25.5,1,34.5,0,4,[192,80,77]),bx(.5,16.5,7.75,27.75,4,16,[232,161,90]),bx(.5,11.5,7.75,27.75,16,22,[243,207,143])];
+const cv=document.getElementById('cv'),g=cv.getContext('2d');
+let yaw=-.6,pit=.62,dist=130,show={lot:1,ces:1,ver:1,bld:1};
+function rs(){const r=devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*r;cv.height=h*r;g.setTransform(r,0,0,r,0,0);draw()}
+function pr(p){let[x,y,z]=p,c=Math.cos(yaw),s=Math.sin(yaw);let x1=x*c-z*s,z1=x*s+z*c,cp=Math.cos(pit),sp=Math.sin(pit);let y2=y*cp-z1*sp,z2=y*sp+z1*cp+dist-8;const f=cv.clientHeight*1.15,k=f/z2;return[cv.clientWidth/2+x1*k,cv.clientHeight/2-(y2-6)*k,z2]}
+function poly(P,y,fill,stroke,dash){g.beginPath();P.forEach((q,i)=>{const a=pr(W(q[0],q[1],y));i?g.lineTo(a[0],a[1]):g.moveTo(a[0],a[1])});g.closePath();if(fill){g.fillStyle=fill;g.fill('evenodd')}if(stroke){g.strokeStyle=stroke;g.setLineDash(dash||[]);g.lineWidth=1.6;g.stroke();g.setLineDash([])}}
+function lbl(t,u,v){const a=pr(W(u,v,.2));g.fillStyle='#14263a';g.font='bold 11px system-ui';g.textAlign='center';g.fillText(t,a[0],a[1])}
+function draw(){const w=cv.clientWidth,h=cv.clientHeight;g.clearRect(0,0,w,h);
+ if(show.lot){poly(LOT,0,'rgba(255,255,255,.55)','#14263a')}
+ if(show.ver){poly(GA,.02,'#00aa19');poly([...COL,...POD.slice().reverse()],.02,'#00aa19');poly(GA,0,0,'#006b10');}
+ if(show.ces){poly(CES,.03,'#8e44ad','#5a2a70')}
+ if(show.lot){poly(LOT,.05,0,'#14263a');if(show.ces){lbl('CESIÓN 15%',35.3,4.5);lbl('(parque / palapa)',35.3,7)}if(show.ver)lbl('VERDE / ABSORCIÓN',35.3,13)}
+ if(show.bld){const F=[];
+  for(const b of B){const q=[[b.u0,b.v0],[b.u1,b.v0],[b.u1,b.v1],[b.u0,b.v1]];
+   const tp=q.map(p=>W(p[0],p[1],b.y1));F.push({P:tp,k:1.0,c:b.c});
+   for(let i=0;i<4;i++){const a=q[i],d=q[(i+1)%4],n=[d[1]-a[1],-(d[0]-a[0])],m=Math.hypot(...n);
+    const nx=0.917*n[0]/m-0.392*n[1]/m,nz=0.399*n[0]/m+0.92*n[1]/m;
+    F.push({P:[W(a[0],a[1],b.y0),W(d[0],d[1],b.y0),W(d[0],d[1],b.y1),W(a[0],a[1],b.y1)],k:.62+.3*(nx*-.5+nz*.7+1)/2,c:b.c})}}
+  F.forEach(f=>f.z=f.P.reduce((s,p)=>s+pr(p)[2],0)/f.P.length);F.sort((a,b)=>b.z-a.z);
+  for(const f of F){g.beginPath();f.P.forEach((p,i)=>{const a=pr(p);i?g.lineTo(a[0],a[1]):g.moveTo(a[0],a[1])});g.closePath();g.fillStyle=`rgb(${f.c.map(x=>Math.round(x*Math.min(f.k,1.08))).join()})`;g.fill();g.strokeStyle='rgba(20,38,58,.55)';g.lineWidth=1;g.stroke()}}
+ // norte
+ const n=[-.399*0+0.0,0,0];const a=pr([0,0,0]),nn=pr([0,0,-6]);g.fillStyle='#14263a';g.font='bold 12px system-ui';g.textAlign='left';g.fillText('N ↑ (arriba = norte en cenital)',10,18)}
+const V={p:[-.6,.62,130],t:[0,1.5707,100],f:[3.1416,.05,120]};
+document.querySelectorAll('#vb button').forEach(b=>b.onclick=()=>{[yaw,pit,dist]=V[b.dataset.v];draw()});
+document.querySelectorAll('#lay input').forEach(i=>i.onchange=()=>{show[i.dataset.l]=i.checked?1:0;draw()});
+let dr=null;cv.onpointerdown=e=>{dr=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)};cv.onpointerup=()=>dr=null;
+cv.onpointermove=e=>{if(!dr)return;yaw+=(e.clientX-dr[0])*.008;pit=Math.max(.02,Math.min(1.5707,pit+(e.clientY-dr[1])*.006));dr=[e.clientX,e.clientY];draw()};
+cv.onwheel=e=>{e.preventDefault();dist=Math.max(50,Math.min(260,dist*(1+e.deltaY*.001)));draw()};
+addEventListener('resize',rs);
+// Planta (SVG, ejes locales; norte rotado)
+const S=document.getElementById('plan'),pt=P=>P.map(p=>p.join(',')).join(' ');
+S.innerHTML=`<rect x="-6" y="-9" width="56" height="52" fill="#fff"/>
+<polygon points="${pt(LOT)}" fill="#f4f4f0" stroke="#14263a" stroke-width=".25"/>
+<polygon points="${pt(GA)}" fill="#00aa19" fill-opacity=".75"/>
+<path d="M${COL.map(p=>p.join(',')).join('L')}ZM${POD.map(p=>p.join(',')).join('L')}Z" fill="#00aa19" fill-opacity=".75" fill-rule="evenodd"/>
+<polygon points="${pt(CES)}" fill="#8e44ad" fill-opacity=".8"/>
+<polygon points="${pt(POD)}" fill="#c0504d" fill-opacity=".85" stroke="#14263a" stroke-width=".2"/>
+<rect x=".5" y="7.75" width="16" height="20" fill="none" stroke="#14263a" stroke-width=".22" stroke-dasharray="1,.5"/>
+<rect x=".5" y="7.75" width="11" height="20" fill="#e8a15a" fill-opacity=".8" stroke="#14263a" stroke-width=".18"/>
+<polygon points="${pt(LOT)}" fill="none" stroke="#14263a" stroke-width=".3"/>
+<g fill="#14263a" text-anchor="middle"><text x="6" y="18.3">Torre 2-5 y remate 6-7</text><text x="6" y="19.9" font-size="1">(2-5: 16×20 · 6-7: 11×20)</text>
+<text x="18" y="31.5" fill="#fff" font-weight="700">Zócalo comercial 25 × 33.5</text>
+<text x="35.3" y="5.2" fill="#fff" font-weight="700">CESIÓN 15%</text><text x="35.3" y="6.9" fill="#fff" font-size="1.05">179.25 m² · parque / palapa</text>
+<text x="35.3" y="13" font-size="1.1" fill="#fff">VERDE / ABSORCIÓN</text>
+<text x="13" y="-3">Calle · frente norte-oriente</text><text x="-2.5" y="17" transform="rotate(-90 -2.5 17)">Poniente · vías del tren</text></g>
+<g stroke="#14263a" stroke-width=".15" fill="none"><path d="M.5 38v1M25.5 38v1M.5 38.5h25"/><path d="M-3 1v33.5M-3.5 1h1M-3.5 34.5h1" transform="translate(-0.4 0)"/></g>
+<text x="13" y="40.6" text-anchor="middle" fill="#14263a" font-size="1.1">25.00 m</text><text x="-4.8" y="18" font-size="1.1" fill="#14263a" transform="rotate(-90 -4.8 18)" text-anchor="middle">33.50 m</text>
+<g transform="translate(46 -4.5) rotate(-23.5)"><path d="M0 2.8V-2.8M0-3.2L-1 -1.2L1 -1.2Z" stroke="#14263a" stroke-width=".25" fill="#14263a"/><text y="4.6" text-anchor="middle" font-weight="700" fill="#14263a">N</text></g>
+<g transform="translate(30 38)"><path d="M0 0h10" stroke="#14263a" stroke-width=".3"/><text y="2" font-size="1.1" fill="#14263a">0</text><text x="10" y="2" font-size="1.1" text-anchor="end" fill="#14263a">10 m</text></g>`;
+function tab(m){const d=m=='m';cv.style.display=d?'block':'none';S.style.display=d?'none':'block';document.getElementById('lay').style.display=d?'flex':'none';document.getElementById('vb').style.display=d?'inline':'none';bm.className=d?'on':'';bp.className=d?'':'on'}
+bm.onclick=()=>{tab('m');rs()};bp.onclick=()=>tab('p');rs();
+</script><!--atlasnav--><style>#atlasnav{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;gap:6px;font:600 12px/1 "IBM Plex Mono",ui-monospace,monospace}#atlasnav a{background:#1c1c1c;color:#fff;text-decoration:none;padding:8px 12px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap}#atlasnav a.m{background:#b5532b}#atlasnav a:hover{filter:brightness(1.2)}.site-home{display:none!important}@media print{#atlasnav{display:none}}</style><nav id="atlasnav"><a class="m" href="05_prototipos_vivienda.html">&larr; Prototipos</a><a href="index.html">Men&uacute;</a><a href="05_masterplan.html#jorge">Masterplan</a></nav><!--/atlasnav--></body></html>
